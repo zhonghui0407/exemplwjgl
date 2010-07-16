@@ -2,6 +2,7 @@ package fcampos.rawengine3D.loader;
 
 import java.io.*;
 
+import fcampos.rawengine3D.io.LEDataInputStream;
 import fcampos.rawengine3D.model.*;
 import fcampos.rawengine3D.MathUtil.*;
 //This file handles all of the code needed to load a .3DS file.
@@ -69,29 +70,20 @@ public void import3DS(T3dModel pModel, String strFileName) throws IOException
 	File file = new File(strFileName);
 	System.out.println(file.getAbsolutePath());
 	FileInputStream inStream = new FileInputStream(file);
-    BufferedInputStream in = new BufferedInputStream(inStream);
-    try {
-    	// Once we have the file open, we need to read the very first data chunk
-    	// to see if it's a 3DS file.  That way we don't read an invalid file.
-    	// If it is a 3DS file, then the first chunk ID will be equal to PRIMARY (some hex num)
+	LEDataInputStream in = new LEDataInputStream(inStream);
+	
+    // Read the first chuck of the file to see if it's a 3DS file
+	readChunk(m_CurrentChunk, in);
 
-    	// Read the first chuck of the file to see if it's a 3DS file
-    	readChunk(m_CurrentChunk, in);
-
-    	// Make sure this is a 3DS file
-        if (m_CurrentChunk.getID() != PRIMARY)
-    	{
-    		System.out.println("Unable to load PRIMARY chuck from file: " + strFileName);
-    		
-    	}
-        //while (!endOfStream) {
-        //    readNextJunk(in); // will load into currentObject
-       // }
-    }
-    catch(IOException e)
+	// Make sure this is a 3DS file
+	if (m_CurrentChunk.getID() != PRIMARY)
 	{
-		e.getMessage();
+		System.out.println("Unable to load PRIMARY chuck from file: " + strFileName);
+		
 	}
+	//while (!endOfStream) {
+	//    readNextJunk(in); // will load into currentObject
+      // }
     
 	
 	// Now we actually start reading in the data.  ProcessNextChunk() is recursive
@@ -114,7 +106,7 @@ public void import3DS(T3dModel pModel, String strFileName) throws IOException
 /////
 ///////////////////////////////// PROCESS NEXT CHUNK\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void processNextChunk(T3dModel pModel, TChunk pPreviousChunk, InputStream in) throws IOException
+public void processNextChunk(T3dModel pModel, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
 {
 	T3dObject newObject;					// This is used to add to our object list
 	TMaterialInfo newTexture;				// This is used to add to our material list
@@ -260,7 +252,7 @@ public void processNextChunk(T3dModel pModel, TChunk pPreviousChunk, InputStream
 /////
 ///////////////////////////////// PROCESS NEXT OBJECT CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void processNextObjectChunk(T3dModel pModel, T3dObject pObject, TChunk pPreviousChunk, InputStream in) throws IOException
+public void processNextObjectChunk(T3dModel pModel, T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
 {
 	
 
@@ -336,7 +328,7 @@ public void processNextObjectChunk(T3dModel pModel, T3dObject pObject, TChunk pP
 /////
 ///////////////////////////////// PROCESS NEXT MATERIAL CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void processNextMaterialChunk(T3dModel pModel, TChunk pPreviousChunk, InputStream in) throws IOException
+public void processNextMaterialChunk(T3dModel pModel, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
 {
 	
 
@@ -407,16 +399,24 @@ public void processNextMaterialChunk(T3dModel pModel, TChunk pPreviousChunk, Inp
 /////
 ///////////////////////////////// READ CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void readChunk(TChunk pChunk, InputStream in) throws IOException
+public void readChunk(TChunk pChunk, LEDataInputStream in)
 {
 	// This reads the chunk ID which is 2 bytes.
 	// The chunk ID is like OBJECT or MATERIAL.  It tells what data is
 	// able to be read in within the chunks section.  
 	
-	pChunk.setID(readData(in, Short.SIZE/8));
-    pChunk.setLength(readData(in, Integer.SIZE/8));
+	//pChunk.setID(readData(in, Short.SIZE/8));
+    //pChunk.setLength(readData(in, Integer.SIZE/8));
+   // pChunk.setBytesRead(6);
+	try{
+	//	System.out.println(in.readLEShort());
+    pChunk.setID(in.readLEShort());
+    pChunk.setLength(in.readLEInt());
     pChunk.setBytesRead(6);
-    endOfStream = pChunk.getID() < 0;
+	}catch (Exception e) {
+		endOfStream = true;
+	}
+    
 	//pChunk->bytesRead = fread(&pChunk->ID, 1, 2, m_FilePointer);
 
 	// Then, we read the length of the chunk which is 4 bytes.
@@ -432,7 +432,7 @@ public void readChunk(TChunk pChunk, InputStream in) throws IOException
 /////
 ///////////////////////////////// READ COLOR \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void readColorChunk(TMaterialInfo pMaterial, TChunk pChunk, InputStream in) throws IOException
+public void readColorChunk(TMaterialInfo pMaterial, TChunk pChunk, LEDataInputStream in) throws IOException
 {
 	// Read the color chunk info
 	readChunk(m_TempChunk, in);
@@ -456,7 +456,7 @@ public void readColorChunk(TMaterialInfo pMaterial, TChunk pChunk, InputStream i
 /////
 ///////////////////////////////// READ VERTEX INDECES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void readVertexIndices(T3dObject pObject, TChunk pPreviousChunk, InputStream in) throws IOException
+public void readVertexIndices(T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
 {
 	 int index = 0;					// This is used to read in the current face index
 
@@ -503,7 +503,7 @@ public void readVertexIndices(T3dObject pObject, TChunk pPreviousChunk, InputStr
 /////
 ///////////////////////////////// READ UV COORDINATES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void readUVCoordinates(T3dObject pObject, TChunk pPreviousChunk, InputStream in) throws IOException
+public void readUVCoordinates(T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
 {
 	// In order to read in the UV indices for the object, we need to first
 	// read in the amount there are, then read them in.
@@ -524,8 +524,8 @@ public void readUVCoordinates(T3dObject pObject, TChunk pPreviousChunk, InputStr
 	for(int i = 0; i < pObject.getNumTexcoords(); i++)
 	{
 		
-		pObject.getTexcoords(i).s = readFloat(in);
-		pObject.getTexcoords(i).t = readFloat(in);
+		pObject.getTexcoords(i).s = in.readLEFloat();
+		pObject.getTexcoords(i).t = in.readLEFloat();
 		
 	}	
 	
@@ -538,7 +538,7 @@ public void readUVCoordinates(T3dObject pObject, TChunk pPreviousChunk, InputStr
 /////
 ///////////////////////////////// READ VERTICES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void readVertices(T3dObject pObject, TChunk pPreviousChunk, InputStream in) throws IOException
+public void readVertices(T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
 {
 	// Like most chunks, before we read in the actual vertices, we need
 	// to find out how many there are to read in.  Once we have that number
@@ -569,9 +569,9 @@ public void readVertices(T3dObject pObject, TChunk pPreviousChunk, InputStream i
 	for(int i = 0; i < pObject.getNumVert(); i++)
 	{
 		
-		pObject.getVertices(i).x = readFloat(in);
-		pObject.getVertices(i).z = - readFloat(in);
-		pObject.getVertices(i).y = readFloat(in);
+		pObject.getVertices(i).x = in.readLEFloat();
+		pObject.getVertices(i).z = - in.readLEFloat();
+		pObject.getVertices(i).y = in.readLEFloat();
 		
 		
 		
@@ -586,7 +586,7 @@ public void readVertices(T3dObject pObject, TChunk pPreviousChunk, InputStream i
 /////
 ///////////////////////////////// READ OBJECT MATERIAL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPreviousChunk, InputStream in) throws IOException
+public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
 {
 	String strMaterial;			// This is used to hold the objects material name
 	
@@ -644,7 +644,7 @@ public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPrevi
 	
 	// P R I V A T E   M E T H O D S
 
-    private String readString(InputStream in) throws IOException {
+    private String readString(LEDataInputStream in) throws IOException {
         String result = new String();
         byte inByte;
         while ( (inByte = (byte) in.read()) != 0)
@@ -652,15 +652,9 @@ public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPrevi
         return result;
     }
 
-    private int readInt(InputStream in) throws IOException {
-        return in.read() | (in.read() << 8) | (in.read() << 16) | (in.read() << 24);
-    }
-    /*
-    private int readShort(InputStream in) throws IOException {
-        return (in.read() | (in.read() << 8));
-    }
-    */
-    private int readData(InputStream in, int bytes) throws IOException {
+   
+    
+    private int readData(LEDataInputStream in, int bytes) throws IOException {
         int temp = 0;
     	for(int i = 0; i < bytes; i++)
         {
@@ -669,17 +663,14 @@ public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPrevi
     	return temp;
     }
 
-    private float readFloat(InputStream in) throws IOException {
-        return Float.intBitsToFloat(readInt(in));
-    }
-    
-    private void skipJunk(TChunk tempChunk, InputStream in) throws IOException, OutOfMemoryError {
+  
+    private void skipJunk(TChunk tempChunk, DataInputStream in) throws IOException, OutOfMemoryError {
         for (int i = 0; (i < tempChunk.getLength() - tempChunk.getBytesRead()) && (!endOfStream); i++) {
             endOfStream = in.read() < 0;
         }
     }
     /*
-    private void skipJunk1(TChunk tempChunk, InputStream in) throws IOException, OutOfMemoryError {
+    private void skipJunk1(TChunk tempChunk, DataInputStream in) throws IOException, OutOfMemoryError {
     	endOfStream = ((int)in.skip(tempChunk.getLength() - tempChunk.getBytesRead()) < 0);
     	
     	

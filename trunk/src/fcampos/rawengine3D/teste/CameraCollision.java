@@ -62,7 +62,7 @@ public class CameraCollision extends GameCore {
     Sphere pObj;
 
     // This is how fast our camera moves
-    float SPEED	=1.0f;
+    float SPEED	=5.0f;
     
  
 
@@ -120,8 +120,7 @@ public class CameraCollision extends GameCore {
     
     private CameraQuaternion camera;
     
-      private boolean fullscreen;
-   
+      
     public static Vector3f velocity = new Vector3f();
     
        
@@ -132,6 +131,8 @@ public class CameraCollision extends GameCore {
     	//g_World.carregaObjeto("arenaobj_Scene2.obj", true, false, g_World);
     	//g_World.carregaObjeto("arenaobj_10.obj", true, false, g_World);
     	
+    	//g_World.carregaObjeto(g_World, "2.3ds");
+    	    	
     	//g_World.carregaObjeto(g_World, "Jupiter2_CrashlandModel.3ds");
     	g_World.carregaObjeto(g_World, "Park.3ds");
     	//g_World.carregaObjeto(g_World, "collision_arena.3DS");
@@ -166,7 +167,7 @@ public class CameraCollision extends GameCore {
 
 		// Posiciona e orienta observador
 		
-		camera.setPosition(1f, 3f, -5f,	0, 0, 0,	0, 1, 0);
+		camera.setPosition(2f, 3.3f, -5f,	0, 0, 0,	0, 1, 0);
 		camera.setFixedAxis(CameraQuaternion.Y_AXIS);
 		
     	
@@ -212,8 +213,7 @@ public class CameraCollision extends GameCore {
     	
     	LoadWorld();
     	
-        inputManager = new InputManager();
-      
+           
         createGameActions();
         
         posLuz1F = Conversion.allocFloats(posLuz1);
@@ -258,8 +258,8 @@ public class CameraCollision extends GameCore {
 
     
 		
-        paused = false;
-        fullscreen = false;
+    	createGameActions();
+        
               
     	
     	
@@ -268,70 +268,52 @@ public class CameraCollision extends GameCore {
  
 
 
-    public void setFullScreen(boolean p)
-    {
-        if (fullscreen != p)
-        {
-            this.fullscreen = p;
-            screen.setFullScreen(fullscreen);
-        }
+   
 
-     }
-    
-    public boolean isFullScreen()
+    public void update(float elapsedTime)
     {
-        return fullscreen;
-    }
-
-    public boolean isPaused()
-    {
-        return paused;
-    }
-
-    public void setPaused(boolean p)
-    {
-        if (paused != p)
-        {
-            this.paused = p;
-            
-        }
-
-     }
-
-    public void update()
-    {
-    	
-    	
     	checkSystemInput();
-
+    	
+    	    	
         if(!isPaused())
         {
         	
-            checkGameInput();
+        	checkGameInput();
             camera.update();           
         }
     }
 
-        public void checkSystemInput()
-        {
-            if (pause.isPressed())
-            {
-                setPaused(!isPaused());
-                camera.setViewByMouse(!isPaused());
-                Mouse.setGrabbed(!isPaused());
-            }
-            if (exit.isPressed())
-            {
-                stop();
-            }
-        }
+       
 
-        public void checkGameInput()
+    protected void checkGameInput()
         {
-        	
+        	super.checkGameInput(); // Checamos se as teclas foram pressionadas ou não.
         	
         	// Once we have the frame interval, we find the current speed
         	float speed = (float)(SPEED * FPSCounter.frameInterval);
+        	
+        	if (moveLeft.isPressed())
+            {
+            	camera.strafe(-speed );
+            	
+            }
+
+            if (moveRight.isPressed())
+            {
+            	
+            	camera.strafe(speed);	
+            }
+           
+            if (moveUp.isPressed())
+            {
+            	camera.move(speed );
+            	
+            }
+            if (moveDown.isPressed())
+            {
+            	
+            	camera.move(-speed);
+            }
         	
         	if (run.isPressed())
         	{
@@ -408,8 +390,8 @@ public class CameraCollision extends GameCore {
             	g_bDisplayNodes = !g_bDisplayNodes;
             }
              	
-            if ( !TOctree.g_bObjectColliding )
-        		velocity.y += -((GRAVITY * GRAVITY) * FPSCounter.frameInterval);
+            //if ( !TOctree.g_bObjectColliding )
+        	//	velocity.y += -((GRAVITY * GRAVITY) * FPSCounter.frameInterval);
             
            // camera.getPosition().y += velocity.y * elapsedTime;
            // camera.getView().y += velocity.y * elapsedTime;
@@ -426,7 +408,7 @@ public class CameraCollision extends GameCore {
         		velocity.y = 0;
         }
 
-        public void render() 
+        protected void render() 
         {
         	
 
@@ -492,17 +474,19 @@ public class CameraCollision extends GameCore {
             
         
        
-      public void createGameActions()
+      protected void createGameActions()
         {
-            moveLeft = new GameAction("moveLeft");
-            moveRight = new GameAction("moveRight");
-            moveUp = new GameAction("moveUp");
-            moveDown = new GameAction("moveDown");
-            zoomIn = new GameAction("zoomIn");
-            zoomOut = new GameAction("zoomIn");
-            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            pause = new GameAction("pause", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            run = new GameAction("run");
+    	  	super.createGameActions();
+    	  
+            moveLeft = new GameAction("moveLeft",GameAction.NORMAL, Keyboard.KEY_LEFT);
+            moveRight = new GameAction("moveRight",GameAction.NORMAL, Keyboard.KEY_RIGHT);
+            moveUp = new GameAction("moveUp",GameAction.NORMAL, Keyboard.KEY_UP);
+            moveDown = new GameAction("moveDown",GameAction.NORMAL, Keyboard.KEY_DOWN);
+            zoomIn = new GameAction("zoomIn",GameAction.NORMAL, Keyboard.KEY_W);
+            zoomOut = new GameAction("zoomOut", GameAction.NORMAL, Keyboard.KEY_S);
+            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_ESCAPE);
+            pause = new GameAction("pause", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_P);
+            run = new GameAction("run", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_LSHIFT);
             left = new GameAction("left");
             enter = new GameAction("enter", GameAction.DETECT_INITIAL_PRESS_ONLY);
             debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY);
@@ -512,7 +496,7 @@ public class CameraCollision extends GameCore {
             right = new GameAction("right");
             fog = new GameAction("fog", GameAction.DETECT_INITIAL_PRESS_ONLY);
             
-            
+            /*
             
             inputManager.mapToKey(exit, Keyboard.KEY_ESCAPE);
             inputManager.mapToKey(pause, Keyboard.KEY_P);
@@ -534,7 +518,7 @@ public class CameraCollision extends GameCore {
             inputManager.mapToKey(right, Keyboard.KEY_D);
             inputManager.mapToKey(run,Keyboard.KEY_LSHIFT);
             inputManager.mapToKey(fog, Keyboard.KEY_F);
-            
+            */
             
            
         }
