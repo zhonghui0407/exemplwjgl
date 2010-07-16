@@ -2,13 +2,13 @@ package fcampos.rawengine3D.loader;
 
 public class TChunk {
 
-	    private int ID;					// The chunk's ID		
+	    private char ID;					// The chunk's ID		
 		private int length;					// The length of the chunk
 		private int bytesRead;					// The amount of bytes read within that chunk
 		
 		public TChunk()
 		{
-			setID(0);
+			setID('\u0000');
 			setLength(0);
 			setBytesRead(0);
 		}
@@ -23,14 +23,14 @@ public class TChunk {
 		/**
 		 * @param iD the iD to set
 		 */
-		public void setID(int ID) {
+		public void setID(char ID) {
 			this.ID = ID;
 		}
 
 		/**
 		 * @return the iD
 		 */
-		public int getID() {
+		public char getID() {
 			return ID;
 		}
 

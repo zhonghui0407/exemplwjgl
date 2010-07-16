@@ -3,134 +3,200 @@ package fcampos.rawengine3D.input;
 
 import org.lwjgl.input.Keyboard;
 
+
+public class GameAction {
+
 /**
- *
- * @author Fabio
+	Comportamento "Normal". O método isPressed() retornará verdadeiro enquanto 
+	a tecla estiver pressionada.
+*/
+public static final int NORMAL = 0;
+
+/**
+	Comportamento "Só Detectar o Pressionamento Inicial". O método isPressed() retornará verdadeiro somente 
+	após a tecla ser pressionada pela primeira vez, e não novamente até que a tecla seja solta 
+	e pressionada novamente.
+*/
+public static final int DETECT_INITIAL_PRESS_ONLY = 1;
+
+/**
+ * Variáveis constantes representando os possíveis estados de uma tecla.
  */
-	public class GameAction {
+private static final int STATE_RELEASED = 0;
+private static final int STATE_PRESSED = 1;
+private static final int STATE_WAITING_FOR_RELEASE = 2;
 
-    /**
-Normal behavior. The isPressed() method returns true
-as long as the key is held down.
+
+private String name; // Nome da ação que a tecla representará
+
+private int behavior; // Comportamento da ação
+
+private int amount; // Quantidade que poderá ser usada para movimentação com mouse
+private int state;  // Estado da tecla
+private int keyCode; // Código da tecla.
+
+
+// Inicia a ação com compartamento padrão(NORMAL)
+public GameAction(String name)
+{
+    this(name, NORMAL);
+}
+
+
+/**
+ *  Inicia a ação com compartamento passado pelo usuário e reinicia o estado da tecla e quantidade de quanto ela ficou
+ * 	pressionada
+ */
+
+public GameAction(String name, int behavior)
+{
+    this.name = name;
+    this.behavior = behavior;
+    reset();
+}
+
+
+/**
+ * Faz mesmo procedimento do construtor acima e configura a tecla que será utilizada para a ação.
+ */
+public GameAction(String name, int behavior, int keyCode)
+{
+	this(name, behavior);
+    setKeyCode(keyCode);
+}
+
+/**
+ *  Retorna o nome da ação.
+ */
+public String getName()
+{
+    return name;
+}
+
+/**
+ *  Define qual tecla será utilizada para a ação
+ */
+public void setKeyCode(int keyCode)
+{
+    this.keyCode = keyCode;
+}
+
+/**
+ *  Retorna o código da tecla
+ */
+public int getKeyCode()
+{
+    return keyCode;
+}
+
+/**
+ *  Retorna o nome da tecla
+ */
+public String getKeyName()
+{
+    return Keyboard.getKeyName(keyCode);
+}
+
+/**
+ Reinicia o estado da tecla e a quantidade que ela ficou pressionada
+ */
+public void reset()
+{
+    state = STATE_RELEASED;
+    amount = 0;
+}
+
+/**
+Este método é como se Apertasse a tecla e soltasse rapidamente. Mesma coisa que chamar press() seguido de release().
 */
-    public static final int NORMAL = 0;
+public synchronized void tap() 
+{
+	press();
+	release();
+}
 
-    /**
-Initial press behavior. The isPressed() method returns
-true only after the key is first pressed, and not again
-until the key is released and pressed again.
+/**
+Muda o estado para tecla pressionada.
 */
-    public static final int DETECT_INITIAL_PRESS_ONLY = 1;
+public synchronized void press()
+{
+    press(1);
+}
 
-    private static final int STATE_RELEASED = 0;
-    private static final int STATE_PRESSED = 1;
-    private static final int STATE_WAITING_FOR_RELEASE = 2;
 
-    private String name;
-    private int behavior;
-    private int amount;
-    private int state;
-    private int keyCode;
-
-    public GameAction(String name)
+/**
+Marca que a tecla foi pressionada à um determinado número de vezes, 
+ou que o mouse se moveu à uma determinada distância.
+*/
+public synchronized void press(int amount)
+{
+    if (state != STATE_WAITING_FOR_RELEASE)
     {
-        this(name, NORMAL);
+        this.amount += amount;
+        state = STATE_PRESSED;
     }
+}
 
-    public GameAction(String name, int behavior)
-    {
-        this.name = name;
-        this.behavior = behavior;
-        reset();
-    }
+/**
+Muda o estado para tecla solta.
+*/
+public synchronized void release()
+{
+   state = STATE_RELEASED;
+}
 
-    public String getName()
+/**
+Retorna se a tecla foi pressionada ou não
+desde a última verificação.
+*/
+public synchronized boolean isPressed()
+{
+    if (Keyboard.isKeyDown(keyCode))
     {
-        return name;
-    }
-
-    public void setKeyCode(int keyCode)
-    {
-        this.keyCode = keyCode;
-    }
-    
-    public int getKeyCode()
-    {
-        return keyCode;
-    }
-
-    public String getKeyName()
-    {
-        return Keyboard.getKeyName(keyCode);
-    }
-    
-    public void reset()
-    {
-        state = STATE_RELEASED;
-        amount = 0;
-    }
-
-    public synchronized void tap()
-    {
-        press();
+    	press();
+        if (getAmount() != 0)
+        {
+           	return true;
+        }else{
+            return false;
+             }
+    }else {
         release();
     }
+    return false;
+}
 
-    public synchronized void press()
-    {
-        press(1);
-    }
 
-    public synchronized void press(int amount)
+/**
+Para as teclas, este método retorna o número de vezes que a tecla 
+foi pressionada desde a última verificação.
+Para o movimento do mouse, este método retorna a distância
+que ele foi movido.
+*/
+public synchronized int getAmount()
+{
+    int retVal = amount;
+    if (retVal != 0)
     {
-        if (state != STATE_WAITING_FOR_RELEASE)
+        if (state == STATE_RELEASED)
         {
-            this.amount += amount;
-            state = STATE_PRESSED;
-        }
+            amount = 0;
+        } else if (behavior == DETECT_INITIAL_PRESS_ONLY)
+        	{
+            	state = STATE_WAITING_FOR_RELEASE;
+            	amount = 0;
+        	}
     }
+    return retVal;
+}
 
-    public synchronized void release()
-    {
-       state = STATE_RELEASED;
-    }
+/**
+ 	Método de Debug
+ */
 
-    public synchronized boolean isPressed()
-    {
-        if (Keyboard.isKeyDown(keyCode))
-        {
-        	press();
-            if (getAmount() != 0)
-            {
-               	return true;
-            }else{
-                return false;
-                }
-        }else {
-            release();
-        }
-        return false;
-    }
-    public synchronized int getAmount()
-    {
-        int retVal = amount;
-        if (retVal != 0)
-        {
-            if (state == STATE_RELEASED)
-            {
-                amount = 0;
-            } else if (behavior == DETECT_INITIAL_PRESS_ONLY)
-            {
-                state = STATE_WAITING_FOR_RELEASE;
-                amount = 0;
-            }
-        }
-        return retVal;
-    }
- 
-    @Override
-    public String toString()
-    {
-    	return (name + "- "+ state + "- "+ behavior);
-   }
+@Override
+public String toString()
+{
+	return (name + "- "+ state + "- "+ behavior);
+}
 }
