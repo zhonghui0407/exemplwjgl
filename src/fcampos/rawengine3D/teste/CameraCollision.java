@@ -1,5 +1,6 @@
 package fcampos.rawengine3D.teste;
 import fcampos.rawengine3D.input.*;
+import fcampos.rawengine3D.model.BoundingBox;
 import fcampos.rawengine3D.model.T3dModel;
 import fcampos.rawengine3D.resource.*;
 import fcampos.rawengine3D.gamecore.GameCore;
@@ -13,7 +14,6 @@ import java.nio.FloatBuffer;
 
 
 import org.lwjgl.input.*;
-import org.lwjgl.util.glu.Sphere;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -28,59 +28,31 @@ public class CameraCollision extends GameCore {
         new CameraCollision().run();
     }
     
-   
-    
- 
-
+  
  // Gravity: -9.8 Meters Per Second Squared normally.
     private static final float GRAVITY	= -15f;
     
  // We need to have a gravity and jump acceleration for our simple physics
    
     final static float kJumpAcceleration = 4;
-    
-    
-    
- // Our Global Friction.
-    public float g_fFriction = 4f;
-
-    // The Sine and Cosine Tables.
-    // We create a table of all possible values because the trig functions
-    // sin() and cos() are quite expensive, so, since we will only need 360
-    // degree's of precision, we precalculate and store these values in an array.
-    public float[] g_fSinTable = new float[360];
-    public float[] g_fCosTable = new float[360];
-
-    // The Time Elapsed since the last frame (in seconds).
-    public float g_fTimeLapsed = 0.0f;
-    
+      
     public Vector3f vIntersectionPt;
-    
-    
-
-    // A Quadric Object.
-    Sphere pObj;
-
-    // This is how fast our camera moves
-    float SPEED	=5.0f;
-    
  
-
+       // This is how fast our camera moves
+    float SPEED	=5.0f;
+  
     // Here we initialize our single Octree object.  This will hold all of our vertices
-    TOctree g_Octree = new TOctree();;
+    Octree octree = new Octree();
 
         
  // This will store our 3ds scene that we will pass into our octree
-    public T3dModel g_World = new T3dModel();
+    public T3dModel world = new T3dModel();
     
  // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
-    boolean g_bDisplayNodes = false;
-
-    
+    boolean displayNodes = false;
 
     // Variáveis para controle da projeção
-       
-    
+  
     public GameAction moveLeft;
     public GameAction moveRight;
     public GameAction moveUp;
@@ -88,7 +60,6 @@ public class CameraCollision extends GameCore {
     public GameAction zoomIn;
     public GameAction zoomOut;
     public GameAction exit;
-    public GameAction pause;
     public GameAction left;
     public GameAction enter;
     public GameAction debug;
@@ -100,62 +71,21 @@ public class CameraCollision extends GameCore {
     public GameAction run;
     
     public InputManager inputManager;
-    
-      
  
-      
-   
     private static final float LOW = 0.5f;
-       
-       
-    public boolean paused;
     
     private float luzAmb1[] = { 0.4f, 0.4f, 0.4f, 1f };	// luz ambiente
     private float luzDif1[] = { LOW, LOW, LOW, 1.0f };	// luz difusa
     private float luzEsp1[] = { 0.0f, 0.0f, 0.0f, 1.0f };	// luz especular
-    private float spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };	// luz especular
+    private float spec[] 	= { 1.0f, 1.0f, 1.0f, 1.0f };	// luz especular
     private float posLuz1[] = { 0, 10, 17f, 1 };	// posição da fonte de luz
        
     private FloatBuffer posLuz1F;	// posição da fonte de luz
     
     private CameraQuaternion camera;
     
-      
     public static Vector3f velocity = new Vector3f();
-    
-       
-    
-    public void LoadWorld()throws IOException
-    {
-    	// Here we load the world from a .3ds file
-    	//g_World.carregaObjeto("arenaobj_Scene2.obj", true, false, g_World);
-    	//g_World.carregaObjeto("arenaobj_10.obj", true, false, g_World);
-    	
-    	//g_World.carregaObjeto(g_World, "2.3ds");
-    	    	
-    	//g_World.carregaObjeto(g_World, "Jupiter2_CrashlandModel.3ds");
-    	g_World.carregaObjeto(g_World, "Park.3ds");
-    	//g_World.carregaObjeto(g_World, "collision_arena.3DS");
-    	//g_World.carregaObjeto(g_World, "car.3ds");
-    	
-    	
-    	
-    	g_Octree.getSceneDimensions(g_World);
-    	
-    	
-    	
-    	int TotalTriangleCount = g_Octree.getSceneTriangleCount(g_World);
-    	g_Octree.createNode(g_World, TotalTriangleCount, g_Octree.getCenter(), g_Octree.getWidth());
-    	g_Octree.setDisplayListID( glGenLists(TOctree.g_EndNodeCount) );
-    	g_Octree.createDisplayList(g_Octree, g_World, g_Octree.getDisplayListID());
-
-    	// Hide our cursor since we are using first person camera mode
-    	 	Mouse.setGrabbed(true);
-    }
-    
-    
-    
-    
+ 
     @Override
     public void init() throws IOException
     {
@@ -167,7 +97,7 @@ public class CameraCollision extends GameCore {
 
 		// Posiciona e orienta observador
 		
-		camera.setPosition(2f, 3.3f, -5f,	0, 0, 0,	0, 1, 0);
+		camera.setPosition(0f, 15f, 10f,	0, 15, 0,	0, 1, 0);
 		camera.setFixedAxis(CameraQuaternion.Y_AXIS);
 		
     	
@@ -177,45 +107,40 @@ public class CameraCollision extends GameCore {
     	
     	
     	float df=100.0f;
+    	
     	// We need to specify our camera's radius in the beginning, I chose 1.
     	camera.setRadius(1.5f);
+  
+    	Octree.debug = new BoundingBox();
+    	Octree.debug.setColor(BoundingBox.YELLOW);
     	
-    	
-              
-     
-       
-          	
-    	TOctree.g_Debug = g_Octree.new Debug();
     	// Turn lighting on initially
-    	TOctree.g_bLighting     = true;	
+    	Octree.turnLighting     = true;	
 
     	// The current amount of end nodes in our tree (The nodes with vertices stored in them)
-    	TOctree.g_EndNodeCount = 0;
+    	Octree.totalNodesCount = 0;
 
     	// This stores the amount of nodes that are in the frustum
-    	TOctree.g_TotalNodesDrawn = 0;
+    	Octree.totalNodesDrawn = 0;
 
     	// The maximum amount of triangles per node.  If a node has equal or less 
     	// than this, stop subdividing and store the face indices in that node
-    	TOctree.g_MaxTriangles = 800;
+    	Octree.maxTriangles = 800;
 
     	// The maximum amount of subdivisions allowed (Levels of subdivision)
-    	TOctree.g_MaxSubdivisions = 4;
+    	Octree.maxSubdivisions = 4;
 
     	// The number of Nodes we've checked for collision.
-    	TOctree.g_iNumNodesCollided = 0;
+    	Octree.numNodesCollided = 0;
 
     	// Wheter the Object is Colliding with anything in the World or not.
-    	TOctree.g_bObjectColliding = false;
+    	//TOctree.setObjectColliding(true);
 
     	// Wheter we test the whole world for collision or just the nodes we are in.
-    	TOctree.g_bOctreeCollisionDetection = true;
+    	Octree.octreeCollisionDetection = true;
     	
     	LoadWorld();
-    	
-           
-        createGameActions();
-        
+ 
         posLuz1F = Conversion.allocFloats(posLuz1);
         
      // Turn the color back to blue'ish purple and disable fog
@@ -266,7 +191,33 @@ public class CameraCollision extends GameCore {
     }
     
  
+    public void LoadWorld()throws IOException
+    {
+    	// Here we load the world from a .3ds file
+    	//g_World.carregaObjeto("arenaobj_Scene2.obj", true, false, g_World);
+    	//g_World.carregaObjeto("arenaobj_10.obj", true, false, g_World);
+    	
+    	//g_World.carregaObjeto(g_World, "2.3ds");
+    	    	
+    	//g_World.carregaObjeto(g_World, "Jupiter2_CrashlandModel.3ds");
+    	world.load("Park.3ds");
+    	//g_World.carregaObjeto(g_World, "collision_arena.3DS");
+    	//g_World.carregaObjeto(g_World, "car.3ds");
+    	
+    	
+    	
+    	octree.getSceneDimensions(world);
+  
+    	int TotalTriangleCount = octree.getSceneTriangleCount(world);
+    	octree.createNode(world, TotalTriangleCount, octree.getCenter(), octree.getWidth());
+    	octree.setDisplayListID(glGenLists(Octree.totalNodesCount) );
+    	octree.createDisplayList(octree, world, octree.getDisplayListID());
 
+    	// Hide our cursor since we are using first person camera mode
+    	Mouse.setGrabbed(true);
+    }
+    
+    
 
    
 
@@ -278,19 +229,20 @@ public class CameraCollision extends GameCore {
         if(!isPaused())
         {
         	
-        	checkGameInput();
+        	checkGameInput(elapsedTime);
             camera.update();           
         }
     }
 
        
 
-    protected void checkGameInput()
+    protected void checkGameInput(float elapsedTime)
         {
+    		//System.out.println(FPSCounter.frameInterval);
         	super.checkGameInput(); // Checamos se as teclas foram pressionadas ou não.
         	
         	// Once we have the frame interval, we find the current speed
-        	float speed = (float)(SPEED * FPSCounter.frameInterval);
+        	float speed = (SPEED * elapsedTime);
         	
         	if (moveLeft.isPressed())
             {
@@ -323,14 +275,16 @@ public class CameraCollision extends GameCore {
         
         	if (drawMode.isPressed())
         	{
-        		TOctree.drawMode = !TOctree.drawMode;
-        		if(TOctree.drawMode)
-        		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	// Render the triangles in fill mode		
-    		
-    		else {
-    			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	// Render the triangles in wire frame mode
-    		}
-        		g_Octree.createDisplayList(g_Octree, g_World, g_Octree.getDisplayListID());
+        		octree.setRenderMode(!octree.isRenderMode());
+        		octree.setObjectColliding(false);
+        		if(octree.isRenderMode())
+        		{
+        			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	// Render the triangles in fill mode
+        		}else {
+    				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	// Render the triangles in wire frame mode
+        		}
+        		
+        		octree.createDisplayList(octree, world, octree.getDisplayListID());
         	}
         	
         	if (fullScreen.isPressed())
@@ -340,7 +294,7 @@ public class CameraCollision extends GameCore {
             
             if(enter.isPressed())
             {
-            	TOctree.g_bOctreeCollisionDetection = !TOctree.g_bOctreeCollisionDetection;
+            	Octree.octreeCollisionDetection = !Octree.octreeCollisionDetection;
             }
           
             if (left.isPressed())
@@ -387,31 +341,34 @@ public class CameraCollision extends GameCore {
             
             if(debug.isPressed())
             {
-            	g_bDisplayNodes = !g_bDisplayNodes;
+            	displayNodes = !displayNodes;
             }
              	
-            //if ( !TOctree.g_bObjectColliding )
-        	//	velocity.y += -((GRAVITY * GRAVITY) * FPSCounter.frameInterval);
             
+           if ( !octree.isObjectColliding() )
+        		velocity.y +=  (GRAVITY * elapsedTime);
+           
            // camera.getPosition().y += velocity.y * elapsedTime;
            // camera.getView().y += velocity.y * elapsedTime;
-           camera.setPosition(VectorMath.add(camera.getPosition(),VectorMath.multiply(velocity, FPSCounter.frameInterval)));
-            camera.setView(VectorMath.add(camera.getView(),VectorMath.multiply(velocity, FPSCounter.frameInterval)));
-            
+           camera.setPosition(VectorMath.add(camera.getPosition(),VectorMath.multiply(velocity, elapsedTime)));
+           camera.setView(VectorMath.add(camera.getView(),VectorMath.multiply(velocity, elapsedTime)));
+           //System.out.println(elapsedTime);
        
-        	TOctree.g_bObjectColliding = false;
+        	octree.setObjectColliding(false);
 
         	// Reset the Nodes collided to zero so we can start with a fresh count.
-        	TOctree.g_iNumNodesCollided = 0;
+        	Octree.numNodesCollided = 0;
         	
-        	if (g_Octree.checkCameraCollision(g_Octree, g_World, camera))
+        	if (octree.checkCameraCollision(octree, world, camera))
+        	{
         		velocity.y = 0;
+        	}
+        	
         }
 
         protected void render() 
         {
-        	
-
+    
         	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 
         	glLoadIdentity();// To calculate our collision detection with the camera, it just takes one function
@@ -420,12 +377,7 @@ public class CameraCollision extends GameCore {
         	// Each frame we calculate the new frustum.  In reality you only need to
         	// calculate the frustum when we move the camera.
         	//
-        	
-        	
-        	
-        	
-        	
-        	
+    
         	camera.look();	
         	GameCore.gFrustum.calculateFrustum();
         	// Agora posiciona demais fontes de luz
@@ -437,7 +389,7 @@ public class CameraCollision extends GameCore {
         	
         	
         	// Initialize the total node count that is being draw per frame
-        	TOctree.g_TotalNodesDrawn = 0;
+        	Octree.totalNodesDrawn = 0;
 
         	glPushMatrix();
         		// Here we draw the octree, starting with the root node and recursing down each node.
@@ -445,15 +397,16 @@ public class CameraCollision extends GameCore {
         		// just store the world in the root node and not have to keep the original data around.
         		// This is up to you.  I like this way better because it's easy, though it could be 
         		// more error prone.
-        		g_Octree.drawOctree(g_Octree, g_World );
+        		octree.drawOctree(octree, world );
         	glPopMatrix();
 
         	// Render the cubed nodes to visualize the octree (in wire frame mode)
-        	if( g_bDisplayNodes ){
-        		//TOctree.g_Debug.renderDebugLines();
-        		for(int i=0; i < g_World.getNumOfObjects(); i++)
+        	if( displayNodes )
+        	{
+        		Octree.debug.drawBoundingBox();
+        		for(int i=0; i < world.getNumOfObjects(); i++)
         		{
-        			g_World.getPObject(i).renderBoundingBox();
+        			world.getObject(i).drawBoundingBox();
         		}
         	}
         	
@@ -464,11 +417,11 @@ public class CameraCollision extends GameCore {
         	
         	//screen.leaveOrtho();
         	//FPSCounter.get();
-        	screen.setTitle("Triangles: " + TOctree.g_MaxTriangles + "  -Total Draw: " + TOctree.g_TotalNodesDrawn + "  -Subdivisions: " +  TOctree.g_MaxSubdivisions +
-        			 "  -FPS: " + FPSCounter.get() + "  -Node Collisions: " + TOctree.g_iNumNodesCollided + "  -Object Colliding? " +
-        				   TOctree.g_bObjectColliding ); 
+        	screen.setTitle("Triangles: " + Octree.maxTriangles + "  -Total Draw: " + Octree.totalNodesDrawn +
+        					"  -Subdivisions: " +  Octree.maxSubdivisions + "  -FPS: " + FPSCounter.get() + "  -Node Collisions: " +
+        					Octree.numNodesCollided + "  -Object Colliding? " +	octree.isObjectColliding() ); 
         	
-        	//System.out.println(FPSCounter.frameInterval);
+        	
         	
         }
             
@@ -485,16 +438,17 @@ public class CameraCollision extends GameCore {
             zoomIn = new GameAction("zoomIn",GameAction.NORMAL, Keyboard.KEY_W);
             zoomOut = new GameAction("zoomOut", GameAction.NORMAL, Keyboard.KEY_S);
             exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_ESCAPE);
-            pause = new GameAction("pause", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_P);
+            
             run = new GameAction("run", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_LSHIFT);
-            left = new GameAction("left");
-            enter = new GameAction("enter", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            saveCamera = new GameAction("saveCamera", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            right = new GameAction("right");
-            fog = new GameAction("fog", GameAction.DETECT_INITIAL_PRESS_ONLY);
+            left = new GameAction("left",GameAction.NORMAL, Keyboard.KEY_A);
+            
+            enter = new GameAction("enter", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_RETURN);
+            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_SPACE);
+            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F1);
+            saveCamera = new GameAction("saveCamera", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F11);
+            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
+            right = new GameAction("right",GameAction.NORMAL, Keyboard.KEY_D);
+            fog = new GameAction("fog", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F);
             
             /*
             

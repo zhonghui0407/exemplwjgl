@@ -38,7 +38,7 @@ public abstract class FisicaGameCore extends GameCore {
 				elapsedTime = (float)(Sys.getTime() - currTime);
 				
 				long ticks = Sys.getTimerResolution();
-								    	
+				System.out.println(ticks);				    	
 		    	float dt = elapsedTime / ticks;							// Let's Convert Milliseconds To Seconds
 		    	
 		    	if (dt == 0 || dt < 0)

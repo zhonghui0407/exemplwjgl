@@ -21,7 +21,7 @@ public class T3dObject {
 	protected int numDisplayList;				// display list, se houver
 	
 	protected ArrayList<TFace> faces;
-	protected ArrayList<Integer> pIndices;
+	protected ArrayList<Integer> indices;
 	
 	protected String name;
 	
@@ -33,14 +33,12 @@ public class T3dObject {
 	protected Vector3f[] normal;
 	protected TextureCoord[] texCoords;
 	
-	protected ArrayList<Vector3f> m_vLines;
-	
-	
-	
 	protected String drawMode;
 	
 	public final static float branco[] = { 1.0f, 1.0f, 1.0f, 1.0f };	// constante para cor branca
 	public final static FloatBuffer br = Conversion.allocFloats(branco);
+	
+	private BoundingBox boundingBox;
 	
 	
 	
@@ -281,6 +279,8 @@ public class T3dObject {
 			}
 			else
 			{
+				dimMin.x = Math.min(dimMin.x, getVertices(i).x);
+				
 				if(getVertices(i).x < dimMin.x) dimMin.x = getVertices(i).x;
 				if(getVertices(i).y < dimMin.y) dimMin.y = getVertices(i).y;
 				if(getVertices(i).z < dimMin.z) dimMin.z = getVertices(i).z;
@@ -293,10 +293,11 @@ public class T3dObject {
 		setDimMax(dimMax);
 		setDimMin(dimMin);
 		setCenter();
-		boundingBox();
-		
+		boundingBox = new BoundingBox();
+		boundingBox.createBoundingBox(dimMin, dimMax);
 	}
 	
+	/*
 	protected void boundingBox()
 	{
 		m_vLines = new ArrayList<Vector3f>();
@@ -354,6 +355,7 @@ public class T3dObject {
 		// Store the front left line of the box
 		m_vLines.add(vTopRightFront);			m_vLines.add(vBottomRightFront);
 	}
+	
 
 	public void renderBoundingBox()			// This renders all of the lines
 	{
@@ -376,6 +378,15 @@ public class T3dObject {
 		// If we have lighting turned on, turn the lights back on
 		//if(TOctree.g_bLighting) 
 			glEnable(GL_LIGHTING);
+	}
+	*/
+	
+	public void drawBoundingBox()
+	{
+		if(boundingBox != null)
+		{
+			boundingBox.drawBoundingBox();
+		}
 	}
 
 	
@@ -496,7 +507,7 @@ public class T3dObject {
 				//int mat = obj.getFace(i).getIndMat();
 				glDisable(GL_COLOR_MATERIAL);
 				
-				glMaterial(GL_FRONT, GL_AMBIENT, world.getPMaterials(getFace(i).getIndMat()).getKd()); 
+				glMaterial(GL_FRONT, GL_AMBIENT, world.getMaterials(getFace(i).getIndMat()).getKd()); 
 				
 				
 				// Se a face tem textura, ignora a cor difusa do material
@@ -507,10 +518,10 @@ public class T3dObject {
 				}
 				else
 					{
-						glMaterial(GL_FRONT,GL_DIFFUSE, world.getPMaterials(getFace(i).getIndMat()).getKd());
-						glMaterial(GL_FRONT,GL_SPECULAR, world.getPMaterials(getFace(i).getIndMat()).getKs());
-						glMaterial(GL_FRONT,GL_EMISSION, world.getPMaterials(getFace(i).getIndMat()).getKe());
-						glMaterialf(GL_FRONT,GL_SHININESS, world.getPMaterials(getFace(i).getIndMat()).getSpec());
+						glMaterial(GL_FRONT,GL_DIFFUSE, world.getMaterials(getFace(i).getIndMat()).getKd());
+						glMaterial(GL_FRONT,GL_SPECULAR, world.getMaterials(getFace(i).getIndMat()).getKs());
+						glMaterial(GL_FRONT,GL_EMISSION, world.getMaterials(getFace(i).getIndMat()).getKe());
+						glMaterialf(GL_FRONT,GL_SHININESS, world.getMaterials(getFace(i).getIndMat()).getSpec());
 					}
 			}
 			
@@ -664,20 +675,20 @@ public class T3dObject {
 	/**
 	 * @param pIndices the pIndices to set
 	 */
-	public void setPIndices(ArrayList<Integer> pIndices) {
-		this.pIndices = pIndices;
+	public void setIndices(ArrayList<Integer> pIndices) {
+		this.indices = pIndices;
 	}
 	
-	public void setPIndices(int pIndices) {
-		this.pIndices.add(pIndices);
+	public void setIndices(int pIndices) {
+		this.indices.add(pIndices);
 	}
 	
-	public void setPIndices(int index, int pIndices) {
-		this.pIndices.add(index, pIndices);
+	public void setIndices(int index, int pIndices) {
+		this.indices.add(index, pIndices);
 	}
 	
-	public void startPIndices(int pIndices) {
-		this.pIndices = new ArrayList<Integer>(pIndices);
+	public void startIndices(int pIndices) {
+		this.indices = new ArrayList<Integer>(pIndices);
 	}
 	
 	
@@ -685,12 +696,12 @@ public class T3dObject {
 	/**
 	 * @return the pIndices
 	 */
-	public ArrayList<Integer> getPIndices() {
-		return pIndices;
+	public ArrayList<Integer> getIndices() {
+		return indices;
 	}
 	
-	public int getPIndices(int index) {
-		return pIndices.get(index);
+	public int getIndices(int index) {
+		return indices.get(index);
 	}
 
 	public void setVertices(Vector3f vertices, int index) {

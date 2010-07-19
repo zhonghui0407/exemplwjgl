@@ -91,7 +91,8 @@ public class InputManager {
 
     }
 
-    public void KeyPressed(int KeyCode)
+    @SuppressWarnings("unused")
+	public void KeyPressed(int KeyCode)
     {
         boolean isPressed = Keyboard.isKeyDown(KeyCode);
         GameAction gameAction = getKeyAction(KeyCode);

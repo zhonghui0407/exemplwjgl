@@ -98,7 +98,7 @@ public class TObjectLoader {
 					{
 						obj = new T3dObject();
 						obj.setName(line.substring(2));
-						world.addPObject(obj);
+						world.addObject(obj);
 						world.addNumOfObjects(1);
 					} else {
 							
@@ -112,7 +112,7 @@ public class TObjectLoader {
 							numTexCoords = 0;
 							obj = new T3dObject();
 							obj.setName(line.substring(2));
-							world.addPObject(obj);
+							world.addObject(obj);
 							world.addNumOfObjects(1);
 							}
 					
@@ -242,10 +242,10 @@ public class TObjectLoader {
     		if(line.startsWith("o ")) 
     		{
     			
-    			for(int i=0; i < world.getPObject().size(); i++)
+    			for(int i=0; i < world.getObject().size(); i++)
     			{
-    				if (world.getPObject(i).getName().equalsIgnoreCase(line.substring(2)))
-    					obj = world.getPObject(i);
+    				if (world.getObject(i).getName().equalsIgnoreCase(line.substring(2)))
+    					obj = world.getObject(i);
     			}
     		}
     		
@@ -650,7 +650,7 @@ public class TObjectLoader {
 				mat = new TMaterialInfo();
 				// Adiciona à lista
 				world.addNumOfMaterials(1);
-				world.addPMaterials(mat); //modificado
+				world.addMaterials(mat); //modificado
 				
 				// Copia nome do material
 				mat.setName(line.substring(7));
@@ -725,16 +725,16 @@ public class TObjectLoader {
 	public void desabilitaDisplayList(T3dModel obj)
 	{
 		if(obj == null) return;
-		for(int i=0 ; i < obj.getPObject().size(); i++)
+		for(int i=0 ; i < obj.getObject().size(); i++)
 		{
-		if(obj.getPObject(i).getNumDisplayList() > 0 && obj.getPObject(i).getNumDisplayList() < 1000) // já existe uma dlist ?
+		if(obj.getObject(i).getNumDisplayList() > 0 && obj.getObject(i).getNumDisplayList() < 1000) // já existe uma dlist ?
 		{
 				// Libera dlist existente
-				glDeleteLists(obj.getPObject(i).getNumDisplayList(),1);
+				glDeleteLists(obj.getObject(i).getNumDisplayList(),1);
 		}
 		// O valor especial -2 indica que não queremos
 		// gerar dlist para esse objeto
-		obj.getPObject(i).setNumDisplayList(-2);
+		obj.getObject(i).setNumDisplayList(-2);
 		}
 	}
 
@@ -745,15 +745,15 @@ public class TObjectLoader {
 	private void criaDList(T3dModel obj)
 	{
 		// Se o objeto não possui display list, gera uma identificação nova
-		for(int i=0 ; i < obj.getPObject().size(); i++)
+		for(int i=0 ; i < obj.getObject().size(); i++)
 		{
-		if(obj.getPObject(i).getNumDisplayList() == -1) 
+		if(obj.getObject(i).getNumDisplayList() == -1) 
 			{
-				obj.getPObject(i).setNumDisplayList(glGenLists(1));
+				obj.getObject(i).setNumDisplayList(glGenLists(1));
 			}
 		// Adiciona 1000 ao valor, para informar à rotina de desenho
 		// que uma nova display list deve ser compilada
-		obj.getPObject(i).setNumDisplayList(obj.getPObject(i).getNumDisplayList()+1000);
+		obj.getObject(i).setNumDisplayList(obj.getObject(i).getNumDisplayList()+1000);
 		}
 	}
 
@@ -767,11 +767,11 @@ public class TObjectLoader {
 		if(temp == null)
 		{
 			
-			for(int i=0;i < obj.getPObject().size(); i++)
+			for(int i=0;i < obj.getObject().size(); i++)
 			{
 				//obj1 = obj.getPObject(i);
 				// Pula os objetos que não devem usar dlists
-				if(obj.getPObject(i).getNumDisplayList() == -2) 
+				if(obj.getObject(i).getNumDisplayList() == -2) 
 				{
 					continue;
 				}
@@ -779,9 +779,9 @@ public class TObjectLoader {
 			}
 		}
 		else {
-				for(int i=0;i < obj.getPObject().size(); i++)
+				for(int i=0;i < obj.getObject().size(); i++)
 				{
-					if(obj.getPObject(i).getNumDisplayList() != -2)
+					if(obj.getObject(i).getNumDisplayList() != -2)
 		
 					{
 						criaDList(obj);

@@ -241,16 +241,16 @@ private final void loadModelTextures(T3dModel pModel, String strPath) throws IOE
 	// that texture index to our current models material texture ID.  If it's a new texture,
 	// then the new texture is loaded and added to our characters texture array: m_Textures[].
 		// Go through all the materials that are assigned to this model
-		for(int i = 0; i < pModel.getPMaterials().size(); i++)
+		for(int i = 0; i < pModel.getMaterials().size(); i++)
 		{
 			  // Check to see if there is a file name to load in this material
-			if(pModel.getPMaterials(i).getName() != null)
+			if(pModel.getMaterials(i).getName() != null)
 			{
 				 
 				String strFullPath;
 
 				  // Add the file name and path together so we can load the texture
-				strFullPath = strPath + "/" + pModel.getPMaterials(i).getName();
+				strFullPath = strPath + "/" + pModel.getMaterials(i).getName();
 				
 				//Texture tex = texManager.getNormalImage("texturas/" + strTexture,true, true);
 				Texture tex = texManager.getFlippedImage(strFullPath,true, false);
@@ -258,7 +258,7 @@ private final void loadModelTextures(T3dModel pModel, String strPath) throws IOE
 				  // Go through all the textures in our string list to see if it's already loaded
 				
 						  // Assign the texture index to our current material textureID.
-				pModel.getPMaterials(i).setTexureId(tex.getTexID());
+				pModel.getMaterials(i).setTexureId(tex.getTexID());
 					
 				}
 
@@ -308,10 +308,10 @@ public final void linkModel(T3dModel pModel, T3dModel pLink, String strTagName)
 		for(int i = 0; i < pModel.getNumOfTags(); i++)
 		{
 			  // If this current tag index has the tag name we are looking for
-			if(pModel.getPTags(i).strName.equals(strTagName))
+			if(pModel.getTags(i).strName.equals(strTagName))
 			{
 				  // Link the model's link index to the link (or model/mesh) and return
-				pModel.setPLinks(pLink, i);
+				pModel.setLinks(pLink, i);
 				return;
 			}
 		}
@@ -395,13 +395,13 @@ private void drawLink(T3dModel pModel)
 	for(int i = 0; i < pModel.getNumOfTags(); i++)
 	{
 		// Get the current link from the models array of links (Pointers to models)
-		T3dModel pLink = pModel.getPLinks(i);
+		T3dModel pLink = pModel.getLinks(i);
 
 		// If this link has a valid address, let's draw it!
 		if(pLink != null)
 		{			
 			// Let's grab the translation for this new model that will be drawn 
-			Vector3f vPosition = pModel.getPTags(i).vPosition;
+			Vector3f vPosition = pModel.getTags(i).vPosition;
 
 			// Start a new matrix scope
 			glPushMatrix();
@@ -437,13 +437,13 @@ private void renderModel(T3dModel pModel)
 	// anyway.  
 
 	// Make sure we have valid objects just in case. (size() is in the STL vector class)
-	if(pModel.getPObject().size() <= 0) return;
+	if(pModel.getObject().size() <= 0) return;
 
 	// Go through all of the objects stored in this model
-	for(int i = 0; i < pModel.getPObject().size(); i++)
+	for(int i = 0; i < pModel.getObject().size(); i++)
 	{
 		// Get the current object that we are displaying
-		T3dObject pObject = pModel.getPObject(i);
+		T3dObject pObject = pModel.getObject(i);
 
 		// If the object has a texture assigned to it, let's bind it to the model.
 		// This isn't really necessary since all models have textures, but I left this
@@ -454,7 +454,7 @@ private void renderModel(T3dModel pModel)
 			glEnable(GL_TEXTURE_2D);
 
 			// Grab the texture index from the materialID index into our material list
-			int textureID = pModel.getPMaterials(pObject.getMaterialID()).getTexureId();
+			int textureID = pModel.getMaterials(pObject.getMaterialID()).getTexureId();
 
 			// Bind the texture index that we got from the material textureID
 			glBindTexture(GL_TEXTURE_2D, textureID);

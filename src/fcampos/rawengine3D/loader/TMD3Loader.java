@@ -282,12 +282,12 @@ int i;
 	
 	
 	// Next, after the bones are read in, we need to read in the tags.
-	pModel.setNumPTags(m_Header.numFrames * m_Header.numTags);
+	pModel.setNumTags(m_Header.numFrames * m_Header.numTags);
 //System.out.println(pModel.getPTags().length);
-	for(i = 0; i < pModel.getPTags().length; i++)
+	for(i = 0; i < pModel.getTags().length; i++)
 	{
 		TMD3Tag pTags = new TMD3Tag();
-		pModel.setPTags(pTags, i);
+		pModel.setTags(pTags, i);
 	}
 	  // Assign the number of tags to our model
 	pModel.setNumOfTags(m_Header.numTags);
@@ -411,10 +411,10 @@ public boolean loadSkin(T3dModel pModel, String strSkin)
 		while((strLine = reader.readLine()) != null)
 		{
 			  // Loop through all of our objects to test if their name is in this line
-			for(int i = 0; i < pModel.getPObject().size(); i++)
+			for(int i = 0; i < pModel.getObject().size(); i++)
 			{
 				  // Check if the name of this object appears in this line from the skin file
-				if (strLine.contains(pModel.getPObject(i).getName()))
+				if (strLine.contains(pModel.getObject(i).getName()))
 						
 				{			
 					  // To extract the texture name, we loop through the string, starting
@@ -434,12 +434,12 @@ public boolean loadSkin(T3dModel pModel, String strSkin)
 					
 					// Add the local material info to our model's material list
 					 // Store the material ID for this object and set the texture boolean to true
-					pModel.getPObject(i).setMaterialID(pModel.getPMaterials().size());
-					pModel.getPObject(i).setbHasTexture(true);
+					pModel.getObject(i).setMaterialID(pModel.getMaterials().size());
+					pModel.getObject(i).setbHasTexture(true);
 
 					
 					  // Add the local material info structure to our model's material list
-					pModel.addPMaterials(texture);
+					pModel.addMaterials(texture);
 				}
 			}
 		}
@@ -518,7 +518,7 @@ for(i=0; i < currentFrame.getNumFaces(); i++)
 }
 currentFrame.setDimension();
 // Here we add the current object (or frame) to our list object list
-pModel.addPObject(currentFrame);
+pModel.addObject(currentFrame);
 }
 
 public boolean loadShader(T3dModel pModel, String strShader)
@@ -549,12 +549,12 @@ public boolean loadShader(T3dModel pModel, String strShader)
 
 			// Add the local material info to our model's material list
 			 // Store the material ID for this object and set the texture boolean to true
-			pModel.getPObject(currentIndex).setMaterialID(pModel.getPMaterials().size());
-			pModel.getPObject(currentIndex).setbHasTexture(true);
+			pModel.getObject(currentIndex).setMaterialID(pModel.getMaterials().size());
+			pModel.getObject(currentIndex).setbHasTexture(true);
 
 			
 			  // Add the local material info structure to our model's material list
-			pModel.addPMaterials(texture);
+			pModel.addMaterials(texture);
 
 			
 			  // Here we increase the material index for the next texture (if any)

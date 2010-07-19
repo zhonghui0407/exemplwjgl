@@ -283,35 +283,35 @@ public class TSala3D extends GameCore {
     	glFog(GL_FOG_COLOR, Conversion.allocFloats(cor_neblina));
     	glFogf(GL_FOG_DENSITY, 0.0035f);
 
-    	plano.carregaObjeto("parede1.obj",true, false, plano);
+    	plano.load("parede1.obj",true, false, plano);
     	// Não queremos gerar display list para o plano,
     	// pois a textura varia de acordo com o objeto
     	// desenhado (parede, chão ou teto)
     	lo.desabilitaDisplayList(plano);
-    	arena.carregaObjeto("arenaobj_Scene.obj", true, false, arena);
-    	mesa.carregaObjeto("mesagrande1.obj",true, false, mesa);
-    	mesapeq.carregaObjeto("mesapeq1.obj",true, false, mesapeq);
-    	cadeira.carregaObjeto("cadeira.obj",true, false, cadeira);
-    	quadro.carregaObjeto("quadronegro1.obj",true, false, quadro);
-    	porta.carregaObjeto("porta1.obj",true, false, porta);
-    	janela.carregaObjeto("janela1.obj",true, false, janela);
+    	arena.load("arenaobj_Scene.obj", true, false, arena);
+    	mesa.load("mesagrande1.obj",true, false, mesa);
+    	mesapeq.load("mesapeq1.obj",true, false, mesapeq);
+    	cadeira.load("cadeira.obj",true, false, cadeira);
+    	quadro.load("quadronegro1.obj",true, false, quadro);
+    	porta.load("porta1.obj",true, false, porta);
+    	janela.load("janela1.obj",true, false, janela);
     	
-    	lamp.carregaObjeto("lampada1.obj",true, false, lamp);
+    	lamp.load("lampada1.obj",true, false, lamp);
     	// Como o estado da lâmpada varia, não
     	// é interessante gerar display list para ela
     	lo.desabilitaDisplayList(lamp);
     	
-    	vidro.carregaObjeto("vidro1.obj",true, false, vidro);
-    	ceu.carregaObjeto("ceu2.obj",true, false, ceu);
+    	vidro.load("vidro1.obj",true, false, vidro);
+    	ceu.load("ceu2.obj",true, false, ceu);
 
     	// Carrega objetos que podem estar sobre as mesas
-    	tipos[0].carregaObjeto("lapis1.obj",true, false, tipos[0]);
-    	tipos[1].carregaObjeto("livro1.obj",true, false, tipos[1]);
-    	tipos[2].carregaObjeto("papel11.obj",true, false, tipos[2]);
-    	tipos[3].carregaObjeto("papel21.obj",true, false, tipos[3]);
-    	tipos[4].carregaObjeto("papel31.obj",true, false, tipos[4]);
-    	tipos[5].carregaObjeto("cuiabomba1.obj",true, false, tipos[5]);
-    	tipos[6].carregaObjeto("borracha1.obj",true, false, tipos[6]);
+    	tipos[0].load("lapis1.obj",true, false, tipos[0]);
+    	tipos[1].load("livro1.obj",true, false, tipos[1]);
+    	tipos[2].load("papel11.obj",true, false, tipos[2]);
+    	tipos[3].load("papel21.obj",true, false, tipos[3]);
+    	tipos[4].load("papel31.obj",true, false, tipos[4]);
+    	tipos[5].load("cuiabomba1.obj",true, false, tipos[5]);
+    	tipos[6].load("borracha1.obj",true, false, tipos[6]);
     	
     	// Cria todas as display lists, exceto para
     	// as lâmpadas e para o plano
@@ -326,7 +326,7 @@ public class TSala3D extends GameCore {
     	// (usado durante o desenho, para "ligar" e "desligar")
     	
     	    	
-    	mat_luz = lamp.getPMaterials(lamp.findMaterial("Luz"));
+    	mat_luz = lamp.getMaterials(lamp.findMaterial("Luz"));
 
     	// Seta filtro inicial para texturas
     	//lo.setaFiltroTextura(-1,GL_LINEAR,GL_LINEAR);
@@ -449,12 +449,12 @@ public class TSala3D extends GameCore {
             {
             	for(int i=0; i<objetos.size(); i++)
             	{
-            		if (objetos.get(i).getPObject(0).getDrawMode().equalsIgnoreCase("w")) 
-            			objetos.get(i).getPObject(0).setDrawMode("s");
-            		else if(objetos.get(i).getPObject(0).getDrawMode().equalsIgnoreCase("s")) 
-            			objetos.get(i).getPObject(0).setDrawMode("t");
-            		else if(objetos.get(i).getPObject(0).getDrawMode().equalsIgnoreCase("t")) 
-            			objetos.get(i).getPObject(0).setDrawMode("w");
+            		if (objetos.get(i).getObject(0).getDrawMode().equalsIgnoreCase("w")) 
+            			objetos.get(i).getObject(0).setDrawMode("s");
+            		else if(objetos.get(i).getObject(0).getDrawMode().equalsIgnoreCase("s")) 
+            			objetos.get(i).getObject(0).setDrawMode("t");
+            		else if(objetos.get(i).getObject(0).getDrawMode().equalsIgnoreCase("t")) 
+            			objetos.get(i).getObject(0).setDrawMode("w");
 				
             		lo.criaDisplayList(mesa, null);
             	}
@@ -644,7 +644,7 @@ public class TSala3D extends GameCore {
         {
         	glDisable(GL_LIGHTING);
         	// Somente no modo de desenho sólido
-        	if(ceu.getPObject(0).getDrawMode().equalsIgnoreCase("s"))
+        	if(ceu.getObject(0).getDrawMode().equalsIgnoreCase("s"))
         	{
         		// Desenha um plano com gradiente,
         		// para simular o céu
@@ -666,7 +666,7 @@ public class TSala3D extends GameCore {
         		glVertex3f(310,250,500);
         		glEnd();
         	}
-        	else if(ceu.getPObject(0).getDrawMode().equalsIgnoreCase("t"))
+        	else if(ceu.getObject(0).getDrawMode().equalsIgnoreCase("t"))
         	{
         		// Desenha o hemisfério com textura
         		glPushMatrix();
@@ -697,7 +697,7 @@ public class TSala3D extends GameCore {
 
         	// Se estivermos desenhando com textura
         	// é necessário que a cor seja branca
-        	if(plano.getPObject(0).getDrawMode().equalsIgnoreCase("t"))
+        	if(plano.getObject(0).getDrawMode().equalsIgnoreCase("t"))
         	{
         		glColor3f(1,1,1);
         	}
@@ -710,7 +710,7 @@ public class TSala3D extends GameCore {
         	glTranslatef(0,150,-400);
         	glScalef(6,3,1);
         	// Associa a textura de parede ao plano
-        	plano.getPObject(0).setMaterialID(parede.getTexID());
+        	plano.getObject(0).setMaterialID(parede.getTexID());
         	//lo.desenhaObjeto(plano);
         	plano.draw(plano);
         	glPopMatrix();
@@ -886,7 +886,7 @@ public class TSala3D extends GameCore {
 
         	// Se estivermos desenhando com textura
         	// é necessário que a cor seja branca
-        	if(plano.getPObject(0).getDrawMode().equalsIgnoreCase("t"))
+        	if(plano.getObject(0).getDrawMode().equalsIgnoreCase("t"))
         	{
         		glColor3f(1,1,1);
         	}
@@ -900,7 +900,7 @@ public class TSala3D extends GameCore {
         	glRotatef(-90,1,0,0);
         	glScalef(6,8,1);
         	// Associa a textura de chão ao plano
-        	plano.getPObject(0).setMaterialID(chao.getTexID());
+        	plano.getObject(0).setMaterialID(chao.getTexID());
         	//lo.desenhaObjeto(plano);
         	plano.draw(plano);
         	glPopMatrix();
@@ -915,7 +915,7 @@ public class TSala3D extends GameCore {
 
         	// Se estivermos desenhando com textura
         	// é necessário que a cor seja branca
-        	if(plano.getPObject(0).getDrawMode().equalsIgnoreCase("t"))
+        	if(plano.getObject(0).getDrawMode().equalsIgnoreCase("t"))
         	{
         		glColor3f(1,1,1);
         	}
@@ -929,7 +929,7 @@ public class TSala3D extends GameCore {
         	glRotatef(90,1,0,0);
         	glScalef(6,8,1);
         	// Associa a textura de teto ao plano
-        	plano.getPObject(0).setMaterialID(teto.getTexID());
+        	plano.getObject(0).setMaterialID(teto.getTexID());
         	//lo.desenhaObjeto(plano);
         	plano.draw(plano);
         	glPopMatrix();

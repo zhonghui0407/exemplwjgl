@@ -171,7 +171,7 @@ public final class VectorMath
 		Vector3f[] vPoly = new Vector3f[3];
 
 		// If there are no objects, we can skip this part
-		if(pModel.getPObject().size() <= 0)
+		if(pModel.getObject().size() <= 0)
 			return;
 
 		// What are vertex normals?  And how are they different from other normals?
@@ -184,10 +184,10 @@ public final class VectorMath
 		// vertex.  It's just averaging.  That way you get a better approximation for that vertex.
 
 		// Go through each of the objects to calculate their normals
-		for(int index = 0; index < pModel.getPObject().size(); index++)
+		for(int index = 0; index < pModel.getObject().size(); index++)
 		{
 			// Get the current object
-			T3dObject pObject = pModel.getPObject(index);
+			T3dObject pObject = pModel.getObject(index);
 
 			// Here we allocate all the memory we need to calculate the normals
 			Vector3f[] pNormals		= new Vector3f[pObject.getNumFaces()];

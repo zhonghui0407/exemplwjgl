@@ -109,7 +109,7 @@ public final class LEDataInputStream extends DataInputStream implements DataInpu
      * @throws IOException if read fails.
      */
     public final int readLEInt() throws IOException
-        {
+    {
     	
         readFully( work, 0, 4 );
         return ( work[ 3 ] & 0xff) << 24
@@ -117,7 +117,7 @@ public final class LEDataInputStream extends DataInputStream implements DataInpu
                | ( work[ 1 ] & 0xff ) << 8
                | ( work[ 0 ] & 0xff );
      
-        }
+     }
   
     
     public String readString() throws IOException {
