@@ -127,7 +127,8 @@ public class TextureLoader {
      * @return The loaded texture
      * @throws IOException Indicates a failure to access the resource
      */
-    public Texture getTexture(String resourceName, 
+    @SuppressWarnings("unused")
+	public Texture getTexture(String resourceName, 
                               int target, 
                               int dstPixelFormat, 
                               int x, int y, boolean mipmap, boolean useAnisotropicFilter) throws IOException
@@ -331,7 +332,8 @@ public class TextureLoader {
      * @return The loaded buffered image
      * @throws IOException Indicates a failure to find a resource
      */
-    private BufferedImage loadImage(String ref) throws IOException 
+    @SuppressWarnings("unused")
+	private BufferedImage loadImage(String ref) throws IOException 
     { 
     	
     	
