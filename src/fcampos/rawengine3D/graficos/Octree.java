@@ -823,535 +823,535 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 
 
 
-////////////////////////////////DRAW OCTREE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function recurses through all the nodes and draws the end node's vertices
-/////
-////////////////////////////////DRAW OCTREE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void drawOctree(Octree pNode, T3dModel pRootWorld)
-{
-	// To draw our octree, all that needs to be done is call our display list ID.
-	// First we want to check if the current node is even in our frustum.  If it is,
-	// we make sure that the node isn't subdivided.  We only can draw the end nodes.
-	// Make sure a valid node was passed in, otherwise go back to the last node
-	if(pNode == null) return;
+	////////////////////////////////DRAW OCTREE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function recurses through all the nodes and draws the end node's vertices
+	/////
+	////////////////////////////////DRAW OCTREE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	// Check if the current node is in our frustum
-	
-	if(!GameCore.gFrustum.cubeInFrustum(pNode.centerNode.x, pNode.centerNode.y, 
-								pNode.centerNode.z, pNode.sizeWidth / 2) )
+	public void drawOctree(Octree node, T3dModel pRootWorld)
 	{
-		return;
-	}
-
-	// Check if this node is subdivided. If so, then we need to recurse and draw it's nodes
-	if(pNode.isSubDivided())
-	{
-		// Recurse to the bottom of these nodes and draw the end node's vertices
-		// Like creating the octree, we need to recurse through each of the 8 nodes.
-		drawOctree(pNode.octreeNodes[TOP_LEFT_FRONT],		pRootWorld);
-		drawOctree(pNode.octreeNodes[TOP_LEFT_BACK],			pRootWorld);
-		drawOctree(pNode.octreeNodes[TOP_RIGHT_BACK],		pRootWorld);
-		drawOctree(pNode.octreeNodes[TOP_RIGHT_FRONT],		pRootWorld);
-		drawOctree(pNode.octreeNodes[BOTTOM_LEFT_FRONT],		pRootWorld);
-		drawOctree(pNode.octreeNodes[BOTTOM_LEFT_BACK],		pRootWorld);
-		drawOctree(pNode.octreeNodes[BOTTOM_RIGHT_BACK],		pRootWorld);
-		drawOctree(pNode.octreeNodes[BOTTOM_RIGHT_FRONT],	pRootWorld);
-	}
-	else
-	{
-		// Increase the amount of nodes in our viewing frustum (camera's view)
-		totalNodesDrawn++;
-
-		// Make sure we have valid data assigned to this node
-		if(pNode.world == null) return;
-			
-		// Call the list with our end node's display list ID
-		glCallList(pNode.displayListID);
-	}
-}
-
-////////////////////////////////CREATE DISPLAY LIST \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function recurses through all the nodes and creates a display list for them
-/////
-////////////////////////////////CREATE DISPLAY LIST \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void createDisplayList(Octree node, T3dModel rootWorld, int displayListOffset)
-{
-	// This function handles our rendering code in the beginning and assigns it all
-	// to a display list.  This increases our rendering speed, as long as we don't flood
-	// the pipeline with a TON of data.  Display lists can actually be to bloated or too small.
-	// Like our DrawOctree() function, we need to find the end nodes by recursing down to them.
-	// We only create a display list for the end nodes and ignore the rest.  The 
-	// displayListOffset is used to add to the end nodes current display list ID, in case
-	// we created some display lists before creating the octree.  Usually it is just 1 otherwise.
-
-	// Make sure a valid node was passed in, otherwise go back to the last node
-	if(node == null) return;
-
-	// Check if this node is subdivided. If so, then we need to recurse down to it's nodes
-	if(node.isSubDivided())
-	{
-		// Recurse down to each one of the children until we reach the end nodes
-		createDisplayList(node.octreeNodes[TOP_LEFT_FRONT],		rootWorld, displayListOffset);
-		createDisplayList(node.octreeNodes[TOP_LEFT_BACK],		rootWorld, displayListOffset);
-		createDisplayList(node.octreeNodes[TOP_RIGHT_BACK],		rootWorld, displayListOffset);
-		createDisplayList(node.octreeNodes[TOP_RIGHT_FRONT],	rootWorld, displayListOffset);
-		createDisplayList(node.octreeNodes[BOTTOM_LEFT_FRONT],	rootWorld, displayListOffset);
-		createDisplayList(node.octreeNodes[BOTTOM_LEFT_BACK],	rootWorld, displayListOffset);
-		createDisplayList(node.octreeNodes[BOTTOM_RIGHT_BACK],	rootWorld, displayListOffset);
-		createDisplayList(node.octreeNodes[BOTTOM_RIGHT_FRONT],	rootWorld, displayListOffset);
-	}
-	else 
-	{
-		// Make sure we have valid data assigned to this node
-		if(node.world == null) return;
-
-		// Add our display list offset to our current display list ID
-		node.displayListID += displayListOffset;
-
-		// Start the display list and assign it to the end nodes ID
-		glNewList(node.displayListID,GL_COMPILE);
-
-		// Create a temp counter for our while loop below to store the objects drawn
-		int counter = 0;
+		// To draw our octree, all that needs to be done is call our display list ID.
+		// First we want to check if the current node is even in our frustum.  If it is,
+		// we make sure that the node isn't subdivided.  We only can draw the end nodes.
+		// Make sure a valid node was passed in, otherwise go back to the last node
+		if(node == null) return;
 		
-		// Store the object count and material count in some local variables for optimization
-		int objectCount = node.objectList.size();
-		int materialCount = rootWorld.getNumOfMaterials();
-
-		// Go through all of the objects that are in our end node
-		while(counter < objectCount)
+		// Check if the current node is in our frustum
+		
+		if(!GameCore.gFrustum.cubeInFrustum(node.centerNode, node.sizeWidth / 2) )
 		{
-			// Get the first object index into our root world
-			int i = node.objectList.get(counter);
-
-			// Store pointers to the current face list and the root object 
-			// that holds all the data (verts, texture coordinates, normals, etc..)
-			T3dObject object     = node.world.getObject(i);
-			T3dObject rootObject = rootWorld.getObject(i);
-
-			// Check to see if this object has a texture map, if so, bind the texture to it.
-			if(rootObject.getNumTexcoords() > 0) 
-			{
-				// Turn on texture mapping and turn off color
-				glEnable(GL_TEXTURE_2D);
-
-				// Reset the color to normal again
-				glColor3f(1f, 1f, 1f);
-
-				// Bind the texture map to the object by it's materialID
-				glBindTexture(GL_TEXTURE_2D, rootObject.getMaterialID());
-			} 
-			else 
-			{
-				// Turn off texture mapping and turn on color
-				glDisable(GL_TEXTURE_2D);
-
-				// Reset the color to normal again
-				glColor3f(1f, 1f, 1f);
-			}
-
-			// Check to see if there is a valid material assigned to this object
-			if((materialCount > 0) && (rootObject.getMaterialID() >= 0)) 
-			{
-				
-				byte[] pColor = rootWorld.getMaterials(rootObject.getMaterialID()).getColor();
-				
-				
-				glColor3ub(pColor[0], pColor[1], pColor[2]);
-				//glColor3ub((byte)0,(byte) 255, (byte)0);
-				
-			}
-
-			// Now we get to the more unknown stuff, vertex arrays.  If you haven't
-			// dealt with vertex arrays yet, let me give you a brief run down on them.
-			// Instead of doing loops to go through and pass in each of the vertices
-			// of a model, we can just pass in the array vertices, then an array of
-			// indices that MUST be an unsigned int, which gives the indices into
-			// the vertex array.  That means that we can send the vertices to the video
-			// card with one call to glDrawElements().  There are a bunch of other
-			// functions for vertex arrays that do different things, but I am just going
-			// to mention this one.  Since texture coordinates, normals and colors are also
-			// associated with vertices, we are able to point OpenGL to these arrays before
-			// we draw the geometry.  It uses the same indices that we pass to glDrawElements()
-			// for each of these arrays.  Below, we point OpenGL to our texture coordinates,
-			// vertex and normal arrays.  This is done with calls to glTexCoordPointer(), 
-			// glVertexPointer() and glNormalPointer().
-			//
-			// Before using any of these functions, we need to enable their states.  This is
-			// done with glEnableClientState().  You just pass in the ID of the type of array 
-			// you are wanting OpenGL to look for.  If you don't have data in those arrays,
-			// the program will most likely crash.
-			//
-			// If you don't want to use vertex arrays, you can just render the world like normal.
-			// That is why I saved the pFace information, as well as the pIndices info.  This
-			// way you can use what ever method you are comfortable with.  I tried both, and
-			// by FAR the vertex arrays are incredibly faster.  You decide :)
-
-			// Make sure we have texture coordinates to render
-			if(rootObject.getNumTex() > 0) 
-			{
-				// Turn on the texture coordinate state
-				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-				// Point OpenGL to our texture coordinate array.
-				// We have them in a pair of 2, of type float and 0 bytes of stride between them.
-				//glTexCoordPointer(2, GL_FLOAT, 0, pRootObject->pTexVerts);
-				float[] temp = new float[rootObject.getNumTex() * 2];
-				int b = 0;
-				for(int a=0; a < rootObject.getNumTex(); a++)
-				{
-					temp[b] = rootObject.getTexcoords()[a].s;
-					temp[b+1] = rootObject.getTexcoords()[a].t;
-					b +=2;
-					
-				}
-				
-				FloatBuffer temp1 = Conversion.allocFloats(temp);
-				
-				glTexCoordPointer(2, 0, temp1);
-			}
-
-			// Make sure we have vertices to render
-			if(rootObject.getNumVert() > 0)
-			{
-				// Turn on the vertex array state
-				glEnableClientState(GL_VERTEX_ARRAY);
-
-				// Point OpenGL to our vertex array.  We have our vertices stored in
-				// 3 floats, with 0 stride between them in bytes.
-				float[] temp = new float[rootObject.getNumVert() * 3];
-				int b = 0;
-				for(int a=0; a < rootObject.getNumVert(); a++)
-				{
-					temp[b] = rootObject.getVertices(a).x;
-					temp[b+1] = rootObject.getVertices(a).y;
-					temp[b+2] = rootObject.getVertices(a).z;
-					b +=3;
-					
-				}
-				
-				FloatBuffer temp1 = Conversion.allocFloats(temp);
-				glVertexPointer(3, 0, temp1);
-			}
-
-			// Make sure we have normals to render
-			if(rootObject.getNumNorm() > 0)
-			{
-				// Turn on the normals state
-				glEnableClientState(GL_NORMAL_ARRAY);
-
-				// Point OpenGL to our normals array.  We have our normals
-				// stored as floats, with a stride of 0 between.
-				
-				float[] temp = new float[rootObject.getNumNorm() * 3];
-				int b = 0;
-				for(int a=0; a < rootObject.getNumNorm(); a++)
-				{
-					temp[b] = rootObject.getNormal(a).x;
-					temp[b+1] = rootObject.getNormal(a).y;
-					temp[b+2] = rootObject.getNormal(a).z;
-					b +=3;
-					
-				}
-				
-				FloatBuffer temp1 = Conversion.allocFloats(temp);
-				glNormalPointer(0, temp1);
-			}
-
-			// Here we pass in the indices that need to be rendered.  We want to
-			// render them in triangles, with numOfFaces * 3 for indice count,
-			// and the indices are of type UINT (important).
-			int[] temp = new int[object.getIndices().size()]; 
-			for(int a=0; a < object.getIndices().size(); a++)
-			{
-				temp[a] = object.getIndices(a);
-				
-			}
-			
-			IntBuffer temp1 = Conversion.allocInts(temp);
-			glDrawElements(GL_TRIANGLES, temp1);
-			
-			// Increase the current object count rendered
-			counter++;
+			return;
 		}
-
-		// End the display list for this ID
-		glEndList();
-	}
-}
-
-/////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
-//Check to see if a line intersects with a polygon in the Octree.
-//
-//	[in]	pNode			The Octree Node to check.
-//	[in]	vLine			The Line to check intersection for.
-//	[in]	vIntersectionPt	The Point at which the line intersected.
-//	[return]		Wheter there was an intersection or not.
-public boolean intersectLineWithOctree(Octree pNode, T3dModel pWorld, Vector3f vLine[], Vector3f vIntersectionPt )
-{
-	// If the passed in node is invalid, leave.
-	if ( pNode == null )
-		return false;
 	
-	float fLeft, fRight, fBottom, fTop, fBack, fFront;
-
-	Vector3f pCenter = new Vector3f(pNode.getCenter());
-
-	// Find the Left, Right, Front and Back of this Node's AABB.
-	fLeft = pCenter.x - pNode.getWidth();
-	fRight = pCenter.x + pNode.getWidth();
-	fBottom = pCenter.y - pNode.getWidth();
-	fTop = pCenter.y + pNode.getWidth();
-	// Be careful here, depth is different in DirectX's Left handed coordinate system.
-	fBack = pCenter.z - pNode.getWidth();
-	fFront = pCenter.z + pNode.getWidth();
-
-	// If BOTH Vertices of the Line are not in this Node, than there can not possibly
-	// be an intersection, return false.
-	if ( octreeCollisionDetection &&
-		 (( vLine[0].x < fLeft || vLine[0].x > fRight ) ||
-		 ( vLine[0].y < fBottom || vLine[0].y > fTop ) ||
-		 ( vLine[0].z < fBack || vLine[0].z > fFront )) 
-		 &&
-		 (( vLine[1].x < fLeft || vLine[1].x > fRight ) ||
-		 ( vLine[1].y < fBottom || vLine[1].y > fTop ) ||
-		 ( vLine[1].z < fBack || vLine[1].z > fFront )) )
-			return false;
-
-	// If this node is subdivided, traverse to it's children.
-	if ( pNode.isSubDivided() )
-	{
-		// Lots of Logic Tests, but with a purpose. If ANY node comes back saying there was a collision in it or one
-		// of it's sub-nodes, return immediately without checking anymore nodes. This echos back recursivly to the root.
-		if ( intersectLineWithOctree( pNode.octreeNodes[TOP_LEFT_FRONT], pWorld, vLine, vIntersectionPt ) )
-			return true;
-		if ( intersectLineWithOctree( pNode.octreeNodes[TOP_LEFT_BACK], pWorld, vLine, vIntersectionPt ) )
-			return true;
-		if ( intersectLineWithOctree( pNode.octreeNodes[TOP_RIGHT_BACK], pWorld, vLine, vIntersectionPt ) )
-			return true;
-		if ( intersectLineWithOctree( pNode.octreeNodes[TOP_RIGHT_FRONT], pWorld, vLine, vIntersectionPt ) )
-			return true;
-		if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_LEFT_FRONT], pWorld, vLine, vIntersectionPt ) )
-			return true;
-		if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_LEFT_BACK], pWorld, vLine, vIntersectionPt ) )
-			return true;
-		if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_RIGHT_BACK], pWorld, vLine, vIntersectionPt ) )
-			return true;
-		if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_RIGHT_FRONT], pWorld, vLine, vIntersectionPt ) )
-			return true;
-	}
-	else
-	{
-		// Make sure there is a world to test.
-		if (pNode.world == null )
-			return false;
-
-		// Increment the Count of how many collisions with terminal Nodes we have encountered.
-		numNodesCollided++;
-
-		Vector3f[] vTempFace = new Vector3f[3];
-		int i, j, k;
-
-		// Check all of this Nodes World Objects.
-		for ( i = 0; i < pNode.world.getNumOfObjects(); i++ )
+		// Check if this node is subdivided. If so, then we need to recurse and draw it's nodes
+		if(node.isSubDivided())
 		{
-			T3dObject pObject = pNode.world.getObject(i);
-
-			// Check all of the Worlds Faces.
-			for ( j = 0; j < pObject.getNumFaces(); j++ )
-			{
-				// Look at the 3 Vertices of this Face.
-				for ( k = 0; k < 3; k++ )
-				{
-					// Get the Vertex Index;
-					int iIndex = pObject.getFace(j).getVertices(k);
-
-					// Now look in the Root World and just get the Vertices we need.
-					vTempFace[k] = new Vector3f(pWorld.getObject(i).getVertices(iIndex));
-				}
-				CollisionMath collision = new CollisionMath();
-
-				// If we had a Line to Polygon Intersection, return true, which should echo down to the root function call.
-				if ( collision.intersectedPolygon( vTempFace, vLine, 3, vIntersectionPt ) )
-				{
-					setObjectColliding(true);
-					return true;
-				}
-			}
+			// Recurse to the bottom of these nodes and draw the end node's vertices
+			// Like creating the octree, we need to recurse through each of the 8 nodes.
+			drawOctree(node.octreeNodes[TOP_LEFT_FRONT],		pRootWorld);
+			drawOctree(node.octreeNodes[TOP_LEFT_BACK],			pRootWorld);
+			drawOctree(node.octreeNodes[TOP_RIGHT_BACK],		pRootWorld);
+			drawOctree(node.octreeNodes[TOP_RIGHT_FRONT],		pRootWorld);
+			drawOctree(node.octreeNodes[BOTTOM_LEFT_FRONT],		pRootWorld);
+			drawOctree(node.octreeNodes[BOTTOM_LEFT_BACK],		pRootWorld);
+			drawOctree(node.octreeNodes[BOTTOM_RIGHT_BACK],		pRootWorld);
+			drawOctree(node.octreeNodes[BOTTOM_RIGHT_FRONT],	pRootWorld);
+		}
+		else
+		{
+			// Increase the amount of nodes in our viewing frustum (camera's view)
+			totalNodesDrawn++;
+	
+			// Make sure we have valid data assigned to this node
+			if(node.world == null) return;
+				
+			// Call the list with our end node's display list ID
+			glCallList(node.displayListID);
 		}
 	}
 
-	// No intersection detected.
-	return false;
-}
-
-public boolean checkCameraCollision(Octree pNode, T3dModel pWorld, CameraQuaternion camera)
-{	
-	// This function is pretty much a direct rip off of SpherePolygonCollision()
-	// We needed to tweak it a bit though, to handle the collision detection once 
-	// it was found, along with checking every triangle in the list if we collided.  
-	// pVertices is the world data. If we have space partitioning, we would pass in 
-	// the vertices that were closest to the camera. What happens in this function 
-	// is that we go through every triangle in the list and check if the camera's 
-	// sphere collided with it.  If it did, we don't stop there.  We can have 
-	// multiple collisions so it's important to check them all.  One a collision 
-	// is found, we calculate the offset to move the sphere off of the collided plane.
+	////////////////////////////////CREATE DISPLAY LIST \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function recurses through all the nodes and creates a display list for them
+	/////
+	////////////////////////////////CREATE DISPLAY LIST \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	// If the passed in node is invalid, leave.
-	if ( pNode == null )
-		return false;
-	
-	float fLeft, fRight, fBottom, fTop, fBack, fFront;
-
-	Vector3f pCenter = new Vector3f(pNode.getCenter());
-
-	// Find the Left, Right, Front and Back of this Node's AABB.
-	fLeft = pCenter.x - pNode.getWidth();
-	fRight = pCenter.x + pNode.getWidth();
-	fBottom = pCenter.y - pNode.getWidth();
-	fTop = pCenter.y + pNode.getWidth();
-	// Be careful here, depth is different in DirectX's Left handed coordinate system.
-	fBack = pCenter.z - pNode.getWidth();
-	fFront = pCenter.z + pNode.getWidth();
-
-	// If BOTH Vertices of the Line are not in this Node, than there can not possibly
-	// be an intersection, return false.
-	if ( octreeCollisionDetection &&
-		 (( camera.getPosition().x < fLeft || camera.getPosition().x > fRight ) ||
-		 ( camera.getPosition().y < fBottom || camera.getPosition().y > fTop ) ||
-		 ( camera.getPosition().z < fBack || camera.getPosition().z > fFront )) 
-		 &&
-		 (( camera.getPosition().x+1 < fLeft || camera.getPosition().x+1 > fRight ) ||
-		 ( camera.getPosition().y+1 < fBottom || camera.getPosition().y+1 > fTop ) ||
-		 ( camera.getPosition().z+1 < fBack || camera.getPosition().z+1 > fFront )) )
-			return false;
-	
-	
-	
-	// If this node is subdivided, traverse to it's children.
-	if ( pNode.isSubDivided() )
+	public void createDisplayList(Octree node, T3dModel rootWorld, int displayListOffset)
 	{
-		// Lots of Logic Tests, but with a purpose. If ANY node comes back saying there was a collision in it or one
-		// of it's sub-nodes, return immediately without checking anymore nodes. This echos back recursivly to the root.
-		if (checkCameraCollision( pNode.octreeNodes[TOP_LEFT_FRONT], pWorld, camera))
-			return true;
-		if (checkCameraCollision( pNode.octreeNodes[TOP_LEFT_BACK], pWorld, camera))
-			return true;
-			
-		if (checkCameraCollision( pNode.octreeNodes[TOP_RIGHT_BACK], pWorld, camera ))
-			return true;
-		if (checkCameraCollision( pNode.octreeNodes[TOP_RIGHT_FRONT], pWorld, camera ))
-			return true;
-		if (checkCameraCollision( pNode.octreeNodes[BOTTOM_LEFT_FRONT], pWorld, camera ))
-			return true;
-		if (checkCameraCollision( pNode.octreeNodes[BOTTOM_LEFT_BACK], pWorld, camera ))
-			return true;
-		if (checkCameraCollision( pNode.octreeNodes[BOTTOM_RIGHT_BACK], pWorld, camera ))
-			return true;
-		if (checkCameraCollision( pNode.octreeNodes[BOTTOM_RIGHT_FRONT], pWorld, camera ))
-			return true;
-	}
-	else
-	{
-		// Make sure there is a world to test.
-		if (pNode.world == null )
-			return false;
-
-		// Increment the Count of how many collisions with terminal Nodes we have encountered.
-		numNodesCollided++;
-
-		Vector3f[] vTempFace = new Vector3f[3];
-		Vector3f vNormal = new Vector3f();
-		int i, j, k;
-
-		// Check all of this Nodes World Objects.
-		for ( i = 0; i < pNode.world.getNumOfObjects(); i++ )
+		// This function handles our rendering code in the beginning and assigns it all
+		// to a display list.  This increases our rendering speed, as long as we don't flood
+		// the pipeline with a TON of data.  Display lists can actually be to bloated or too small.
+		// Like our DrawOctree() function, we need to find the end nodes by recursing down to them.
+		// We only create a display list for the end nodes and ignore the rest.  The 
+		// displayListOffset is used to add to the end nodes current display list ID, in case
+		// we created some display lists before creating the octree.  Usually it is just 1 otherwise.
+	
+		// Make sure a valid node was passed in, otherwise go back to the last node
+		if(node == null) return;
+	
+		// Check if this node is subdivided. If so, then we need to recurse down to it's nodes
+		if(node.isSubDivided())
 		{
-			T3dObject pObject = pNode.world.getObject(i);
-
-			// Check all of the Worlds Faces.
-			for ( j = 0; j < pObject.getNumFaces(); j++ )
+			// Recurse down to each one of the children until we reach the end nodes
+			createDisplayList(node.octreeNodes[TOP_LEFT_FRONT],		rootWorld, displayListOffset);
+			createDisplayList(node.octreeNodes[TOP_LEFT_BACK],		rootWorld, displayListOffset);
+			createDisplayList(node.octreeNodes[TOP_RIGHT_BACK],		rootWorld, displayListOffset);
+			createDisplayList(node.octreeNodes[TOP_RIGHT_FRONT],	rootWorld, displayListOffset);
+			createDisplayList(node.octreeNodes[BOTTOM_LEFT_FRONT],	rootWorld, displayListOffset);
+			createDisplayList(node.octreeNodes[BOTTOM_LEFT_BACK],	rootWorld, displayListOffset);
+			createDisplayList(node.octreeNodes[BOTTOM_RIGHT_BACK],	rootWorld, displayListOffset);
+			createDisplayList(node.octreeNodes[BOTTOM_RIGHT_FRONT],	rootWorld, displayListOffset);
+		}
+		else 
+		{
+			// Make sure we have valid data assigned to this node
+			if(node.world == null) return;
+	
+			// Add our display list offset to our current display list ID
+			node.displayListID += displayListOffset;
+	
+			// Start the display list and assign it to the end nodes ID
+			glNewList(node.displayListID,GL_COMPILE);
+	
+			// Create a temp counter for our while loop below to store the objects drawn
+			int counter = 0;
+			
+			// Store the object count and material count in some local variables for optimization
+			int objectCount = node.objectList.size();
+			int materialCount = rootWorld.getNumOfMaterials();
+	
+			// Go through all of the objects that are in our end node
+			while(counter < objectCount)
 			{
-				// Look at the 3 Vertices of this Face.
-				for ( k = 0; k < 3; k++ )
+				// Get the first object index into our root world
+				int i = node.objectList.get(counter);
+	
+				// Store pointers to the current face list and the root object 
+				// that holds all the data (verts, texture coordinates, normals, etc..)
+				T3dObject object     = node.world.getObject(i);
+				T3dObject rootObject = rootWorld.getObject(i);
+	
+				// Check to see if this object has a texture map, if so, bind the texture to it.
+				if(rootObject.getNumTexcoords() > 0) 
 				{
-					// Get the Vertex Index;
-					int iIndex = pObject.getFace(j).getVertices(k);
+					// Turn on texture mapping and turn off color
+					glEnable(GL_TEXTURE_2D);
+	
+					// Reset the color to normal again
+					glColor3f(1f, 1f, 1f);
+	
+					// Bind the texture map to the object by it's materialID
+					glBindTexture(GL_TEXTURE_2D, rootObject.getMaterialID());
+				} 
+				else 
+				{
+					// Turn off texture mapping and turn on color
+					glDisable(GL_TEXTURE_2D);
+	
+					// Reset the color to normal again
+					glColor3f(1f, 1f, 1f);
+				}
+	
+				// Check to see if there is a valid material assigned to this object
+				if((materialCount > 0) && (rootObject.getMaterialID() >= 0)) 
+				{
 					
-					// Now look in the Root World and just get the Vertices we need.
-					vTempFace[k] = new Vector3f(pWorld.getObject(i).getVertices(iIndex));
+					byte[] pColor = rootWorld.getMaterials(rootObject.getMaterialID()).getColor();
+					
+					
+					glColor3ub(pColor[0], pColor[1], pColor[2]);
+					//glColor3ub((byte)0,(byte) 255, (byte)0);
 					
 				}
-				
-				vNormal.setTo(VectorMath.normal(vTempFace));
-				
-				
-				CollisionMath collision = new CollisionMath();
-				Distance distance = new Distance();
-				
-				// This is where we determine if the sphere is in FRONT, BEHIND, or INTERSECTS the plane
-				int classification = collision.classifySphere(camera.getPosition(), vNormal, vTempFace[0], camera.getRadius(), distance);
-				// If the sphere intersects the polygon's plane, then we need to check further
-				if(classification == Distance.INTERSECTS) 
+	
+				// Now we get to the more unknown stuff, vertex arrays.  If you haven't
+				// dealt with vertex arrays yet, let me give you a brief run down on them.
+				// Instead of doing loops to go through and pass in each of the vertices
+				// of a model, we can just pass in the array vertices, then an array of
+				// indices that MUST be an unsigned int, which gives the indices into
+				// the vertex array.  That means that we can send the vertices to the video
+				// card with one call to glDrawElements().  There are a bunch of other
+				// functions for vertex arrays that do different things, but I am just going
+				// to mention this one.  Since texture coordinates, normals and colors are also
+				// associated with vertices, we are able to point OpenGL to these arrays before
+				// we draw the geometry.  It uses the same indices that we pass to glDrawElements()
+				// for each of these arrays.  Below, we point OpenGL to our texture coordinates,
+				// vertex and normal arrays.  This is done with calls to glTexCoordPointer(), 
+				// glVertexPointer() and glNormalPointer().
+				//
+				// Before using any of these functions, we need to enable their states.  This is
+				// done with glEnableClientState().  You just pass in the ID of the type of array 
+				// you are wanting OpenGL to look for.  If you don't have data in those arrays,
+				// the program will most likely crash.
+				//
+				// If you don't want to use vertex arrays, you can just render the world like normal.
+				// That is why I saved the pFace information, as well as the pIndices info.  This
+				// way you can use what ever method you are comfortable with.  I tried both, and
+				// by FAR the vertex arrays are incredibly faster.  You decide :)
+	
+				// Make sure we have texture coordinates to render
+				if(rootObject.getNumTex() > 0) 
 				{
-					// 2) STEP TWO - Finding the psuedo intersection point on the plane
-
-					// Now we want to project the sphere's center onto the triangle's plane
-					Vector3f vOffset = new Vector3f(VectorMath.multiply(vNormal, distance.distance));
-
-					// Once we have the offset to the plane, we just subtract it from the center
-					// of the sphere.  "vIntersection" is now a point that lies on the plane of the triangle.
-					Vector3f vIntersection = new Vector3f(VectorMath.subtract(camera.getPosition(), vOffset));
-
-					// 3) STEP THREE - Check if the intersection point is inside the triangles perimeter
-
-					// We first check if our intersection point is inside the triangle, if not,
-					// the algorithm goes to step 4 where we check the sphere again the polygon's edges.
-
-					// We do one thing different in the parameters for EdgeSphereCollision though.
-					// Since we have a bulky sphere for our camera, it makes it so that we have to 
-					// go an extra distance to pass around a corner. This is because the edges of 
-					// the polygons are colliding with our peripheral view (the sides of the sphere).  
-					// So it looks likes we should be able to go forward, but we are stuck and considered 
-					// to be colliding.  To fix this, we just pass in the radius / 2.  Remember, this
-					// is only for the check of the polygon's edges.  It just makes it look a bit more
-					// realistic when colliding around corners.  Ideally, if we were using bounding box 
-					// collision, cylinder or ellipses, this wouldn't really be a problem.
-
-					if(collision.insidePolygon(vIntersection, vTempFace, 3) ||
-							collision.edgeSphereCollision(camera.getPosition(), vTempFace, 3, camera.getRadius()/3))
+					// Turn on the texture coordinate state
+					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	
+					// Point OpenGL to our texture coordinate array.
+					// We have them in a pair of 2, of type float and 0 bytes of stride between them.
+					//glTexCoordPointer(2, GL_FLOAT, 0, pRootObject->pTexVerts);
+					float[] temp = new float[rootObject.getNumTex() * 2];
+					int b = 0;
+					for(int a=0; a < rootObject.getNumTex(); a++)
 					{
-						// If we get here, we have collided!  To handle the collision detection
-						// all it takes is to find how far we need to push the sphere back.
-						// GetCollisionOffset() returns us that offset according to the normal,
-						// radius, and current distance the center of the sphere is from the plane.
-						vOffset.setTo(collision.getCollisionOffset(vNormal, camera.getRadius(), distance.distance));
-
-						// Now that we have the offset, we want to ADD it to the position and
-						// view vector in our camera.  This pushes us back off of the plane.  We
-						// don't see this happening because we check collision before we render
-						// the scene.
-						//vOffset.negate();
-						camera.setPosition(VectorMath.add(camera.getPosition(), vOffset));
-						camera.setView(VectorMath.add(camera.getView(), vOffset));
+						temp[b] = rootObject.getTexcoords()[a].s;
+						temp[b+1] = rootObject.getTexcoords()[a].t;
+						b +=2;
 						
+					}
+					
+					FloatBuffer temp1 = Conversion.allocFloats(temp);
+					
+					glTexCoordPointer(2, 0, temp1);
+				}
+	
+				// Make sure we have vertices to render
+				if(rootObject.getNumVert() > 0)
+				{
+					// Turn on the vertex array state
+					glEnableClientState(GL_VERTEX_ARRAY);
+	
+					// Point OpenGL to our vertex array.  We have our vertices stored in
+					// 3 floats, with 0 stride between them in bytes.
+					float[] temp = new float[rootObject.getNumVert() * 3];
+					int b = 0;
+					for(int a=0; a < rootObject.getNumVert(); a++)
+					{
+						temp[b] = rootObject.getVertices(a).x;
+						temp[b+1] = rootObject.getVertices(a).y;
+						temp[b+2] = rootObject.getVertices(a).z;
+						b +=3;
+						
+					}
+					
+					FloatBuffer temp1 = Conversion.allocFloats(temp);
+					glVertexPointer(3, 0, temp1);
+				}
+	
+				// Make sure we have normals to render
+				if(rootObject.getNumNorm() > 0)
+				{
+					// Turn on the normals state
+					glEnableClientState(GL_NORMAL_ARRAY);
+	
+					// Point OpenGL to our normals array.  We have our normals
+					// stored as floats, with a stride of 0 between.
+					
+					float[] temp = new float[rootObject.getNumNorm() * 3];
+					int b = 0;
+					for(int a=0; a < rootObject.getNumNorm(); a++)
+					{
+						temp[b] = rootObject.getNormal(a).x;
+						temp[b+1] = rootObject.getNormal(a).y;
+						temp[b+2] = rootObject.getNormal(a).z;
+						b +=3;
+						
+					}
+					
+					FloatBuffer temp1 = Conversion.allocFloats(temp);
+					glNormalPointer(0, temp1);
+				}
+	
+				// Here we pass in the indices that need to be rendered.  We want to
+				// render them in triangles, with numOfFaces * 3 for indice count,
+				// and the indices are of type UINT (important).
+				int[] temp = new int[object.getIndices().size()]; 
+				for(int a=0; a < object.getIndices().size(); a++)
+				{
+					temp[a] = object.getIndices(a);
+					
+				}
+				
+				IntBuffer temp1 = Conversion.allocInts(temp);
+				glDrawElements(GL_TRIANGLES, temp1);
+				
+				// Increase the current object count rendered
+				counter++;
+			}
+	
+			// End the display list for this ID
+			glEndList();
+		}
+	}
+
+	/////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
+	//Check to see if a line intersects with a polygon in the Octree.
+	//
+	//	[in]	pNode			The Octree Node to check.
+	//	[in]	vLine			The Line to check intersection for.
+	//	[in]	vIntersectionPt	The Point at which the line intersected.
+	//	[return]		Wheter there was an intersection or not.
+	public boolean intersectLineWithOctree(Octree pNode, T3dModel pWorld, Vector3f vLine[], Vector3f vIntersectionPt )
+	{
+		// If the passed in node is invalid, leave.
+		if ( pNode == null )
+			return false;
+		
+		float fLeft, fRight, fBottom, fTop, fBack, fFront;
+	
+		Vector3f pCenter = new Vector3f(pNode.getCenter());
+	
+		// Find the Left, Right, Front and Back of this Node's AABB.
+		fLeft = pCenter.x - pNode.getWidth();
+		fRight = pCenter.x + pNode.getWidth();
+		fBottom = pCenter.y - pNode.getWidth();
+		fTop = pCenter.y + pNode.getWidth();
+		// Be careful here, depth is different in DirectX's Left handed coordinate system.
+		fBack = pCenter.z - pNode.getWidth();
+		fFront = pCenter.z + pNode.getWidth();
+	
+		// If BOTH Vertices of the Line are not in this Node, than there can not possibly
+		// be an intersection, return false.
+		if ( octreeCollisionDetection &&
+			 (( vLine[0].x < fLeft || vLine[0].x > fRight ) ||
+			 ( vLine[0].y < fBottom || vLine[0].y > fTop ) ||
+			 ( vLine[0].z < fBack || vLine[0].z > fFront )) 
+			 &&
+			 (( vLine[1].x < fLeft || vLine[1].x > fRight ) ||
+			 ( vLine[1].y < fBottom || vLine[1].y > fTop ) ||
+			 ( vLine[1].z < fBack || vLine[1].z > fFront )) )
+				return false;
+	
+		// If this node is subdivided, traverse to it's children.
+		if ( pNode.isSubDivided() )
+		{
+			// Lots of Logic Tests, but with a purpose. If ANY node comes back saying there was a collision in it or one
+			// of it's sub-nodes, return immediately without checking anymore nodes. This echos back recursivly to the root.
+			if ( intersectLineWithOctree( pNode.octreeNodes[TOP_LEFT_FRONT], pWorld, vLine, vIntersectionPt ) )
+				return true;
+			if ( intersectLineWithOctree( pNode.octreeNodes[TOP_LEFT_BACK], pWorld, vLine, vIntersectionPt ) )
+				return true;
+			if ( intersectLineWithOctree( pNode.octreeNodes[TOP_RIGHT_BACK], pWorld, vLine, vIntersectionPt ) )
+				return true;
+			if ( intersectLineWithOctree( pNode.octreeNodes[TOP_RIGHT_FRONT], pWorld, vLine, vIntersectionPt ) )
+				return true;
+			if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_LEFT_FRONT], pWorld, vLine, vIntersectionPt ) )
+				return true;
+			if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_LEFT_BACK], pWorld, vLine, vIntersectionPt ) )
+				return true;
+			if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_RIGHT_BACK], pWorld, vLine, vIntersectionPt ) )
+				return true;
+			if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_RIGHT_FRONT], pWorld, vLine, vIntersectionPt ) )
+				return true;
+		}
+		else
+		{
+			// Make sure there is a world to test.
+			if (pNode.world == null )
+				return false;
+	
+			// Increment the Count of how many collisions with terminal Nodes we have encountered.
+			numNodesCollided++;
+	
+			Vector3f[] vTempFace = new Vector3f[3];
+			int i, j, k;
+	
+			// Check all of this Nodes World Objects.
+			for ( i = 0; i < pNode.world.getNumOfObjects(); i++ )
+			{
+				T3dObject pObject = pNode.world.getObject(i);
+	
+				// Check all of the Worlds Faces.
+				for ( j = 0; j < pObject.getNumFaces(); j++ )
+				{
+					// Look at the 3 Vertices of this Face.
+					for ( k = 0; k < 3; k++ )
+					{
+						// Get the Vertex Index;
+						int iIndex = pObject.getFace(j).getVertices(k);
+	
+						// Now look in the Root World and just get the Vertices we need.
+						vTempFace[k] = new Vector3f(pWorld.getObject(i).getVertices(iIndex));
+					}
+					CollisionMath collision = new CollisionMath();
+	
+					// If we had a Line to Polygon Intersection, return true, which should echo down to the root function call.
+					if ( collision.intersectedPolygon( vTempFace, vLine, 3, vIntersectionPt ) )
+					{
 						setObjectColliding(true);
 						return true;
 					}
 				}
-
-				
 			}
 		}
-	}
-		return false;
-
 	
-}
+		// No intersection detected.
+		return false;
+	}
+
+	public boolean checkCameraCollision(Octree node, T3dModel world, CameraQuaternion camera)
+	{	
+		// This function is pretty much a direct rip off of SpherePolygonCollision()
+		// We needed to tweak it a bit though, to handle the collision detection once 
+		// it was found, along with checking every triangle in the list if we collided.  
+		// pVertices is the world data. If we have space partitioning, we would pass in 
+		// the vertices that were closest to the camera. What happens in this function 
+		// is that we go through every triangle in the list and check if the camera's 
+		// sphere collided with it.  If it did, we don't stop there.  We can have 
+		// multiple collisions so it's important to check them all.  One a collision 
+		// is found, we calculate the offset to move the sphere off of the collided plane.
+		
+		// If the passed in node is invalid, leave.
+		if ( node == null )
+			return false;
+		
+		float left, right, bottom, top, back, front;
+	
+		Vector3f center = new Vector3f(node.getCenter());
+	
+		// Find the Left, Right, Front and Back of this Node's AABB.
+		left = center.x - node.getWidth();
+		right = center.x + node.getWidth();
+		bottom = center.y - node.getWidth();
+		top = center.y + node.getWidth();
+		// Be careful here, depth is different in DirectX's Left handed coordinate system.
+		back = center.z - node.getWidth();
+		front = center.z + node.getWidth();
+	
+		// If BOTH Vertices of the Line are not in this Node, than there can not possibly
+		// be an intersection, return false.
+		float radius = camera.getRadius();
+		if ( octreeCollisionDetection &&
+			 //(( camera.getPosition().x < left || camera.getPosition().x > right ) ||
+			 //( camera.getPosition().y < bottom || camera.getPosition().y > top ) ||
+			 //( camera.getPosition().z < back || camera.getPosition().z > front )) 
+			// &&
+			 (( camera.getPosition().x+radius < left || camera.getPosition().x+radius > right ) ||
+			 ( camera.getPosition().y+radius < bottom || camera.getPosition().y+radius > top ) ||
+			 ( camera.getPosition().z+radius < back || camera.getPosition().z+radius > front )) )
+				return false;
+		
+		
+		
+		// If this node is subdivided, traverse to it's children.
+		if ( node.isSubDivided() )
+		{
+			// Lots of Logic Tests, but with a purpose. If ANY node comes back saying there was a collision in it or one
+			// of it's sub-nodes, return immediately without checking anymore nodes. This echos back recursivly to the root.
+			if (checkCameraCollision( node.octreeNodes[TOP_LEFT_FRONT], world, camera))
+				return true;
+			if (checkCameraCollision( node.octreeNodes[TOP_LEFT_BACK], world, camera))
+				return true;
+				
+			if (checkCameraCollision( node.octreeNodes[TOP_RIGHT_BACK], world, camera ))
+				return true;
+			if (checkCameraCollision( node.octreeNodes[TOP_RIGHT_FRONT], world, camera ))
+				return true;
+			if (checkCameraCollision( node.octreeNodes[BOTTOM_LEFT_FRONT], world, camera ))
+				return true;
+			if (checkCameraCollision( node.octreeNodes[BOTTOM_LEFT_BACK], world, camera ))
+				return true;
+			if (checkCameraCollision( node.octreeNodes[BOTTOM_RIGHT_BACK], world, camera ))
+				return true;
+			if (checkCameraCollision( node.octreeNodes[BOTTOM_RIGHT_FRONT], world, camera ))
+				return true;
+		}
+		else
+		{
+			// Make sure there is a world to test.
+			if (node.world == null )
+				return false;
+	
+			// Increment the Count of how many collisions with terminal Nodes we have encountered.
+			numNodesCollided++;
+	
+			Vector3f[] tempFace = new Vector3f[3];
+			Vector3f normal = new Vector3f();
+			int i, j, k;
+	
+			// Check all of this Nodes World Objects.
+			for ( i = 0; i < node.world.getNumOfObjects(); i++ )
+			{
+				T3dObject object = node.world.getObject(i);
+	
+				// Check all of the Worlds Faces.
+				for ( j = 0; j < object.getNumFaces(); j++ )
+				{
+					// Look at the 3 Vertices of this Face.
+					for ( k = 0; k < 3; k++ )
+					{
+						// Get the Vertex Index;
+						int index = object.getFace(j).getVertices(k);
+						
+						// Now look in the Root World and just get the Vertices we need.
+						tempFace[k] = new Vector3f(world.getObject(i).getVertices(index));
+						
+					}
+					
+					normal.setTo(VectorMath.normal(tempFace));
+					
+					
+					CollisionMath collision = new CollisionMath();
+					Distance distance = new Distance();
+					
+					// This is where we determine if the sphere is in FRONT, BEHIND, or INTERSECTS the plane
+					int classification = collision.classifySphere(camera.getPosition(), normal, tempFace[0], radius, distance);
+					// If the sphere intersects the polygon's plane, then we need to check further
+					if(classification == Distance.INTERSECTS) 
+					{
+						// 2) STEP TWO - Finding the pseudo intersection point on the plane
+	
+						// Now we want to project the sphere's center onto the triangle's plane
+						Vector3f offset = new Vector3f(VectorMath.multiply(normal, distance.distance));
+	
+						// Once we have the offset to the plane, we just subtract it from the center
+						// of the sphere.  "vIntersection" is now a point that lies on the plane of the triangle.
+						Vector3f intersection = new Vector3f(VectorMath.subtract(camera.getPosition(), offset));
+	
+						// 3) STEP THREE - Check if the intersection point is inside the triangles perimeter
+	
+						// We first check if our intersection point is inside the triangle, if not,
+						// the algorithm goes to step 4 where we check the sphere again the polygon's edges.
+	
+						// We do one thing different in the parameters for EdgeSphereCollision though.
+						// Since we have a bulky sphere for our camera, it makes it so that we have to 
+						// go an extra distance to pass around a corner. This is because the edges of 
+						// the polygons are colliding with our peripheral view (the sides of the sphere).  
+						// So it looks likes we should be able to go forward, but we are stuck and considered 
+						// to be colliding.  To fix this, we just pass in the radius / 2.  Remember, this
+						// is only for the check of the polygon's edges.  It just makes it look a bit more
+						// realistic when colliding around corners.  Ideally, if we were using bounding box 
+						// collision, cylinder or ellipses, this wouldn't really be a problem.
+	
+						if(collision.insidePolygon(intersection, tempFace, 3) ||
+						   collision.edgeSphereCollision(camera.getPosition(), tempFace, 3, radius/3))
+						{
+							// If we get here, we have collided!  To handle the collision detection
+							// all it takes is to find how far we need to push the sphere back.
+							// GetCollisionOffset() returns us that offset according to the normal,
+							// radius, and current distance the center of the sphere is from the plane.
+							offset.setTo(collision.getCollisionOffset(normal, camera.getRadius(), distance.distance));
+	
+							// Now that we have the offset, we want to ADD it to the position and
+							// view vector in our camera.  This pushes us back off of the plane.  We
+							// don't see this happening because we check collision before we render
+							// the scene.
+							//vOffset.negate();
+							camera.setPosition(VectorMath.add(camera.getPosition(), offset));
+							camera.setView(VectorMath.add(camera.getView(), offset));
+							
+							setObjectColliding(true);
+							return true;
+						}
+					}
+	
+					
+				}
+			}
+		}
+			return false;
+	
+		
+	}
 
 	//This returns if this node is subdivided or not
 	private boolean isSubDivided()  

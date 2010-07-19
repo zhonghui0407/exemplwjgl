@@ -14,6 +14,8 @@ import java.nio.*;
 
 import org.lwjgl.*;
 
+import fcampos.rawengine3D.MathUtil.Vector3f;
+
 
 
 /* Static imports.
@@ -248,6 +250,11 @@ public class Frustum
 	}
 
 
+	public boolean cubeInFrustum(Vector3f center, float size )
+	{
+		return cubeInFrustum( center.x, center.y, center.z, size );
+	}
+	
 	///////////////////////////////// CUBE IN FRUSTUM \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	/////
 	/////	This determines if a cube is in or around our frustum by it's center and 1/2 it's length

@@ -234,7 +234,7 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 	/////
 	/////////////////////////////////// INSIDE POLYGON \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-	public boolean insidePolygon(Vector3f vIntersection, Vector3f poly[], int verticeCount)
+	public boolean insidePolygon(Vector3f intersection, Vector3f poly[], int verticeCount)
 	{
 		final double MATCH_FACTOR = 0.9999;		// Used to cover up the error in floating point
 		double angle = 0.0;						// Initialize the angle
@@ -256,9 +256,9 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 
 		for (int i = 0; i < verticeCount; i++)		// Go in a circle to each vertex and get the angle between
 		{	
-			vA = VectorMath.subtract(poly[i], vIntersection);	// Subtract the intersection point from the current vertex
+			vA = VectorMath.subtract(poly[i], intersection);	// Subtract the intersection point from the current vertex
 													// Subtract the point from the next vertex
-			vB = VectorMath.subtract(poly[(int)((i + 1) % verticeCount)], vIntersection);
+			vB = VectorMath.subtract(poly[(int)((i + 1) % verticeCount)], intersection);
 													
 			angle += VectorMath.angleBetweenVectors(vA, vB);	// Find the angle between the 2 vectors and add them all up as we go along
 		}

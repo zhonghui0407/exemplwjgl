@@ -39,7 +39,7 @@ public class CameraCollision extends GameCore {
     public Vector3f vIntersectionPt;
  
        // This is how fast our camera moves
-    float SPEED	=5.0f;
+    float SPEED	=10.0f;
   
     // Here we initialize our single Octree object.  This will hold all of our vertices
     Octree octree = new Octree();
@@ -181,7 +181,7 @@ public class CameraCollision extends GameCore {
 
     	//glEnable(GL_FOG);									// This enables our OpenGL Fog
 
-    
+    	glLight(GL_LIGHT0, GL_POSITION, posLuz1F); 
 		
     	createGameActions();
         
@@ -381,7 +381,7 @@ public class CameraCollision extends GameCore {
         	camera.look();	
         	GameCore.gFrustum.calculateFrustum();
         	// Agora posiciona demais fontes de luz
-        	glLight(GL_LIGHT0, GL_POSITION, posLuz1F); 
+        	//glLight(GL_LIGHT0, GL_POSITION, posLuz1F); 
         	//gluLookAt(camera.getPosition()[0].x, camera.getPosition()[0].y, camera.getPosition()[0].z,
         	//		camera.getPosition()[1].x,	camera.getPosition()[1].y,	 camera.getPosition()[1].z,
         	//		camera.getPosition()[2].x, camera.getPosition()[2].y, camera.getPosition()[2].z);	
@@ -410,13 +410,7 @@ public class CameraCollision extends GameCore {
         		}
         	}
         	
-        	// Update fps
-    		
-        	//screen.enterOrtho();
-        	//draw.drawString(1,"QPS: " + FPSCounter.get(), 5, 5);  
         	
-        	//screen.leaveOrtho();
-        	//FPSCounter.get();
         	screen.setTitle("Triangles: " + Octree.maxTriangles + "  -Total Draw: " + Octree.totalNodesDrawn +
         					"  -Subdivisions: " +  Octree.maxSubdivisions + "  -FPS: " + FPSCounter.get() + "  -Node Collisions: " +
         					Octree.numNodesCollided + "  -Object Colliding? " +	octree.isObjectColliding() ); 
