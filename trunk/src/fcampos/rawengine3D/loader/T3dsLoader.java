@@ -178,7 +178,7 @@ public void processNextChunk(T3dModel pModel, TChunk pPreviousChunk, LEDataInput
 			// If you are unfamiliar with STL's "vector" class, all push_back()
 			// does is add a new node onto the list.  I used the vector class
 			// so I didn't need to write my own link list functions.  
-			pModel.addPMaterials(newTexture);
+			pModel.addMaterials(newTexture);
 
 			// Proceed to the material loading function
 			processNextMaterialChunk(pModel, m_CurrentChunk, in);
@@ -195,7 +195,7 @@ public void processNextChunk(T3dModel pModel, TChunk pPreviousChunk, LEDataInput
 			pModel.addNumOfObjects(1);
 			
 			// Add a new tObject node to our list of objects (like a link list)
-			pModel.addPObject(newObject);
+			pModel.addObject(newObject);
 			
 			// Initialize the object and all it's data members
 			//memset(&(pModel->pObject[pModel->numOfObjects - 1]), 0, sizeof(t3DObject));
@@ -208,7 +208,7 @@ public void processNextChunk(T3dModel pModel, TChunk pPreviousChunk, LEDataInput
 			m_CurrentChunk.addBytesRead(tempName.length()+1);
 			
 			// Now proceed to read in the rest of the object information
-			processNextObjectChunk(pModel, pModel.getPObject(pModel.getNumOfObjects()-1), m_CurrentChunk, in);
+			processNextObjectChunk(pModel, pModel.getObject(pModel.getNumOfObjects()-1), m_CurrentChunk, in);
 			break;
 
 		case EDITKEYFRAME:
@@ -348,7 +348,7 @@ public void processNextMaterialChunk(T3dModel pModel, TChunk pPreviousChunk, LED
 			
 			// Here we read in the material name
 			String tempName = readString(in);
-			pModel.getPMaterials(pModel.getNumOfMaterials()-1).setName(tempName);
+			pModel.getMaterials(pModel.getNumOfMaterials()-1).setName(tempName);
 			m_CurrentChunk.addBytesRead(tempName.length()+1);  //modificado
 			//m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
 			//m_CurrentChunk->bytesRead += fread(pModel->pMaterials[pModel->numOfMaterials - 1].strName, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
@@ -357,7 +357,7 @@ public void processNextMaterialChunk(T3dModel pModel, TChunk pPreviousChunk, LED
 		case MATDIFFUSE:						// This holds the R G B color of our object
 			
 			
-			readColorChunk(pModel.getPMaterials(pModel.getNumOfMaterials()-1), m_CurrentChunk, in);
+			readColorChunk(pModel.getMaterials(pModel.getNumOfMaterials()-1), m_CurrentChunk, in);
 			break;
 		
 		case MATMAP:							// This is the header for the texture info
@@ -370,7 +370,7 @@ public void processNextMaterialChunk(T3dModel pModel, TChunk pPreviousChunk, LED
 
 			// Here we read in the material's file name
 			String tempName1 = readString(in);
-			pModel.getPMaterials(pModel.getNumOfMaterials()-1).setTexFile(tempName1);
+			pModel.getMaterials(pModel.getNumOfMaterials()-1).setTexFile(tempName1);
 			m_CurrentChunk.addBytesRead(tempName1.length()+1);    //modificado
 			//m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
 			//m_CurrentChunk->bytesRead += fread(pModel->pMaterials[pModel->numOfMaterials - 1].strFile, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
@@ -609,17 +609,17 @@ public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPrevi
 	// Yes though, we could have just passed in the model and not the object too.
 
 	// Go through all of the textures
-	for(int i = 0; i < pModel.getPMaterials().size(); i++)
+	for(int i = 0; i < pModel.getMaterials().size(); i++)
 	{
 		// If the material we just read in matches the current texture name
-		if(pModel.getPMaterials(i).getName().equalsIgnoreCase(strMaterial))
+		if(pModel.getMaterials(i).getName().equalsIgnoreCase(strMaterial))
 		{
 			// Set the material ID to the current index 'i' and stop checking
 			pObject.setMaterialID(i);
 
 			// Now that we found the material, check if it's a texture map.
 			// If the strFile has a string length of 1 and over it's a texture
-			if(pModel.getPMaterials(i).getTexFile().length() > 0) {
+			if(pModel.getMaterials(i).getTexFile().length() > 0) {
 
 				// Set the object's flag to say it has a texture map to bind.
 				pObject.setbHasTexture(true);

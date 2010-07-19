@@ -30,9 +30,7 @@ public class CollisionMath {
 	/////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
 
 	public final static double PI = 3.1415926535897932;
-	public final static int BEHIND	=	0;
-	public final static int INTERSECTS	= 1;
-	public final static int FRONT	=	2;
+	
 	Vector3f vNormal;
 	//public Fl originDistance;
 	
@@ -325,14 +323,14 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 /////
 ///////////////////////////////// CLASSIFY SPHERE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public int classifySphere(Vector3f vCenter, Vector3f vNormal, Vector3f vPoint, float radius, Fl distance)
+public int classifySphere(Vector3f vCenter, Vector3f vNormal, Vector3f vPoint, float radius, Distance distance)
 {
 	// First we need to find the distance our polygon plane is from the origin.
 	float d = planeDistance(vNormal, vPoint);
 
 	// Here we use the famous distance formula to find the distance the center point
 	// of the sphere is from the polygon's plane.  
-	distance.abc = (vNormal.x * vCenter.x + vNormal.y * vCenter.y + vNormal.z * vCenter.z + d);
+	distance.distance = (vNormal.x * vCenter.x + vNormal.y * vCenter.y + vNormal.z * vCenter.z + d);
 
 	// Now we query the information just gathered.  Here is how Sphere Plane Collision works:
 	// If the distance the center is from the plane is less than the radius of the sphere,
@@ -353,15 +351,15 @@ public int classifySphere(Vector3f vCenter, Vector3f vNormal, Vector3f vPoint, f
 
 	// If the absolute value of the distance we just found is less than the radius, 
 	// the sphere intersected the plane.
-	if(Math.abs(distance.abc) < radius)
-		return INTERSECTS;
+	if(Math.abs(distance.distance) < radius)
+		return Distance.INTERSECTS;
 	// Else, if the distance is greater than or equal to the radius, the sphere is
 	// completely in FRONT of the plane.
-	else if(distance.abc >= radius)
-		return FRONT;
+	else if(distance.distance >= radius)
+		return Distance.FRONT;
 	
 	// If the sphere isn't intersecting or in FRONT of the plane, it must be BEHIND
-	return BEHIND;
+	return Distance.BEHIND;
 }
 
 
@@ -412,18 +410,18 @@ public boolean spherePolygonCollision(Vector3f vPolygon[], Vector3f vCenter, int
 	Vector3f vNormal = VectorMath.normal(vPolygon);
 
 	// This will store the distance our sphere is from the plane
-	Fl distance = new Fl();
+	Distance distance = new Distance();
 
 	// This is where we determine if the sphere is in FRONT, BEHIND, or INTERSECTS the plane
 	int classification = classifySphere(vCenter, vNormal, vPolygon[0], radius, distance);
 
 	// If the sphere intersects the polygon's plane, then we need to check further
-	if(classification == INTERSECTS) 
+	if(classification == Distance.INTERSECTS) 
 	{
 		// 2) STEP TWO - Finding the pseudo intersection point on the plane
 
 		// Now we want to project the sphere's center onto the polygon's plane
-		Vector3f vOffset = VectorMath.multiply(vNormal, distance.abc);
+		Vector3f vOffset = VectorMath.multiply(vNormal, distance.distance);
 
 		// Once we have the offset to the plane, we just subtract it from the center
 		// of the sphere.  "vPosition" now a point that lies on the plane of the polygon.

@@ -201,12 +201,12 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
         		// the end of our animation list.  
 
         		// Increase the current animation and mod it by the max animations
-        		g_World.setCurrentAnim((g_World.getCurrentAnim()+ 1) % (g_World.getPAnimations().size()));
+        		g_World.setCurrentAnim((g_World.getCurrentAnim()+ 1) % (g_World.getAnimations().size()));
         		//System.out.println("numero de animacoes:  "+g_World.getPAnimations().size());
         		// Set the current frame to be the starting frame of the new animation
-        		g_World.setCurrentFrame(g_World.getPAnimations(g_World.getCurrentAnim()).getStartFrame());
+        		g_World.setCurrentFrame(g_World.getAnimations(g_World.getCurrentAnim()).getStartFrame());
         		
-        		screen.setTitle("Animation: " + g_World.getPAnimations(g_World.getCurrentAnim()).getAnimName());
+        		screen.setTitle("Animation: " + g_World.getAnimations(g_World.getCurrentAnim()).getAnimName());
         	}
         	     	
             if (moveLeft.isPressed())
@@ -284,10 +284,10 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
     	// about them.
     	
     	// Make sure we have valid objects just in case. (size() is in the vector class)
-    	if(pModel.getPObject().size() <= 0) return;
+    	if(pModel.getObject().size() <= 0) return;
 
     	// Here we grab the current animation that we are on from our model's animation list
-    	TAnimationInfo pAnim = pModel.getPAnimations(pModel.getCurrentAnim());
+    	TAnimationInfo pAnim = pModel.getAnimations(pModel.getCurrentAnim());
 
     	// This gives us the current frame we are on.  We mod the current frame plus
     	// 1 by the current animations end frame to make sure the next frame is valid.
@@ -300,13 +300,13 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
     		nextFrame =  pAnim.getStartFrame();
 
     	// Get the current key frame we are on
-    	T3dObject pFrame =		 pModel.getPObject(pModel.getCurrentFrame());
+    	T3dObject pFrame =		 pModel.getObject(pModel.getCurrentFrame());
 
     	// Get the next key frame we are interpolating too
-    	T3dObject pNextFrame =  pModel.getPObject(nextFrame);
+    	T3dObject pNextFrame =  pModel.getObject(nextFrame);
 
     	// Get the first key frame so we have an address to the texture and face information
-    	T3dObject pFirstFrame = pModel.getPObject(0);
+    	T3dObject pFirstFrame = pModel.getObject(0);
 
     	// Next, we want to get the current time that we are interpolating by.  Remember,
     	// if t = 0 then we are at the beginning of the animation, where if t = 1 we are at the end.
@@ -385,9 +385,9 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
         	// Render the cubed nodes to visualize the octree (in wire frame mode)
         	if( g_bDisplayNodes ){
         		//TOctree.g_Debug.renderDebugLines();
-        		for(int j=0; j < g_World.getPObject().size(); j++)
+        		for(int j=0; j < g_World.getObject().size(); j++)
         		{
-        			g_World.getPObject(j).renderBoundingBox();
+        			g_World.getObject(j).drawBoundingBox();
         		}
         	}
         }

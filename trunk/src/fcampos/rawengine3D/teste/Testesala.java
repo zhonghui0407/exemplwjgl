@@ -1,5 +1,6 @@
 package fcampos.rawengine3D.teste;
 import fcampos.rawengine3D.input.*;
+import fcampos.rawengine3D.model.BoundingBox;
 import fcampos.rawengine3D.model.T3dModel;
 import fcampos.rawengine3D.resource.*;
 import fcampos.rawengine3D.gamecore.GameCore;
@@ -77,7 +78,7 @@ public class Testesala extends GameCore {
  
 
     // Here we initialize our single Octree object.  This will hold all of our vertices
-    TOctree g_Octree = new TOctree();;
+    Octree octree = new Octree();;
 
     
 
@@ -154,7 +155,7 @@ public class Testesala extends GameCore {
     	
     	//g_World.carregaObjeto(g_World, "Jupiter2_CrashlandModel.3ds");
     	//g_World.carregaObjeto(g_World, "Park.3ds");
-    	g_World.carregaObjeto(g_World, "collision_arena.3DS");
+    	g_World.load("collision_arena.3DS");
     	//g_World.carregaObjeto(g_World, "teste.3DS");
     	
     	// The maximum amount of triangles per node.  If a node has equal or less 
@@ -181,14 +182,14 @@ public class Testesala extends GameCore {
     	//g_Octree.getSceneDimensions(g_World, teste);
     	
     	//System.out.println("depois de passar: " +teste.abc);
-        g_Octree.getSceneDimensions(g_World);
+        octree.getSceneDimensions(g_World);
     	
     	//System.out.println("depois de passar  x: " + temp.x + "y: " + temp.y + "z: " + temp.z);
     	
-    	int TotalTriangleCount = g_Octree.getSceneTriangleCount(g_World);
-    	g_Octree.createNode(g_World, TotalTriangleCount, g_Octree.getCenter(), g_Octree.getWidth());
-    	g_Octree.setDisplayListID( glGenLists(TOctree.g_EndNodeCount) );
-    	g_Octree.createDisplayList(g_Octree, g_World, g_Octree.getDisplayListID());
+    	int TotalTriangleCount = octree.getSceneTriangleCount(g_World);
+    	octree.createNode(g_World, TotalTriangleCount, octree.getCenter(), octree.getWidth());
+    	octree.setDisplayListID( glGenLists(Octree.totalNodesCount) );
+    	octree.createDisplayList(octree, g_World, octree.getDisplayListID());
 
     	// Hide our cursor since we are using first person camera mode
     	Mouse.setGrabbed(true);
@@ -226,45 +227,45 @@ public class Testesala extends GameCore {
     	pObj = new Sphere();
     	pObj.setOrientation(GLU_OUTSIDE);
     	
-    	TOctree.g_Debug = g_Octree.new Debug();
+    	Octree.debug = new BoundingBox();
     	// Turn lighting on initially
-    	TOctree.g_bLighting     = true;	
+    	Octree.turnLighting     = true;	
 
     	// The current amount of end nodes in our tree (The nodes with vertices stored in them)
-    	TOctree.g_EndNodeCount = 0;
+    	Octree.totalNodesCount = 0;
 
     	// This stores the amount of nodes that are in the frustum
-    	TOctree.g_TotalNodesDrawn = 0;
+    	Octree.totalNodesDrawn = 0;
 
     	// The maximum amount of triangles per node.  If a node has equal or less 
     	// than this, stop subdividing and store the face indices in that node
-    	TOctree.g_MaxTriangles = 800;
+    	Octree.maxTriangles = 800;
 
     	// The maximum amount of subdivisions allowed (Levels of subdivision)
-    	TOctree.g_MaxSubdivisions = 4;
+    	Octree.maxSubdivisions = 4;
 
     	// The number of Nodes we've checked for collision.
-    	TOctree.g_iNumNodesCollided = 0;
+    	Octree.numNodesCollided = 0;
 
     	// Wheter the Object is Colliding with anything in the World or not.
-    	TOctree.g_bObjectColliding = false;
+    	octree.setObjectColliding(false);
 
     	// Wheter we test the whole world for collision or just the nodes we are in.
-    	TOctree.g_bOctreeCollisionDetection = true;
+    	Octree.octreeCollisionDetection = true;
     	
     	LoadWorld();
     	
     	for(int i=0; i < g_World.getNumOfMaterials(); i++)
     	{
-    		System.out.println(g_World.getPMaterials(i).getName() + " indice " + i);
+    		System.out.println(g_World.getMaterials(i).getName() + " indice " + i);
     		
     	}
     	
     	
     	for(int i=0; i < g_World.getNumOfObjects(); i++)
     	{
-    		System.out.println(g_World.getPObject(i).getName());
-    		System.out.println(g_World.getPObject(i).getMaterialID());
+    		System.out.println(g_World.getObject(i).getName());
+    		System.out.println(g_World.getObject(i).getMaterialID());
     		//System.out.println(g_World.getPObject(i).getMaterialID());
     	}
     	
@@ -384,14 +385,15 @@ public class Testesala extends GameCore {
         	
         	if (drawMode.isPressed())
         	{
-        		TOctree.drawMode = !TOctree.drawMode;
-        		if(TOctree.drawMode)
+        		octree.setRenderMode(!octree.isRenderMode());
+        		octree.setObjectColliding(false);
+        		if(octree.isRenderMode())
         		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	// Render the triangles in fill mode		
     		
     		else {
     			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	// Render the triangles in wire frame mode
     		}
-        		g_Octree.createDisplayList(g_Octree, g_World, g_Octree.getDisplayListID());
+        		octree.createDisplayList(octree, g_World, octree.getDisplayListID());
         	}
         	
         	if (fullScreen.isPressed())
@@ -401,7 +403,7 @@ public class Testesala extends GameCore {
             
             if(enter.isPressed())
             {
-            	TOctree.g_bOctreeCollisionDetection = !TOctree.g_bOctreeCollisionDetection;
+            	Octree.octreeCollisionDetection = !Octree.octreeCollisionDetection;
             }
           
             if (left.isPressed())
@@ -482,7 +484,7 @@ public class Testesala extends GameCore {
             
             //System.out.println(g_Octree.g_bObjectColliding);
         	// Apply Gravity to this Entity (using time based motion) if he's not colliding with anything.
-        	if ( !TOctree.g_bObjectColliding )
+        	if ( !octree.isObjectColliding() )
         		g_BallEntity.fVelY += -((GRAVITY * GRAVITY) * elapsedTime) * 0.5f;
         	
         	
@@ -551,14 +553,14 @@ public class Testesala extends GameCore {
         	vIntersectionPt = new Vector3f();
 
         	// Reset the Status of the Object (wheter it is colliding or not).
-        	TOctree.g_bObjectColliding = false;
+        	octree.setObjectColliding(false);
 
         	// Reset the Nodes collided to zero so we can start with a fresh count.
-        	TOctree.g_iNumNodesCollided = 0;
+        	Octree.numNodesCollided = 0;
 
         	// Test the line for an intersection with the Octree Geometry.
         	//System.out.println("antes x: "+vIntersectionPt.x);
-        	if ( g_Octree.intersectLineWithOctree( g_Octree, g_World, vGroundLine, vIntersectionPt ) )
+        	if ( octree.intersectLineWithOctree( octree, g_World, vGroundLine, vIntersectionPt ) )
         	{
         		// Move the Ball up from the point at which it collided with the ground. This is what
         		// ground clamping is!
@@ -573,7 +575,7 @@ public class Testesala extends GameCore {
         	}
         	//System.out.println("primeira: "+ vIntersectionPt.x + " " + vIntersectionPt.y + " " + vIntersectionPt.z);
         	// Test the line for an intersection with the Octree Geometry.
-        	if ( g_Octree.intersectLineWithOctree( g_Octree, g_World, vForwardLine, vIntersectionPt ) )
+        	if ( octree.intersectLineWithOctree( octree, g_World, vForwardLine, vIntersectionPt ) )
         	{
         		// Move the Ball up from the point at which it collided with the ground. This is what
         		// ground clamping is!
@@ -610,7 +612,7 @@ public class Testesala extends GameCore {
         	GameCore.gFrustum.calculateFrustum();
 
         	// Initialize the total node count that is being draw per frame
-        	TOctree.g_TotalNodesDrawn = 0;
+        	Octree.totalNodesDrawn = 0;
 
         	glPushMatrix();
         		// Here we draw the octree, starting with the root node and recursing down each node.
@@ -618,16 +620,16 @@ public class Testesala extends GameCore {
         		// just store the world in the root node and not have to keep the original data around.
         		// This is up to you.  I like this way better because it's easy, though it could be 
         		// more error prone.
-        		g_Octree.drawOctree(g_Octree, g_World );
+        		octree.drawOctree(octree, g_World );
         	glPopMatrix();
 
         	// Render the cubed nodes to visualize the octree (in wire frame mode)
         	if( g_bDisplayNodes )
-        		TOctree.g_Debug.renderDebugLines();
+        		Octree.debug.drawBoundingBox();
 
         	glPushMatrix();
         		// If there was a collision, make the Orange ball Red.
-        		if ( TOctree.g_bObjectColliding )
+        		if ( octree.isObjectColliding() )
         			glColor3f( 1.0f, 0.0f, 0.0f );
         		else
         			glColor3f( 1.0f, 0.5f, 0.0f );// Disable Lighting.
@@ -670,9 +672,9 @@ public class Testesala extends GameCore {
         	
         	//screen.leaveOrtho();
         	//FPSCounter.get();
-        	screen.setTitle("Triangles: " + TOctree.g_MaxTriangles + "  -Total Draw: " + TOctree.g_TotalNodesDrawn + "  -Subdivisions: " +  TOctree.g_MaxSubdivisions +
-        			 "  -FPS: " + FPSCounter.get() + "  -Node Collisions: " + TOctree.g_iNumNodesCollided + "  -Object Colliding? " +
-        				   TOctree.g_bObjectColliding ); 	
+        	screen.setTitle("Triangles: " + Octree.maxTriangles + "  -Total Draw: " + Octree.totalNodesDrawn + "  -Subdivisions: " +  Octree.maxSubdivisions +
+        			 "  -FPS: " + FPSCounter.get() + "  -Node Collisions: " + Octree.numNodesCollided + "  -Object Colliding? " +
+        				   octree.isObjectColliding() ); 	
         	
         }
             

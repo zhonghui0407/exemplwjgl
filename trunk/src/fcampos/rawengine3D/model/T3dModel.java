@@ -16,13 +16,13 @@ public class T3dModel {
 	
 	private int numOfTags;						// This stores the number of tags in the model
 	
-	private Vector<TMaterialInfo> pMaterials;	// The list of material information (Textures and colors)
-	private Vector<T3dObject> pObject;			// The object list for our model	
-	private Vector<TAnimationInfo> pAnimations; // The list of animations 
+	private Vector<TMaterialInfo> materials;	// The list of material information (Textures and colors)
+	private Vector<T3dObject> object;			// The object list for our model	
+	private Vector<TAnimationInfo> animations; // The list of animations 
 	
 	
-	private T3dModel[]	pLinks;				// This stores a list of pointers that are linked to this model
-	private TMD3Tag[]	pTags;			// This stores all the tags for the model animations
+	private T3dModel[]	links;				// This stores a list of pointers that are linked to this model
+	private TMD3Tag[]	tags;			// This stores all the tags for the model animations
 
 	
 	private TObjectLoader loader;
@@ -33,14 +33,14 @@ public class T3dModel {
 		numOfObjects = 0;
 		numOfMaterials = 0;
 		numOfAnimations = 0;
-		pMaterials = new Vector<TMaterialInfo>();
-		pObject = new Vector<T3dObject>();
-		pAnimations = new Vector<TAnimationInfo>();
+		materials = new Vector<TMaterialInfo>();
+		object = new Vector<T3dObject>();
+		animations = new Vector<TAnimationInfo>();
 		
 	}
 
 	
-	public void carregaObjeto(String arqName, boolean mipmap, boolean useAnisotropicFilter, T3dModel world) throws IOException
+	public void load(String arqName, boolean mipmap, boolean useAnisotropicFilter, T3dModel world) throws IOException
 	{
 		loader = new TObjectLoader();
 		loader.carregaObjeto(arqName, mipmap, useAnisotropicFilter, world);
@@ -48,10 +48,10 @@ public class T3dModel {
 		
 	}
 	
-	public void carregaObjeto(T3dModel world, String arqName) throws IOException
+	public void load(String arqName) throws IOException
 	{
 		dsloader = new T3dsLoader();
-		dsloader.import3DS(world, arqName);
+		dsloader.import3DS(this, arqName);
 		//System.out.println(pObject.get(0).getName());
 		
 	}
@@ -59,9 +59,9 @@ public class T3dModel {
 	public void draw(T3dModel world)
 	{
 		//System.out.println(pObject.get(0).getName());
-		for(int i=0; i< pObject.size(); i++)
+		for(int i=0; i< object.size(); i++)
 		{
-		T3dObject obj = pObject.get(i);
+		T3dObject obj = object.get(i);
 		obj.draw(world);
 		}
 	}
@@ -110,53 +110,53 @@ public class T3dModel {
 	/**
 	 * @param pMaterials the pMaterials to set
 	 */
-	public void setPMaterials(Vector<TMaterialInfo> pMaterials) {
-		this.pMaterials = pMaterials;
+	public void setMaterials(Vector<TMaterialInfo> pMaterials) {
+		this.materials = pMaterials;
 	}
 	
-	public void addPMaterials(TMaterialInfo pMaterials) {
-		this.pMaterials.add(pMaterials);
+	public void addMaterials(TMaterialInfo pMaterials) {
+		this.materials.add(pMaterials);
 	}
 
 	/**
 	 * @return the pMaterials
 	 */
-	public Vector<TMaterialInfo> getPMaterials() {
-		return pMaterials;
+	public Vector<TMaterialInfo> getMaterials() {
+		return materials;
 	}
 	
-	public TMaterialInfo getPMaterials(int index) {
-		return pMaterials.get(index);
+	public TMaterialInfo getMaterials(int index) {
+		return materials.get(index);
 	}
 
 	/**
 	 * @param pObject the pObject to set
 	 */
-	public void setPObject(Vector<T3dObject> pObject) {
-		this.pObject = pObject;
+	public void setObject(Vector<T3dObject> pObject) {
+		this.object = pObject;
 	}
 	
-	public void addPObject(T3dObject pObject) {
-		this.pObject.add(pObject);
+	public void addObject(T3dObject pObject) {
+		this.object.add(pObject);
 		
 	}
 
 	/**
 	 * @return the pObject
 	 */
-	public Vector<T3dObject> getPObject() {
-		return pObject;
+	public Vector<T3dObject> getObject() {
+		return object;
 	}
 	
-	public T3dObject getPObject(int index) {
-		return pObject.get(index);
+	public T3dObject getObject(int index) {
+		return object.get(index);
 	}
 	
 	public int findMaterial(String nome) 
 	{
-		for (int i=0; i < pMaterials.size(); i++) 
+		for (int i=0; i < materials.size(); i++) 
 		{
-			if (nome.equalsIgnoreCase(getPMaterials(i).getName()))
+			if (nome.equalsIgnoreCase(getMaterials(i).getName()))
 			{
 				return i;
 			}
@@ -184,25 +184,25 @@ public class T3dModel {
 	/**
 	 * @param pAnimations the pAnimations to set
 	 */
-	public void setPAnimations(Vector<TAnimationInfo> pAnimations) {
-		this.pAnimations = pAnimations;
+	public void setAnimations(Vector<TAnimationInfo> pAnimations) {
+		this.animations = pAnimations;
 	}
 	
 	public void addAnimations(TAnimationInfo animation)
 	{
-		pAnimations.add(animation);
+		animations.add(animation);
 	}
 
-	public TAnimationInfo getPAnimations(int index)
+	public TAnimationInfo getAnimations(int index)
 	{
-		return pAnimations.get(index);
+		return animations.get(index);
 	}
 
 	/**
 	 * @return the pAnimations
 	 */
-	public Vector<TAnimationInfo> getPAnimations() {
-		return pAnimations;
+	public Vector<TAnimationInfo> getAnimations() {
+		return animations;
 	}
 
 
@@ -257,61 +257,61 @@ public class T3dModel {
 	/**
 	 * @param pLinks the pLinks to set
 	 */
-	public void setPLinks(T3dModel[] pLinks) {
-		this.pLinks = pLinks;
+	public void setLinks(T3dModel[] pLinks) {
+		this.links = pLinks;
 	}
 	
 	/**
 	 * @param pLinks the pLinks to set
 	 */
-	public void setPLinks(T3dModel pLinks, int index) {
-		this.pLinks[index] = pLinks;
+	public void setLinks(T3dModel pLinks, int index) {
+		this.links[index] = pLinks;
 	}
 	
 	/**
-	 * @param pLinks the pLinks to set
+	 * @param links the pLinks to set
 	 */
 	public void setNumLinks(int total) {
-		pLinks = new T3dModel[total];
+		links = new T3dModel[total];
 		for(int i = 0; i < total; i++)
-			pLinks[i] = null;
+			links[i] = null;
 	}
 
 
 	/**
 	 * @return the pLinks
 	 */
-	public T3dModel[] getPLinks() {
-		return pLinks;
+	public T3dModel[] getLinks() {
+		return links;
 	}
 	
 	/**
 	 * @return the pLinks
 	 */
-	public T3dModel getPLinks(int index) {
-		return pLinks[index];
+	public T3dModel getLinks(int index) {
+		return links[index];
 	}
 
 
 	/**
 	 * @param pTags the pTags to set
 	 */
-	public void setPTags(TMD3Tag[] pTags) {
-		this.pTags = pTags;
+	public void setTags(TMD3Tag[] pTags) {
+		this.tags = pTags;
 	}
 	
 	/**
 	 * @param pTags the pTags to set
 	 */
-	public void setPTags(TMD3Tag pTags, int index) {
-		this.pTags[index] = pTags;
+	public void setTags(TMD3Tag pTags, int index) {
+		this.tags[index] = pTags;
 	}
 	
 	/**
-	 * @param pTags the pTags to set
+	 * @param tags the pTags to set
 	 */
-	public void setNumPTags(int total) {
-		pTags = new TMD3Tag[total];
+	public void setNumTags(int total) {
+		tags = new TMD3Tag[total];
 				
 	}
 
@@ -319,15 +319,15 @@ public class T3dModel {
 	/**
 	 * @return the pTags
 	 */
-	public TMD3Tag[] getPTags() {
-		return pTags;
+	public TMD3Tag[] getTags() {
+		return tags;
 	}
 	
 	/**
 	 * @return the pTags
 	 */
-	public TMD3Tag getPTags(int index) {
-		return pTags[index];
+	public TMD3Tag getTags(int index) {
+		return tags[index];
 	}
 	
 	

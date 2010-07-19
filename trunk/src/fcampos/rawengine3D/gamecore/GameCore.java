@@ -12,6 +12,7 @@ import static org.lwjgl.util.glu.GLU.gluPerspective;
 import java.io.IOException;
 import org.lwjgl.Sys;
 
+import fcampos.rawengine3D.fps.FPSCounter;
 import fcampos.rawengine3D.graficos.Frustum;
 import fcampos.rawengine3D.graficos.ScreenManager;
 import fcampos.rawengine3D.input.GameAction;
@@ -34,7 +35,8 @@ public abstract class GameCore {
 	protected boolean isRunning;    //Variável que controla o início e o término do programa
 	protected float elapsedTime;	//Variável que controla o variação de tempo que o programa irá iterar
 	
-    // Cria ações para interagir com o programa       
+    // Cria ações para interagir com o programa     
+	public GameAction pause;
     public GameAction exit; 
     public GameAction fullScreen;
     public static Frustum gFrustum = new Frustum();
@@ -63,6 +65,7 @@ public abstract class GameCore {
        	/* Cria dois objetos GameAction passando como parâmetro o nome da Ação, o tipo de acionamento
        	 * de tecla, que nesse caso só detectará o clique inicial e a tecla que será utilizada para a ação.
        	 */
+    	pause = new GameAction("pause", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_P);
       	exit = new GameAction("Exit", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_ESCAPE);
         fullScreen  = new GameAction("FullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F1);
      }
@@ -216,12 +219,16 @@ public abstract class GameCore {
 			elapsedTime = (float)(Sys.getTime() - currTime);
 			
 			elapsedTime /= 1000; // tempo em  milisegundos
-		
+			FPSCounter.update(elapsedTime);
+			
+			//System.out.println(elapsedTime);
+			currTime = Sys.getTime(); //recebe o tempo corrente do sistema
 			update(elapsedTime);
+			
 			
 			render(); //chama método desenhar
 			 
-			currTime = Sys.getTime(); //recebe o tempo corrente do sistema
+			
 			
 			// finalmente dizemos para o Display fazer uma atualização.
 			// agora que nós desenhamos toda nossa cena, nós apenas atualizamos ela
@@ -251,6 +258,10 @@ public abstract class GameCore {
     // Verifica se a ação de saída foi acionada
     protected void checkSystemInput()
     {
+    	if (pause.isPressed())
+        {
+            setPaused();
+        }
       	if (exit.isPressed())
     	{
     		stop();

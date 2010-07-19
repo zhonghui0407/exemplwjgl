@@ -247,12 +247,12 @@ public class TesteMD2 extends GameCore {
         	g_RotateX += g_RotationSpeed;							// Increase the speed of rotation
 
         	// Make sure we have valid objects just in case. (size() is in the vector class)
-        	if(g_World.getPObject().size() <= 0) return;
+        	if(g_World.getObject().size() <= 0) return;
         	
-        	for (int i=0; i < g_World.getPObject().size(); i++)
+        	for (int i=0; i < g_World.getObject().size(); i++)
         	{
         	// Get the current object that we are displaying
-        	T3dObject pObject = g_World.getPObject(i);
+        	T3dObject pObject = g_World.getObject(i);
         	
         	glBindTexture(GL_TEXTURE_2D,pObject.getMaterialID());
         	
@@ -293,9 +293,9 @@ public class TesteMD2 extends GameCore {
         	// Render the cubed nodes to visualize the octree (in wire frame mode)
         	if( g_bDisplayNodes ){
         		//TOctree.g_Debug.renderDebugLines();
-        		for(int j=0; j < g_World.getPObject().size(); j++)
+        		for(int j=0; j < g_World.getObject().size(); j++)
         		{
-        			g_World.getPObject(j).renderBoundingBox();
+        			g_World.getObject(j).drawBoundingBox();
         		}
         	}
         }

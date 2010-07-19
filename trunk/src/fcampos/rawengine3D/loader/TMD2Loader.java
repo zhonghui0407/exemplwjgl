@@ -275,8 +275,8 @@ try
 		//pModel.setNumOfMaterials(1);
 
 		// Add the local material info to our model's material list
-		pModel.addPMaterials(texture);
-		pModel.getPObject(pModel.getPMaterials().size()-1).setMaterialID(tex.getTexID());
+		pModel.addMaterials(texture);
+		pModel.getObject(pModel.getMaterials().size()-1).setMaterialID(tex.getTexID());
 		
 	}
 
@@ -432,7 +432,7 @@ for(int i = 0; i < pModel.getNumOfObjects(); i++)
 
 	// Check if this animation name is not the same as the last frame,
 	// or if we are on the last frame of animation for this model
-	if(!strName.equalsIgnoreCase(strLastName) || i == pModel.getPObject().size() - 1)
+	if(!strName.equalsIgnoreCase(strLastName) || i == pModel.getObject().size() - 1)
 	{
 		// If this animation frame is NOT the first frame
 		if(strLastName != "")
@@ -510,7 +510,7 @@ for (j=0; j < currentFrame.getNumVert(); j++)
 if(i > 0)
 {
 	// Here we add the current object (or frame) to our list object list
-	pModel.addPObject(currentFrame);
+	pModel.addObject(currentFrame);
 	continue;	// Go on to the next key frame
 }
 
@@ -560,7 +560,7 @@ for(j=0; j < currentFrame.getNumFaces(); j++)
 }
 currentFrame.setDimension();
 // Here we add the current object (or frame) to our list object list
-pModel.addPObject(currentFrame);
+pModel.addObject(currentFrame);
 }
 
 }
