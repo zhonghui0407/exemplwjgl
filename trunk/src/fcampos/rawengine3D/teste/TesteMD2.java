@@ -32,8 +32,8 @@ public class TesteMD2 extends GameCore {
    // private static String FILE_NAME =  "modelsd2/model8/body.md2";							// This is the 3D file we will load.
    // private static String TEXTURE_NAME = "modelsd2/model8/body.png";
     
-    private static String FILE_NAME =  "modelpack19/hang8/hang8.md2";							// This is the 3D file we will load.
-    private static String TEXTURE_NAME = "modelpack19/hang8/hang8.png";
+    private static String FILE_NAME =  "models/Ogros.md2";						// This is the 3D file we will load.
+    private static String TEXTURE_NAME = "models/igdosh.jpg";
      
     
     public GameAction moveLeft;
@@ -42,8 +42,7 @@ public class TesteMD2 extends GameCore {
     public GameAction moveDown;
     public GameAction zoomIn;
     public GameAction zoomOut;
-    public GameAction exit;
-    public GameAction fullScreen;
+  
     public GameAction drawMode;
     public GameAction modTex;
     public GameAction debug;
@@ -54,16 +53,11 @@ public class TesteMD2 extends GameCore {
     float g_RotationSpeed = 0.05f;							// This is the speed that our model rotates.  (-speed rotates left)
     private int modo = GL_MODULATE;
     
-    
-    public InputManager inputManager;
-   
-    public boolean paused;
-    
-    private boolean fullscreen;
+  
     
  // This will store our 3ds scene that we will pass into our octree
-    public T3dModel g_World = new T3dModel();
-    public TMD2Loader g_LoadMd2 = new TMD2Loader();
+    public Model3d g_World = new Model3d();
+    public LoaderMD2 g_LoadMd2 = new LoaderMD2();
     
  // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
     boolean g_bDisplayNodes = false;
@@ -76,8 +70,7 @@ public class TesteMD2 extends GameCore {
         
         screen.setTitle("MD2 Loader");
         
-        inputManager = new InputManager();
-                
+                   
         createGameActions();
                    
         
@@ -90,8 +83,7 @@ public class TesteMD2 extends GameCore {
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
         
         
-        fullscreen = false;
-     // Here, we turn on a lighting and enable lighting.  We don't need to
+          // Here, we turn on a lighting and enable lighting.  We don't need to
     	// set anything else for lighting because we will just take the defaults.
     	// We also want color, so we turn that on
      
@@ -115,45 +107,13 @@ public class TesteMD2 extends GameCore {
     
  
 
-   
-    public void setFullScreen(boolean p)
-    {
-        if (fullscreen != p)
-        {
-            this.fullscreen = p;
-            screen.setFullScreen(fullscreen);
-        }
-
-     }
-    
-    public boolean isFullScreen()
-    {
-        return fullscreen;
-    }
-
-    public boolean isPaused()
-    {
-        return paused;
-    }
-
-    public void setPaused(boolean p)
-    {
-        if (paused != p)
-        {
-            this.paused = p;
-            
-        }
-
-     }
-
-    public void update()
+ 
+    public void update(float elapsedTime)
     {
     	
     	
     	checkSystemInput();
-    		
     	
-    	  	
 
         if(!isPaused())
         {
@@ -165,15 +125,6 @@ public class TesteMD2 extends GameCore {
         
     }
 
-        public void checkSystemInput()
-        {
-            
-            if (exit.isPressed())
-            {
-                stop();
-            }
-            
-        }
 
         public void checkGameInput()
         {
@@ -252,7 +203,7 @@ public class TesteMD2 extends GameCore {
         	for (int i=0; i < g_World.getObject().size(); i++)
         	{
         	// Get the current object that we are displaying
-        	T3dObject pObject = g_World.getObject(i);
+        	Object3d pObject = g_World.getObject(i);
         	
         	glBindTexture(GL_TEXTURE_2D,pObject.getMaterialID());
         	
@@ -300,40 +251,22 @@ public class TesteMD2 extends GameCore {
         	}
         }
              
-      public void createGameActions()
+        public void createGameActions()
         {
-            moveLeft = new GameAction("moveLeft");
-            moveRight = new GameAction("moveRight");
-            moveUp = new GameAction("moveUp");
-            moveDown = new GameAction("moveDown");
-            zoomIn = new GameAction("zoomIn");
-            zoomOut = new GameAction("zoomIn");
-            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            
-            inputManager.mapToKey(debug, Keyboard.KEY_SPACE);            
-            inputManager.mapToKey(modTex, Keyboard.KEY_M);
-            inputManager.mapToKey(exit, Keyboard.KEY_ESCAPE);
-            inputManager.mapToKey(drawMode, Keyboard.KEY_T);           
-            inputManager.mapToKey(zoomIn, Keyboard.KEY_HOME);
-            inputManager.mapToKey(zoomOut, Keyboard.KEY_END) ;
-            inputManager.mapToKey(moveLeft, Keyboard.KEY_LEFT);
-            inputManager.mapToKey(moveRight, Keyboard.KEY_RIGHT);
-            inputManager.mapToKey(moveUp, Keyboard.KEY_UP);
-            inputManager.mapToKey(moveDown, Keyboard.KEY_DOWN);
-            
-            
-            inputManager.mapToKey(fullScreen, Keyboard.KEY_F1);
-            
-            
-            
-            
+    	  super.createGameActions();
+            moveLeft = new GameAction("moveLeft", GameAction.NORMAL, Keyboard.KEY_LEFT);
+            moveRight = new GameAction("moveRight", GameAction.NORMAL, Keyboard.KEY_RIGHT);
+            moveUp = new GameAction("moveUp", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_UP);
+            moveDown = new GameAction("moveDown", GameAction.NORMAL, Keyboard.KEY_DOWN);
+            zoomIn = new GameAction("zoomIn", GameAction.NORMAL, Keyboard.KEY_HOME);
+            zoomOut = new GameAction("zoomOut", GameAction.NORMAL, Keyboard.KEY_END);
            
+           
+            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
+            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_M);
+            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_SPACE);
+  
         }
-        
 
 
 }

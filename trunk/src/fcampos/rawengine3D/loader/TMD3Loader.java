@@ -213,7 +213,7 @@ public class TMD3Loader {
 /////
 ///////////////////////////////// IMPORT MD2 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public boolean importMD3(T3dModel pModel, String strFileName)
+public boolean importMD3(Model3d pModel, String strFileName)
 {
 	
 try
@@ -265,7 +265,7 @@ return true;
 /////
 ///////////////////////////////// READ MD2 DATA \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-private void readMD3Data(T3dModel pModel) throws Exception
+private void readMD3Data(Model3d pModel) throws Exception
 {
 
 
@@ -363,7 +363,7 @@ int i;
  *  @param strSkin Skin path.
  */
 
-public boolean loadSkin(T3dModel pModel, String strSkin)
+public boolean loadSkin(Model3d pModel, String strSkin)
 {
 	
 	// Make sure valid data was passed in
@@ -422,7 +422,7 @@ public boolean loadSkin(T3dModel pModel, String strSkin)
 					textureNameStart = strLine.lastIndexOf("/") + 1;
 
 					  // Create a local material info structure
-					TMaterialInfo texture = new TMaterialInfo();
+					MaterialInfo texture = new MaterialInfo();
 
 					  // Copy the name of the file into our texture file name variable.
 					texture.setName(strLine.substring(textureNameStart));
@@ -462,12 +462,12 @@ public boolean loadSkin(T3dModel pModel, String strSkin)
 /////
 ///////////////////////////////// CONVERT DATA STRUCTURES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-private void convertDataStructures(T3dModel pModel, TMD3MeshInfo meshHeader)
+private void convertDataStructures(Model3d pModel, TMD3MeshInfo meshHeader)
 {
 int i = 0;
 
 
-T3dObject currentFrame = new T3dObject();
+Object3d currentFrame = new Object3d();
 
 
 // Assign the vertex, texture coord and face count to our new structure
@@ -521,7 +521,7 @@ currentFrame.setDimension();
 pModel.addObject(currentFrame);
 }
 
-public boolean loadShader(T3dModel pModel, String strShader)
+public boolean loadShader(Model3d pModel, String strShader)
 {
 	try
 	{
@@ -538,7 +538,7 @@ public boolean loadShader(T3dModel pModel, String strShader)
 		while((strLine = reader.readLine()) != null)
 		{
 			  // Create a local material info structure
-			TMaterialInfo texture = new TMaterialInfo();
+			MaterialInfo texture = new MaterialInfo();
 
 			  // Copy the name of the file into our texture file name variable
 			texture.setName(strLine);

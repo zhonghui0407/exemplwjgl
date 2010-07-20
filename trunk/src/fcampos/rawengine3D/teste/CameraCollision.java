@@ -1,7 +1,7 @@
 package fcampos.rawengine3D.teste;
 import fcampos.rawengine3D.input.*;
 import fcampos.rawengine3D.model.BoundingBox;
-import fcampos.rawengine3D.model.T3dModel;
+import fcampos.rawengine3D.model.Model3d;
 import fcampos.rawengine3D.resource.*;
 import fcampos.rawengine3D.gamecore.GameCore;
 import fcampos.rawengine3D.graficos.*;
@@ -46,7 +46,7 @@ public class CameraCollision extends GameCore {
 
         
  // This will store our 3ds scene that we will pass into our octree
-    public T3dModel world = new T3dModel();
+    public Model3d world = new Model3d();
     
  // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
     boolean displayNodes = false;
@@ -160,7 +160,7 @@ public class CameraCollision extends GameCore {
     	
     	    	// Habilita Z-Buffer
     	glEnable(GL_DEPTH_TEST);
-    	//glCullFace(GL_BACK);								// Don't draw the back sides of polygons
+    	glCullFace(GL_BACK);								// Don't draw the back sides of polygons
     	//glEnable(GL_CULL_FACE);	
     	
     	// Seleciona o modo de GL_COLOR_MATERIAL

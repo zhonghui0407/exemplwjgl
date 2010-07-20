@@ -1,22 +1,6 @@
 package fcampos.rawengine3D.io;
 
-/*
- * @(#)LEDataInputStream.java
- *
- * Summary: Little-Endian version of DataInputStream.
- *
- * Copyright: (c) 1998-2010 Roedy Green, Canadian Mind Products, http://mindprod.com
- *
- * Licence: This software may be copied and used freely for any purpose but military.
- *          http://mindprod.com/contact/nonmil.html
- *
- * Requires: JDK 1.1+
- *
- * Created with: IntelliJ IDEA IDE.
- *
- * Version History:
- *  1.8 2007-05-24
- */
+
 
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -58,10 +42,10 @@ public final class LEDataInputStream extends DataInputStream implements DataInpu
      * @param in binary inputstream of little-endian data.
      */
     public LEDataInputStream( InputStream in )
-        {
-    		super(in);
-        	work = new byte[8];
-        }
+    {
+    	super(in);
+        work = new byte[8];
+    }
 
    
   
@@ -96,9 +80,9 @@ public final class LEDataInputStream extends DataInputStream implements DataInpu
      * @throws IOException if read fails.
      */
     public final float readLEFloat() throws IOException
-        {
+    {
         return Float.intBitsToFloat( readLEInt() );
-        }
+    }
 
     
     
@@ -110,17 +94,26 @@ public final class LEDataInputStream extends DataInputStream implements DataInpu
      */
     public final int readLEInt() throws IOException
     {
-    	
-        readFully( work, 0, 4 );
+    	readFully( work, 0, 4 );
         return ( work[ 3 ] & 0xff) << 24
                | ( work[ 2 ] & 0xff ) << 16
                | ( work[ 1 ] & 0xff ) << 8
                | ( work[ 0 ] & 0xff );
-     
+        
      }
+    
+    public int readByte2() throws IOException 
+    {
+    	readFully( work, 0, 1 );
+    	
+        int b1 = (work[0] & 0xFF);
+      
+        return (b1);
+}
   
     
-    public String readString() throws IOException {
+    public String readString() throws IOException 
+    {
         String result = new String();
         byte inByte;
         while ( (inByte = (byte) read()) != 0)
@@ -128,7 +121,8 @@ public final class LEDataInputStream extends DataInputStream implements DataInpu
         
         return result;
     }
-
+    
+   
     /**
      * read a long, 64-bits.  Like DataInputStream.readLong except little endian.
      *
@@ -157,10 +151,10 @@ public final class LEDataInputStream extends DataInputStream implements DataInpu
      * @throws IOException if read fails.
      */
     public final char readLEShort() throws IOException
-        {
+    {
         readFully( work, 0, 2 );
         return  (char) ( ( work[ 1 ] & 0xff ) << 8 | ( work[ 0 ] & 0xff ) );
-        }
+    }
 
   
   
@@ -173,9 +167,9 @@ public final class LEDataInputStream extends DataInputStream implements DataInpu
      * @throws IOException if read fails.
      */
     public final int readLEUnsignedShort() throws IOException
-        {
+    {
         readFully( work, 0, 2 );
         return ( ( work[ 1 ] & 0xff ) << 8 | ( work[ 0 ] & 0xff ) );
-        }
+    }
 
     }

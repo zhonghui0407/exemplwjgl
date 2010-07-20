@@ -1,8 +1,8 @@
 package fcampos.rawengine3D.MathUtil;
 
 import static java.lang.Math.*;
-import fcampos.rawengine3D.model.T3dModel;
-import fcampos.rawengine3D.model.T3dObject;
+import fcampos.rawengine3D.model.Model3d;
+import fcampos.rawengine3D.model.Object3d;
 
 
 
@@ -140,19 +140,19 @@ public final class VectorMath
 		return v3;
 	}
 
-	public final static Vector3f normal(Vector3f vTriangle[])					
+	public final static Vector3f normal(Vector3f triangle[])					
 	{	
 		// Get 2 vectors from the polygon (2 sides), Remember the order!
-		Vector3f vVector1 = subtract(vTriangle[2], vTriangle[0]);
-		Vector3f vVector2 = subtract(vTriangle[1], vTriangle[0]);
+		Vector3f vector1 = subtract(triangle[2], triangle[0]);
+		Vector3f vector2 = subtract(triangle[1], triangle[0]);
 
-		Vector3f vNormal = cross_product(vVector1, vVector2);		// Take the cross product of our 2 vectors to get a perpendicular vector
+		Vector3f normal = cross_product(vector1, vector2);		// Take the cross product of our 2 vectors to get a perpendicular vector
 
 		// Now we have a normal, but it's at a strange length, so let's make it length 1.
 
-		normalize(vNormal);						// Use our function we created to normalize the normal (Makes it a length of one)
+		normalize(normal);						// Use our function we created to normalize the normal (Makes it a length of one)
 
-		return vNormal;										// Return our normal at our desired length
+		return normal;										// Return our normal at our desired length
 	}
 	
 	//*Note* 
@@ -163,15 +163,15 @@ public final class VectorMath
 	//your own.  I wanted to add them so I could show how to calculate vertex normals.
 
 
-	public final static void computeNormals(T3dModel pModel)
+	public final static void computeNormals(Model3d model)
 	{
-		Vector3f vVector1 = new Vector3f();
-		Vector3f vVector2 = new Vector3f();
-		Vector3f vNormal = new Vector3f();
-		Vector3f[] vPoly = new Vector3f[3];
+		Vector3f vector1 = new Vector3f();
+		Vector3f vector2 = new Vector3f();
+		Vector3f normal = new Vector3f();
+		Vector3f[] poly = new Vector3f[3];
 
 		// If there are no objects, we can skip this part
-		if(pModel.getObject().size() <= 0)
+		if(model.getObject().size() <= 0)
 			return;
 
 		// What are vertex normals?  And how are they different from other normals?
@@ -184,73 +184,67 @@ public final class VectorMath
 		// vertex.  It's just averaging.  That way you get a better approximation for that vertex.
 
 		// Go through each of the objects to calculate their normals
-		for(int index = 0; index < pModel.getObject().size(); index++)
+		for(int index = 0; index < model.getObject().size(); index++)
 		{
 			// Get the current object
-			T3dObject pObject = pModel.getObject(index);
+			Object3d object = model.getObject(index);
 
 			// Here we allocate all the memory we need to calculate the normals
-			Vector3f[] pNormals		= new Vector3f[pObject.getNumFaces()];
-			Vector3f[] pTempNormals	= new Vector3f[pObject.getNumFaces()];
-			pObject.setNumNorm(pObject.getNumVert());
+			Vector3f[] normals		= new Vector3f[object.getNumFaces()];
+			Vector3f[] tempNormals	= new Vector3f[object.getNumFaces()];
+			object.setNumNorm(object.getNumVert());
 
 			// Go though all of the faces of this object
-			for(int i=0; i < pObject.getNumFaces(); i++)
+			for(int i=0; i < object.getNumFaces(); i++)
 			{												
 				// To cut down LARGE code, we extract the 3 points of this face
-				vPoly[0] = pObject.getVertices(pObject.getFace(i).getVertices(0));
-				vPoly[1] = pObject.getVertices(pObject.getFace(i).getVertices(1));
-				vPoly[2] = pObject.getVertices(pObject.getFace(i).getVertices(2));
+				poly[0] = object.getVertices(object.getFace(i).getVertices(0));
+				poly[1] = object.getVertices(object.getFace(i).getVertices(1));
+				poly[2] = object.getVertices(object.getFace(i).getVertices(2));
 
 				// Now let's calculate the face normals (Get 2 vectors and find the cross product of those 2)
 
-				vVector1 = VectorMath.subtract(vPoly[0], vPoly[2]);				// Get the vector of the polygon (we just need 2 sides for the normal)
-				vVector2 = VectorMath.subtract(vPoly[2], vPoly[1]);				// Get a second vector of the polygon
+				vector1 = VectorMath.subtract(poly[2], poly[0]);				// Get the vector of the polygon (we just need 2 sides for the normal)
+				vector2 = VectorMath.subtract(poly[1], poly[0]);				// Get a second vector of the polygon
 
-				vNormal  = VectorMath.cross_product(vVector1, vVector2);		// Return the cross product of the 2 vectors (normalize vector, but not a unit vector)
-				pTempNormals[i] = new Vector3f(vNormal);					// Save the un-normalized normal for the vertex normals
-				VectorMath.normalize(vNormal);				// Normalize the cross product to give us the polygons normal
+				normal  = VectorMath.cross_product(vector1, vector2);		// Return the cross product of the 2 vectors (normalize vector, but not a unit vector)
+				tempNormals[i] = new Vector3f(normal);					// Save the un-normalized normal for the vertex normals
+				VectorMath.normalize(normal);				// Normalize the cross product to give us the polygons normal
 
-				pNormals[i] = new Vector3f(vNormal);						// Assign the normal to the list of normals
+				normals[i] = new Vector3f(normal);						// Assign the normal to the list of normals
 			}
 
 			//////////////// Now Get The Vertex Normals /////////////////
 
-			Vector3f vSum = new Vector3f();
+			Vector3f sum = new Vector3f();
 			int shared=0;
 
-			for (int i = 0; i < pObject.getNumVert(); i++)			// Go through all of the vertices
+			for (int i = 0; i < object.getNumVert(); i++)			// Go through all of the vertices
 			{
-				for (int j = 0; j < pObject.getNumFaces(); j++)	// Go through all of the triangles
+				for (int j = 0; j < object.getNumFaces(); j++)	// Go through all of the triangles
 				{												// Check if the vertex is shared by another face
-					if (pObject.getFace(j).getVertices(0) == i || 
-						pObject.getFace(j).getVertices(1) == i || 
-						pObject.getFace(j).getVertices(2) == i)
+					if (object.getFace(j).getVertices(0) == i || 
+						object.getFace(j).getVertices(1) == i || 
+						object.getFace(j).getVertices(2) == i)
 					{
-						vSum = VectorMath.add(vSum, pTempNormals[j]);			// Add the un-normalized normal of the shared face
+						sum = VectorMath.add(sum, tempNormals[j]);			// Add the un-normalized normal of the shared face
 						shared++;								// Increase the number of shared triangles
 					}
 				}      
 				
 				// Get the normal by dividing the sum by the shared.  We negate the shared so it has the normals pointing out.
-				Vector3f tNormal = VectorMath.divide(vSum, (float)(-shared));
+				Vector3f tNormal = VectorMath.divide(sum, (float)(-shared));
 				
 				VectorMath.normalize(tNormal);	
 				
-				pObject.setNormal(tNormal, i);
+				object.setNormal(tNormal, i);
 				
-				//pObject.setNormal(VectorMath.divide(vSum, (float)(-shared)), i);
-
 				// Normalize the normal for the final vertex normal
-				//VectorMath.normalize(pObject.getNormal(i));	
-
-				vSum.setZero();									// Reset the sum
+				
+				sum.setZero();									// Reset the sum
 				shared = 0;										// Reset the shared
 			}
 		
-			// Free our memory and start over on the next object
-			//delete [] pTempNormals;
-			//delete [] pNormals;
 		}
 	}
 
@@ -353,8 +347,7 @@ public final class VectorMath
 	
 	public final static float magnitude(Vector3f v1)
 	{
-		float r = (float)sqrt( (v1.x * v1.x) + (v1.y * v1.y) +
-			    (v1.z * v1.z) );
+		float r = (float)sqrt( (v1.x * v1.x) + (v1.y * v1.y) + (v1.z * v1.z) );
 		if (r <= 0.00001)
 			return 0f;
 		else

@@ -45,8 +45,6 @@ public class TesteMD2Animation extends GameCore {
     public GameAction moveDown;
     public GameAction zoomIn;
     public GameAction zoomOut;
-    public GameAction exit;
-    public GameAction fullScreen;
     public GameAction drawMode;
     public GameAction modTex;
     public GameAction debug;
@@ -58,12 +56,11 @@ public class TesteMD2Animation extends GameCore {
     private int modo = GL_MODULATE;
     
     
-    public InputManager inputManager;
-   
+  
     
  // This will store our 3ds scene that we will pass into our octree
-    public T3dModel g_World = new T3dModel();
-    public TMD2Loader g_LoadMd2 = new TMD2Loader();
+    public Model3d g_World = new Model3d();
+    public LoaderMD2 g_LoadMd2 = new LoaderMD2();
     
  // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
     boolean g_bDisplayNodes = false;
@@ -76,8 +73,7 @@ public class TesteMD2Animation extends GameCore {
         
         screen.setTitle("MD2 Loader");
         
-        inputManager = new InputManager();
-                
+                    
         createGameActions();
                    
                
@@ -114,7 +110,7 @@ public class TesteMD2Animation extends GameCore {
 ///////////////////////////////// RETURN CURRENT TIME \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
      static float elapsedTime   = 0.0f;
 	  static float lastTime	  = 0.0f;
-private float returnCurrentTime(T3dModel pModel, int nextFrame)
+private float returnCurrentTime(Model3d pModel, int nextFrame)
 {
 	
 	// This function is very similar to finding the frames per second.
@@ -180,15 +176,6 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
         
     }
 
-        public void checkSystemInput()
-        {
-            
-            if (exit.isPressed())
-            {
-                stop();
-            }
-            
-        }
 
         public void checkGameInput()
         {
@@ -244,12 +231,7 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
         			g_ViewMode = GL_TRIANGLES;					// Go to triangles
         		}
         	}
-           
-            if (fullScreen.isPressed())
-            {
-            	setFullScreen(!isFullScreen());
-            	            	
-            }
+         
             
             if(debug.isPressed())
             {
@@ -267,7 +249,7 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
     /////
     ///////////////////////////////// ANIMATE MD2 MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-    private void animateMD2Model(T3dModel pModel)
+    private void animateMD2Model(Model3d pModel)
     {
     	// Now comes the juice of our tutorial.  Fear not, this is actually very intuitive
     	// if you drool over it for a while (stay away from the keyboard though...).
@@ -287,7 +269,7 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
     	if(pModel.getObject().size() <= 0) return;
 
     	// Here we grab the current animation that we are on from our model's animation list
-    	TAnimationInfo pAnim = pModel.getAnimations(pModel.getCurrentAnim());
+    	AnimationInfo pAnim = pModel.getAnimations(pModel.getCurrentAnim());
 
     	// This gives us the current frame we are on.  We mod the current frame plus
     	// 1 by the current animations end frame to make sure the next frame is valid.
@@ -300,13 +282,13 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
     		nextFrame =  pAnim.getStartFrame();
 
     	// Get the current key frame we are on
-    	T3dObject pFrame =		 pModel.getObject(pModel.getCurrentFrame());
+    	Object3d pFrame =		 pModel.getObject(pModel.getCurrentFrame());
 
     	// Get the next key frame we are interpolating too
-    	T3dObject pNextFrame =  pModel.getObject(nextFrame);
+    	Object3d pNextFrame =  pModel.getObject(nextFrame);
 
     	// Get the first key frame so we have an address to the texture and face information
-    	T3dObject pFirstFrame = pModel.getObject(0);
+    	Object3d pFirstFrame = pModel.getObject(0);
 
     	// Next, we want to get the current time that we are interpolating by.  Remember,
     	// if t = 0 then we are at the beginning of the animation, where if t = 1 we are at the end.
@@ -394,36 +376,19 @@ private float returnCurrentTime(T3dModel pModel, int nextFrame)
              
       public void createGameActions()
         {
-            moveLeft = new GameAction("moveLeft");
-            moveRight = new GameAction("moveRight");
-            moveUp = new GameAction("moveUp", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            moveDown = new GameAction("moveDown");
-            zoomIn = new GameAction("zoomIn");
-            zoomOut = new GameAction("zoomIn");
-            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            
-            inputManager.mapToKey(debug, Keyboard.KEY_SPACE);            
-            inputManager.mapToKey(modTex, Keyboard.KEY_M);
-            inputManager.mapToKey(exit, Keyboard.KEY_ESCAPE);
-            inputManager.mapToKey(drawMode, Keyboard.KEY_T);           
-            inputManager.mapToKey(zoomIn, Keyboard.KEY_HOME);
-            inputManager.mapToKey(zoomOut, Keyboard.KEY_END) ;
-            inputManager.mapToKey(moveLeft, Keyboard.KEY_LEFT);
-            inputManager.mapToKey(moveRight, Keyboard.KEY_RIGHT);
-            inputManager.mapToKey(moveUp, Keyboard.KEY_UP);
-            inputManager.mapToKey(moveDown, Keyboard.KEY_DOWN);
-            
-            
-            inputManager.mapToKey(fullScreen, Keyboard.KEY_F1);
-            
-            
-            
-            
+    	  super.createGameActions();
+            moveLeft = new GameAction("moveLeft", GameAction.NORMAL, Keyboard.KEY_LEFT);
+            moveRight = new GameAction("moveRight", GameAction.NORMAL, Keyboard.KEY_RIGHT);
+            moveUp = new GameAction("moveUp", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_UP);
+            moveDown = new GameAction("moveDown", GameAction.NORMAL, Keyboard.KEY_DOWN);
+            zoomIn = new GameAction("zoomIn", GameAction.NORMAL, Keyboard.KEY_HOME);
+            zoomOut = new GameAction("zoomOut", GameAction.NORMAL, Keyboard.KEY_END);
            
+           
+            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
+            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_M);
+            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_SPACE);
+  
         }
         
 
