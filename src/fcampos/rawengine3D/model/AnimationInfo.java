@@ -1,19 +1,19 @@
 package fcampos.rawengine3D.model;
 
-public class TAnimationInfo {
+public class AnimationInfo {
 	
 	private String animName;			// This stores the name of the animation (Jump, Pain, etc..)
 	private int startFrame;				// This stores the first frame number for this animation
 	private int endFrame;				// This stores the last frame number for this animation
 
-	public TAnimationInfo()
+	public AnimationInfo()
 	{
 		setAnimName(null);
 		setStartFrame(0);
 		setEndFrame(0);
 	}
 
-	public TAnimationInfo(String animFrame, int startFrame, int endFrame)
+	public AnimationInfo(String animFrame, int startFrame, int endFrame)
 	{
 		setAnimName(animFrame);
 		setStartFrame(startFrame);

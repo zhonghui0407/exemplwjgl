@@ -7,7 +7,7 @@ import fcampos.rawengine3D.graficos.*;
 
 
 
-public class TMaterialInfo {
+public class MaterialInfo {
 
 	private String name;	// Identificação do material
 	private Texture tex;
@@ -27,7 +27,7 @@ public class TMaterialInfo {
 
 
 	
-	public TMaterialInfo()
+	public MaterialInfo()
 	{
 		setKa(new float[SIZE_FLOAT]);
 		setKd(new float[SIZE_FLOAT]);
