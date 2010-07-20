@@ -1,19 +1,19 @@
 package fcampos.rawengine3D.loader;
 
-public class TChunk {
+public class Chunk {
 
 	    private char ID;					// The chunk's ID		
 		private int length;					// The length of the chunk
 		private int bytesRead;					// The amount of bytes read within that chunk
 		
-		public TChunk()
+		public Chunk()
 		{
 			setID('\u0000');
 			setLength(0);
 			setBytesRead(0);
 		}
 		
-		public void setTo(TChunk temp)
+		public void setTo(Chunk temp)
 		{
 			setID(temp.getID());
 			setLength(temp.getLength());

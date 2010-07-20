@@ -17,7 +17,7 @@ import fcampos.rawengine3D.MathUtil.*;
 /////	This constructor initializes the tChunk data
 /////
 ///////////////////////////////// CLOAD3DS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-public class T3dsLoader{
+public class Loader3DS{
 	
 	//>------ Primary Chunk, at the beginning of each file
 	private static final int PRIMARY =      0x4D4D;
@@ -46,204 +46,199 @@ public class T3dsLoader{
 	private static final int OBJECT_UV		=	0x4140;			// The UV texture coordinates
 	
 	
-	private TChunk m_CurrentChunk;
-	private TChunk m_TempChunk;
+	private Chunk currentChunk;
+	private Chunk tempChunk;
 	private boolean endOfStream = false;
 
 
-public T3dsLoader()
-{
-	m_CurrentChunk = new TChunk();				// Initialize and allocate our current chunk
-	m_TempChunk = new TChunk();					// Initialize and allocate a temporary chunk
-}
-
-///////////////////////////////// IMPORT 3DS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This is called by the client to open the .3ds file, read it, then clean up
-/////
-///////////////////////////////// IMPORT 3DS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void import3DS(T3dModel pModel, String strFileName) throws IOException
-{
-	System.out.println(">> Importing scene from 3ds stream ...");
-	// Open the 3DS file
-	File file = new File(strFileName);
-	System.out.println(file.getAbsolutePath());
-	FileInputStream inStream = new FileInputStream(file);
-	LEDataInputStream in = new LEDataInputStream(inStream);
-	
-    // Read the first chuck of the file to see if it's a 3DS file
-	readChunk(m_CurrentChunk, in);
-
-	// Make sure this is a 3DS file
-	if (m_CurrentChunk.getID() != PRIMARY)
+	public Loader3DS()
 	{
-		System.out.println("Unable to load PRIMARY chuck from file: " + strFileName);
+		currentChunk = new Chunk();				// Initialize and allocate our current chunk
+		tempChunk = new Chunk();					// Initialize and allocate a temporary chunk
+	}
+
+	///////////////////////////////// IMPORT 3DS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This is called by the client to open the .3ds file, read it, then clean up
+	/////
+	///////////////////////////////// IMPORT 3DS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void import3DS(Model3d model, String fileName) throws IOException
+	{
+		System.out.println(">> Importing scene from 3ds stream ...");
 		
-	}
-	//while (!endOfStream) {
-	//    readNextJunk(in); // will load into currentObject
-      // }
-    
+		// Open the 3DS file
+		File file = new File(fileName);
+		
+		FileInputStream inStream = new FileInputStream(file);
+		LEDataInputStream in = new LEDataInputStream(inStream);
+		
+	    // Read the first chuck of the file to see if it's a 3DS file
+		readChunk(currentChunk, in);
 	
-	// Now we actually start reading in the data.  ProcessNextChunk() is recursive
-
-	// Begin loading objects, by calling this recursive function
-    processNextChunk(pModel, m_CurrentChunk, in);
-    
-	// After we have read the whole 3DS file, we want to calculate our own vertex normals.
-	VectorMath.computeNormals(pModel);
-
-	
-	
-}
-
-
-
-///////////////////////////////// PROCESS NEXT CHUNK\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function reads the main sections of the .3DS file, then dives deeper with recursion
-/////
-///////////////////////////////// PROCESS NEXT CHUNK\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void processNextChunk(T3dModel pModel, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
-{
-	T3dObject newObject;					// This is used to add to our object list
-	TMaterialInfo newTexture;				// This is used to add to our material list
-	int version = 0;					// This will hold the file version
-	
-
-	m_CurrentChunk = new TChunk();				// Allocate a new chunk				
-
-	// Below we check our chunk ID each time we read a new chunk.  Then, if
-	// we want to extract the information from that chunk, we do so.
-	// If we don't want a chunk, we just read past it.  
-
-	// Continue to read the sub chunks until we have reached the length.
-	// After we read ANYTHING we add the bytes read to the chunk and then check
-	// check against the length.
-	while (pPreviousChunk.getBytesRead() < pPreviousChunk.getLength())
-	{
-		// Read next Chunk
-		readChunk(m_CurrentChunk, in);
-
-		// Check the chunk ID
-		switch (m_CurrentChunk.getID())
+		// Make sure this is a 3DS file
+		if (currentChunk.getID() != PRIMARY)
 		{
-		case VERSION:							// This holds the version of the file
+			System.out.println("Unable to load PRIMARY chuck from file: " + fileName);
 			
-			// This chunk has an unsigned short that holds the file version.
-			// Since there might be new additions to the 3DS file format in 4.0,
-			// we give a warning to that problem.
-			version = readData(in, m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
-			// Read the file version and add the bytes read to our bytesRead variable
-			//m_CurrentChunk->bytesRead += fread(&version, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
-			m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
-
-			// If the file version is over 3, give a warning that there could be a problem
-			if (version > 0x03)
-				System.out.println("This 3DS file is over version 3 so it may load incorrectly");
-			break;
-
-		case OBJECTINFO:						// This holds the version of the mesh
-			
-			// This chunk holds the version of the mesh.  It is also the head of the MATERIAL
-			// and OBJECT chunks.  From here on we start reading in the material and object info.
-
-			// Read the next chunk
-			readChunk(m_TempChunk, in);
-			
-			version = readData(in, m_TempChunk.getLength() - m_TempChunk.getBytesRead());
-			// Get the version of the mesh
-			//m_TempChunk->bytesRead += fread(&version, 1, m_TempChunk->length - m_TempChunk->bytesRead, m_FilePointer);
-			m_TempChunk.addBytesRead(m_TempChunk.getLength() - m_TempChunk.getBytesRead());
-
-			// Increase the bytesRead by the bytes read from the last chunk
-			//m_CurrentChunk->bytesRead += m_TempChunk->bytesRead;
-			m_CurrentChunk.addBytesRead(m_TempChunk.getBytesRead());
-
-			// Go to the next chunk, which is the object has a texture, it should be MATERIAL, then OBJECT.
-			processNextChunk(pModel, m_CurrentChunk, in);
-			break;
-
-		case MATERIAL:							// This holds the material information
-
-			// This chunk is the header for the material info chunks
-
-			// Increase the number of materials
-			//pModel->numOfMaterials++;
-			newTexture = new TMaterialInfo();
-			pModel.addNumOfMaterials(1);
-			// Add a empty texture structure to our texture list.
-			// If you are unfamiliar with STL's "vector" class, all push_back()
-			// does is add a new node onto the list.  I used the vector class
-			// so I didn't need to write my own link list functions.  
-			pModel.addMaterials(newTexture);
-
-			// Proceed to the material loading function
-			processNextMaterialChunk(pModel, m_CurrentChunk, in);
-			break;
-
-		case OBJECT:							// This holds the name of the object being read
-				
-			// This chunk is the header for the object info chunks.  It also
-			// holds the name of the object.
-
-			// Increase the object count
-			//pModel->numOfObjects++;
-			newObject = new T3dObject();
-			pModel.addNumOfObjects(1);
-			
-			// Add a new tObject node to our list of objects (like a link list)
-			pModel.addObject(newObject);
-			
-			// Initialize the object and all it's data members
-			//memset(&(pModel->pObject[pModel->numOfObjects - 1]), 0, sizeof(t3DObject));
-			
-			
-			String tempName = readString(in);
-			newObject.setName(tempName);
-			
-			// Get the name of the object and store it, then add the read bytes to our byte counter.
-			m_CurrentChunk.addBytesRead(tempName.length()+1);
-			
-			// Now proceed to read in the rest of the object information
-			processNextObjectChunk(pModel, pModel.getObject(pModel.getNumOfObjects()-1), m_CurrentChunk, in);
-			break;
-
-		case EDITKEYFRAME:
-
-			// Because I wanted to make this a SIMPLE tutorial as possible, I did not include
-			// the key frame information.  This chunk is the header for all the animation info.
-			// In a later tutorial this will be the subject and explained thoroughly.
-			
-			//ProcessNextKeyFrameChunk(pModel, m_CurrentChunk);
-			skipJunk(m_CurrentChunk, in);
-			// Read past this chunk and add the bytes read to the byte counter
-			m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
-			//m_CurrentChunk->bytesRead += fread(buffer, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
-			break;
-
-		default: 
-			
-			// If we didn't care about a chunk, then we get here.  We still need
-			// to read past the unknown or ignored chunk and add the bytes read to the byte counter.
-			skipJunk(m_CurrentChunk, in);
-			// Read past this chunk and add the bytes read to the byte counter
-			m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
-			
-			//m_CurrentChunk->bytesRead += fread(buffer, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
-			break;
 		}
+		
+		// Now we actually start reading in the data.  ProcessNextChunk() is recursive
+	
+		// Begin loading objects, by calling this recursive function
+	    processNextChunk(model, currentChunk, in);
+	    
+		// After we have read the whole 3DS file, we want to calculate our own vertex normals.
+		VectorMath.computeNormals(model);
 
-		// Add the bytes read from the last chunk to the previous chunk passed in.
-		pPreviousChunk.addBytesRead(m_CurrentChunk.getBytesRead());
 	}
 
-	// Free the current chunk and set it back to the previous chunk (since it started that way)
-	//delete m_CurrentChunk;
-	m_CurrentChunk.setTo(pPreviousChunk);
-}
+
+
+	///////////////////////////////// PROCESS NEXT CHUNK\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function reads the main sections of the .3DS file, then dives deeper with recursion
+	/////
+	///////////////////////////////// PROCESS NEXT CHUNK\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void processNextChunk(Model3d model, Chunk previousChunk, LEDataInputStream in) throws IOException
+	{
+		Object3d newObject;					// This is used to add to our object list
+		MaterialInfo newTexture;				// This is used to add to our material list
+		int version = 0;					// This will hold the file version
+		
+	
+		currentChunk = new Chunk();				// Allocate a new chunk				
+	
+		// Below we check our chunk ID each time we read a new chunk.  Then, if
+		// we want to extract the information from that chunk, we do so.
+		// If we don't want a chunk, we just read past it.  
+	
+		// Continue to read the sub chunks until we have reached the length.
+		// After we read ANYTHING we add the bytes read to the chunk and then check
+		// check against the length.
+		while (previousChunk.getBytesRead() < previousChunk.getLength())
+		{
+			// Read next Chunk
+			readChunk(currentChunk, in);
+	
+			// Check the chunk ID
+			switch (currentChunk.getID())
+			{
+			case VERSION:							// This holds the version of the file
+				
+				// This chunk has an unsigned short that holds the file version.
+				// Since there might be new additions to the 3DS file format in 4.0,
+				// we give a warning to that problem.
+				
+				//version = readData(in, currentChunk.getLength() - currentChunk.getBytesRead());
+				
+				version = in.readLEInt();
+				
+				// Read the file version and add the bytes read to our bytesRead variable
+				currentChunk.addBytesRead(currentChunk.getLength() - currentChunk.getBytesRead());
+	
+				// If the file version is over 3, give a warning that there could be a problem
+				if (version > 0x03)
+					System.out.println("This 3DS file is over version 3 so it may load incorrectly");
+				break;
+	
+			case OBJECTINFO:						// This holds the version of the mesh
+				
+				// This chunk holds the version of the mesh.  It is also the head of the MATERIAL
+				// and OBJECT chunks.  From here on we start reading in the material and object info.
+	
+				// Read the next chunk
+				readChunk(tempChunk, in);
+				
+				//version = readData(in, tempChunk.getLength() - tempChunk.getBytesRead());
+				
+				version = in.readLEInt();
+				// Get the version of the mesh
+				
+				tempChunk.addBytesRead(tempChunk.getLength() - tempChunk.getBytesRead());
+	
+				// Increase the bytesRead by the bytes read from the last chunk
+				
+				currentChunk.addBytesRead(tempChunk.getBytesRead());
+	
+				// Go to the next chunk, which is the object has a texture, it should be MATERIAL, then OBJECT.
+				processNextChunk(model, currentChunk, in);
+				break;
+	
+			case MATERIAL:							// This holds the material information
+	
+				// This chunk is the header for the material info chunks
+	
+				// Increase the number of materials
+				
+				newTexture = new MaterialInfo();
+				model.addNumOfMaterials(1);
+				// Add a empty texture structure to our texture list.
+				// If you are unfamiliar with STL's "vector" class, all push_back()
+				// does is add a new node onto the list.  I used the vector class
+				// so I didn't need to write my own link list functions.  
+				model.addMaterials(newTexture);
+	
+				// Proceed to the material loading function
+				processNextMaterialChunk(model, currentChunk, in);
+				break;
+	
+			case OBJECT:							// This holds the name of the object being read
+					
+				// This chunk is the header for the object info chunks.  It also
+				// holds the name of the object.
+	
+				// Increase the object count
+				//pModel->numOfObjects++;
+				newObject = new Object3d();
+				model.addNumOfObjects(1);
+				
+				// Add a new tObject node to our list of objects (like a link list)
+				model.addObject(newObject);
+				
+								
+				String tempName = in.readString();
+				newObject.setName(tempName);
+				
+				// Get the name of the object and store it, then add the read bytes to our byte counter.
+				currentChunk.addBytesRead(tempName.length()+1);
+				
+				// Now proceed to read in the rest of the object information
+				processNextObjectChunk(model, model.getObject(model.getNumOfObjects()-1), currentChunk, in);
+				break;
+	
+			case EDITKEYFRAME:
+	
+				// Because I wanted to make this a SIMPLE tutorial as possible, I did not include
+				// the key frame information.  This chunk is the header for all the animation info.
+				// In a later tutorial this will be the subject and explained thoroughly.
+				
+				skipJunk(currentChunk, in);
+				// Read past this chunk and add the bytes read to the byte counter
+				currentChunk.addBytesRead(currentChunk.getLength() - currentChunk.getBytesRead());
+				
+				break;
+	
+			default: 
+				
+				// If we didn't care about a chunk, then we get here.  We still need
+				// to read past the unknown or ignored chunk and add the bytes read to the byte counter.
+				skipJunk(currentChunk, in);
+				// Read past this chunk and add the bytes read to the byte counter
+				currentChunk.addBytesRead(currentChunk.getLength() - currentChunk.getBytesRead());
+				
+				
+				break;
+			}
+	
+			// Add the bytes read from the last chunk to the previous chunk passed in.
+			previousChunk.addBytesRead(currentChunk.getBytesRead());
+		}
+	
+		// Free the current chunk and set it back to the previous chunk (since it started that way)
+		currentChunk.setTo(previousChunk);
+	}
 
 
 ///////////////////////////////// PROCESS NEXT OBJECT CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -252,332 +247,313 @@ public void processNextChunk(T3dModel pModel, TChunk pPreviousChunk, LEDataInput
 /////
 ///////////////////////////////// PROCESS NEXT OBJECT CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void processNextObjectChunk(T3dModel pModel, T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
-{
-	
-
-	// Allocate a new chunk to work with
-	m_CurrentChunk = new TChunk();
-
-	// Continue to read these chunks until we read the end of this sub chunk
-	while (pPreviousChunk.getBytesRead() < pPreviousChunk.getLength())
+	public void processNextObjectChunk(Model3d model, Object3d object, Chunk previousChunk, LEDataInputStream in) throws IOException
 	{
-		// Read the next chunk
-		readChunk(m_CurrentChunk, in);
-
-		// Check which chunk we just read
-		switch (m_CurrentChunk.getID())
+		
+	
+		// Allocate a new chunk to work with
+		currentChunk = new Chunk();
+	
+		// Continue to read these chunks until we read the end of this sub chunk
+		while (previousChunk.getBytesRead() < previousChunk.getLength())
 		{
-		case OBJECT_MESH:					// This lets us know that we are reading a new object
-		
-			// We found a new object, so let's read in it's info using recursion
-			processNextObjectChunk(pModel, pObject, m_CurrentChunk, in);
-			break;
+			// Read the next chunk
+			readChunk(currentChunk, in);
 
-		case OBJECT_VERTICES:				// This is the objects vertices
-			readVertices(pObject, m_CurrentChunk, in);
-			break;
-
-		case OBJECT_FACES:					// This is the objects face information
-			readVertexIndices(pObject, m_CurrentChunk, in);
-			break;
-
-		case OBJECT_MATERIAL:				// This holds the material name that the object has
-			
-			// This chunk holds the name of the material that the object has assigned to it.
-			// This could either be just a color or a texture map.  This chunk also holds
-			// the faces that the texture is assigned to (In the case that there is multiple
-			// textures assigned to one object, or it just has a texture on a part of the object.
-			// Since most of my game objects just have the texture around the whole object, and 
-			// they aren't multitextured, I just want the material name.
-
-			// We now will read the name of the material assigned to this object
-			readObjectMaterial(pModel, pObject, m_CurrentChunk, in);			
-			break;
-
-		case OBJECT_UV:						// This holds the UV texture coordinates for the object
-
-			// This chunk holds all of the UV coordinates for our object.  Let's read them in.
-			readUVCoordinates(pObject, m_CurrentChunk, in);
-			break;
-
-		default:  
-
-			// Read past the ignored or unknown chunks
-			skipJunk(m_CurrentChunk, in);
-		// Read past this chunk and add the bytes read to the byte counter
-			m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
-			
-			//m_CurrentChunk->bytesRead += fread(buffer, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
-			break;
-		}
-
-		// Add the bytes read from the last chunk to the previous chunk passed in.
-		pPreviousChunk.addBytesRead(m_CurrentChunk.getBytesRead());
-	}
-
-	// Free the current chunk and set it back to the previous chunk (since it started that way)
-	//delete m_CurrentChunk;
-	m_CurrentChunk.setTo(pPreviousChunk);
-}
-
-
-///////////////////////////////// PROCESS NEXT MATERIAL CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function handles all the information about the material (Texture)
-/////
-///////////////////////////////// PROCESS NEXT MATERIAL CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void processNextMaterialChunk(T3dModel pModel, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
-{
-	
-
-	// Allocate a new chunk to work with
-	m_CurrentChunk = new TChunk();
-
-	// Continue to read these chunks until we read the end of this sub chunk
-	while (pPreviousChunk.getBytesRead() < pPreviousChunk.getLength())
-	{
-		// Read the next chunk
-		readChunk(m_CurrentChunk, in);
-
-		// Check which chunk we just read in
-		switch (m_CurrentChunk.getID())
-		{
-		case MATNAME:							// This chunk holds the name of the material
-			
-			// Here we read in the material name
-			String tempName = readString(in);
-			pModel.getMaterials(pModel.getNumOfMaterials()-1).setName(tempName);
-			m_CurrentChunk.addBytesRead(tempName.length()+1);  //modificado
-			//m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
-			//m_CurrentChunk->bytesRead += fread(pModel->pMaterials[pModel->numOfMaterials - 1].strName, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
-			break;
-
-		case MATDIFFUSE:						// This holds the R G B color of our object
-			
-			
-			readColorChunk(pModel.getMaterials(pModel.getNumOfMaterials()-1), m_CurrentChunk, in);
-			break;
-		
-		case MATMAP:							// This is the header for the texture info
-			
-			// Proceed to read in the material information
-			processNextMaterialChunk(pModel, m_CurrentChunk, in);
-			break;
-
-		case MATMAPFILE:						// This stores the file name of the material
-
-			// Here we read in the material's file name
-			String tempName1 = readString(in);
-			pModel.getMaterials(pModel.getNumOfMaterials()-1).setTexFile(tempName1);
-			m_CurrentChunk.addBytesRead(tempName1.length()+1);    //modificado
-			//m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
-			//m_CurrentChunk->bytesRead += fread(pModel->pMaterials[pModel->numOfMaterials - 1].strFile, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
-			break;
-		
-		default:  
-
-			skipJunk(m_CurrentChunk, in);
-		// Read past this chunk and add the bytes read to the byte counter
-		   m_CurrentChunk.addBytesRead(m_CurrentChunk.getLength() - m_CurrentChunk.getBytesRead());
-			break;
-		}
-
-		// Add the bytes read from the last chunk to the previous chunk passed in.
-		pPreviousChunk.addBytesRead(m_CurrentChunk.getBytesRead());
-	}
-
-	// Free the current chunk and set it back to the previous chunk (since it started that way)
-	//m_CurrentChunk = null;
-	m_CurrentChunk.setTo(pPreviousChunk);
-}
-
-///////////////////////////////// READ CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function reads in a chunk ID and it's length in bytes
-/////
-///////////////////////////////// READ CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void readChunk(TChunk pChunk, LEDataInputStream in)
-{
-	// This reads the chunk ID which is 2 bytes.
-	// The chunk ID is like OBJECT or MATERIAL.  It tells what data is
-	// able to be read in within the chunks section.  
-	
-	//pChunk.setID(readData(in, Short.SIZE/8));
-    //pChunk.setLength(readData(in, Integer.SIZE/8));
-   // pChunk.setBytesRead(6);
-	try{
-	//	System.out.println(in.readLEShort());
-    pChunk.setID(in.readLEShort());
-    pChunk.setLength(in.readLEInt());
-    pChunk.setBytesRead(6);
-	}catch (Exception e) {
-		endOfStream = true;
-	}
-    
-	//pChunk->bytesRead = fread(&pChunk->ID, 1, 2, m_FilePointer);
-
-	// Then, we read the length of the chunk which is 4 bytes.
-	// This is how we know how much to read in, or read past.
-	//pChunk->bytesRead += fread(&pChunk->length, 1, 4, m_FilePointer);
-}
-
-
-
-///////////////////////////////// READ COLOR \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function reads in the RGB color data
-/////
-///////////////////////////////// READ COLOR \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void readColorChunk(TMaterialInfo pMaterial, TChunk pChunk, LEDataInputStream in) throws IOException
-{
-	// Read the color chunk info
-	readChunk(m_TempChunk, in);
-	assert(m_TempChunk.getLength() - m_TempChunk.getBytesRead() == 3):" fudeu ";
-	in.read(pMaterial.getColor());
-	//pMaterial.setColor();
-	m_TempChunk.addBytesRead(m_TempChunk.getLength() - m_TempChunk.getBytesRead());
-	
-	
-	// Read in the R G B color (3 bytes - 0 through 255)
-	//m_TempChunk->bytesRead += fread(pMaterial->color, 1, m_TempChunk->length - m_TempChunk->bytesRead, m_FilePointer);
-
-	// Add the bytes read to our chunk
-	pChunk.addBytesRead(m_TempChunk.getBytesRead());
-}
-
-
-///////////////////////////////// READ VERTEX INDECES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function reads in the indices for the vertex array
-/////
-///////////////////////////////// READ VERTEX INDECES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void readVertexIndices(T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
-{
-	 int index = 0;					// This is used to read in the current face index
-
-	// In order to read in the vertex indices for the object, we need to first
-	// read in the number of them, then read them in.  Remember,
-	// we only want 3 of the 4 values read in for each face.  The fourth is
-	// a visibility flag for 3D Studio Max that doesn't mean anything to us.
-	 
-	// Read in the number of faces that are in this object (int)
-	pObject.setNumFaces(readData(in, Short.SIZE/8));
-	pPreviousChunk.addBytesRead(Short.SIZE/8);
-	//pPreviousChunk->bytesRead += fread(&pObject->numOfFaces, 1, 2, m_FilePointer);
-
-	// Alloc enough memory for the faces and initialize the structure
-	//pObject->pFaces =   new tFace [pObject->numOfFaces];
-	//memset(pObject->pFaces, 0, sizeof(tFace)  * pObject->numOfFaces);
-
-	// Go through all of the faces in this object
-	for(int i = 0; i < pObject.getNumFaces(); i++)
-	{
-		// Next, we read in the A then B then C index for the face, but ignore the 4th value.
-		// The fourth value is a visibility flag for 3D Studio Max, we don't care about this.
-		for(int j = 0; j < 4; j++)
-		{
-		
-			// Read the first vertice index for the current face 
-			index = readData(in, Short.SIZE/8);
-			pPreviousChunk.addBytesRead(Short.SIZE/8);
-			//pPreviousChunk->bytesRead += fread(&index, 1, sizeof(index), m_FilePointer);
-			
-			if(j < 3)
+			// Check which chunk we just read
+			switch (currentChunk.getID())
 			{
-				// Store the index in our face structure.
-				pObject.getFace(i).setVertices(j, index);
+				case OBJECT_MESH:					// This lets us know that we are reading a new object
+				
+					// We found a new object, so let's read in it's info using recursion
+					processNextObjectChunk(model, object, currentChunk, in);
+					break;
+		
+				case OBJECT_VERTICES:				// This is the objects vertices
+					
+					readVertices(object, currentChunk, in);
+					break;
+		
+				case OBJECT_FACES:					// This is the objects face information
+					
+					readVertexIndices(object, currentChunk, in);
+					break;
+		
+				case OBJECT_MATERIAL:				// This holds the material name that the object has
+					
+					// This chunk holds the name of the material that the object has assigned to it.
+					// This could either be just a color or a texture map.  This chunk also holds
+					// the faces that the texture is assigned to (In the case that there is multiple
+					// textures assigned to one object, or it just has a texture on a part of the object.
+					// Since most of my game objects just have the texture around the whole object, and 
+					// they aren't multitextured, I just want the material name.
+		
+					// We now will read the name of the material assigned to this object
+					readObjectMaterial(model, object, currentChunk, in);			
+					break;
+		
+				case OBJECT_UV:						// This holds the UV texture coordinates for the object
+		
+					// This chunk holds all of the UV coordinates for our object.  Let's read them in.
+					readUVCoordinates(object, currentChunk, in);
+					break;
+		
+				default:  
+	
+				// Read past the ignored or unknown chunks
+				skipJunk(currentChunk, in);
+				// Read past this chunk and add the bytes read to the byte counter
+				currentChunk.addBytesRead(currentChunk.getLength() - currentChunk.getBytesRead());
+				
+				
+				break;
+			}
+	
+			// Add the bytes read from the last chunk to the previous chunk passed in.
+			previousChunk.addBytesRead(currentChunk.getBytesRead());
+		}
+	
+		// Free the current chunk and set it back to the previous chunk (since it started that way)
+		currentChunk.setTo(previousChunk);
+	}
+
+
+	///////////////////////////////// PROCESS NEXT MATERIAL CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function handles all the information about the material (Texture)
+	/////
+	///////////////////////////////// PROCESS NEXT MATERIAL CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void processNextMaterialChunk(Model3d model, Chunk previousChunk, LEDataInputStream in) throws IOException
+	{
+		
+	
+		// Allocate a new chunk to work with
+		currentChunk = new Chunk();
+	
+		// Continue to read these chunks until we read the end of this sub chunk
+		while (previousChunk.getBytesRead() < previousChunk.getLength())
+		{
+			// Read the next chunk
+			readChunk(currentChunk, in);
+	
+			// Check which chunk we just read in
+			switch (currentChunk.getID())
+			{
+				case MATNAME:							// This chunk holds the name of the material
+					
+					// Here we read in the material name
+					String tempName = in.readString();
+					model.getMaterials(model.getNumOfMaterials()-1).setName(tempName);
+					currentChunk.addBytesRead(tempName.length()+1);  //modificado
+					
+					break;
+		
+				case MATDIFFUSE:						// This holds the R G B color of our object
+					
+					
+					readColorChunk(model.getMaterials(model.getNumOfMaterials()-1), currentChunk, in);
+					break;
+				
+				case MATMAP:							// This is the header for the texture info
+					
+					// Proceed to read in the material information
+					processNextMaterialChunk(model, currentChunk, in);
+					break;
+		
+				case MATMAPFILE:						// This stores the file name of the material
+		
+					// Here we read in the material's file name
+					String tempName1 = in.readString();
+					model.getMaterials(model.getNumOfMaterials()-1).setTexFile(tempName1);
+					currentChunk.addBytesRead(tempName1.length()+1);    
+					
+					break;
+				
+				default:  
+		
+				skipJunk(currentChunk, in);
+				// Read past this chunk and add the bytes read to the byte counter
+				currentChunk.addBytesRead(currentChunk.getLength() - currentChunk.getBytesRead());
+				break;
+			}
+	
+			// Add the bytes read from the last chunk to the previous chunk passed in.
+			previousChunk.addBytesRead(currentChunk.getBytesRead());
+		}
+	
+		// Free the current chunk and set it back to the previous chunk (since it started that way)
+		currentChunk.setTo(previousChunk);
+	}
+
+	///////////////////////////////// READ CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function reads in a chunk ID and it's length in bytes
+	/////
+	///////////////////////////////// READ CHUNK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void readChunk(Chunk chunk, LEDataInputStream in)
+	{
+		// This reads the chunk ID which is 2 bytes.
+		// The chunk ID is like OBJECT or MATERIAL.  It tells what data is
+		// able to be read in within the chunks section.  
+		
+		//pChunk.setID(readData(in, Short.SIZE/8));
+	    //pChunk.setLength(readData(in, Integer.SIZE/8));
+		// pChunk.setBytesRead(6);
+		try
+		{
+		
+		    chunk.setID(in.readLEShort());
+		    chunk.setLength(in.readLEInt());
+		    chunk.setBytesRead(6);
+		}catch (Exception e) {
+			endOfStream = true;
+		}
+	    
+		// Then, we read the length of the chunk which is 4 bytes.
+		// This is how we know how much to read in, or read past.
+		
+	}
+
+
+
+	///////////////////////////////// READ COLOR \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function reads in the RGB color data
+	/////
+	///////////////////////////////// READ COLOR \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void readColorChunk(MaterialInfo material, Chunk chunk, LEDataInputStream in) throws IOException
+	{
+		// Read the color chunk info
+		readChunk(tempChunk, in);
+		
+		in.read(material.getColor());
+		
+		tempChunk.addBytesRead(tempChunk.getLength() - tempChunk.getBytesRead());
+		
+		
+		// Read in the R G B color (3 bytes - 0 through 255)
+			
+		// Add the bytes read to our chunk
+		chunk.addBytesRead(tempChunk.getBytesRead());
+	}
+
+
+	///////////////////////////////// READ VERTEX INDECES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function reads in the indices for the vertex array
+	/////
+	///////////////////////////////// READ VERTEX INDECES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void readVertexIndices(Object3d object, Chunk previousChunk, LEDataInputStream in) throws IOException
+	{
+		 int index = 0;					// This is used to read in the current face index
+	
+		// In order to read in the vertex indices for the object, we need to first
+		// read in the number of them, then read them in.  Remember,
+		// we only want 3 of the 4 values read in for each face.  The fourth is
+		// a visibility flag for 3D Studio Max that doesn't mean anything to us.
+		 
+		// Read in the number of faces that are in this object (int)
+		
+		object.setNumFaces(in.readLEShort());
+		previousChunk.addBytesRead(Short.SIZE/8);
+		
+	
+			
+		// Go through all of the faces in this object
+		for(int i = 0; i < object.getNumFaces(); i++)
+		{
+			// Next, we read in the A then B then C index for the face, but ignore the 4th value.
+			// The fourth value is a visibility flag for 3D Studio Max, we don't care about this.
+			for(int j = 0; j < 4; j++)
+			{
+			
+				// Read the first vertice index for the current face 
+				index = in.readLEShort();
+				previousChunk.addBytesRead(Short.SIZE/8);
+				
+				
+				if(j < 3)
+				{
+					// Store the index in our face structure.
+					object.getFace(i).setVertices(j, index);
+				}
 			}
 		}
 	}
-}
 
 
-///////////////////////////////// READ UV COORDINATES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function reads in the UV coordinates for the object
-/////
-///////////////////////////////// READ UV COORDINATES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void readUVCoordinates(T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
-{
-	// In order to read in the UV indices for the object, we need to first
-	// read in the amount there are, then read them in.
-
-	// Read in the number of UV coordinates there are (int)
-	pObject.setNumTexcoords(readData(in, Short.SIZE/8));
-	pPreviousChunk.addBytesRead(Short.SIZE/8);
-	//pPreviousChunk->bytesRead += fread(&pObject->numTexVertex, 1, 2, m_FilePointer);
-
-	// Allocate memory to hold the UV coordinates
-	//pObject->pTexVerts = new tVector2 [pObject->numTexVertex];
-
-	// Read in the texture coodinates (an array 2 float)
-	assert((pPreviousChunk.getLength() - pPreviousChunk.getBytesRead()) == (pObject.getNumTexcoords() * 2 * Float.SIZE/8)):"fudeu vert";
-	pPreviousChunk.addBytesRead(pPreviousChunk.getLength() - pPreviousChunk.getBytesRead());
+	///////////////////////////////// READ UV COORDINATES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function reads in the UV coordinates for the object
+	/////
+	///////////////////////////////// READ UV COORDINATES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	
-	for(int i = 0; i < pObject.getNumTexcoords(); i++)
+	public void readUVCoordinates(Object3d object, Chunk previousChunk, LEDataInputStream in) throws IOException
 	{
-		
-		pObject.getTexcoords(i).s = in.readLEFloat();
-		pObject.getTexcoords(i).t = in.readLEFloat();
-		
-	}	
+		// In order to read in the UV indices for the object, we need to first
+		// read in the amount there are, then read them in.
 	
-}
-
-
-///////////////////////////////// READ VERTICES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This function reads in the vertices for the object
-/////
-///////////////////////////////// READ VERTICES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void readVertices(T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
-{
-	// Like most chunks, before we read in the actual vertices, we need
-	// to find out how many there are to read in.  Once we have that number
-	// we then fread() them into our vertice array.
-
-	// Read in the number of vertices (int)
-	pObject.setNumVert(readData(in, Short.SIZE/8));
-	pPreviousChunk.addBytesRead(Short.SIZE/8);
-	//pPreviousChunk->bytesRead += fread(&(pObject->numOfVerts), 1, 2, m_FilePointer);
-
-	// Allocate the memory for the verts and initialize the structure
-	//pObject->pVerts = new CVector3 [pObject->numOfVerts];
-	//memset(pObject->pVerts, 0, sizeof(CVector3) * pObject->numOfVerts);
-
-	// Read in the array of vertices (an array of 3 floats)
-	//pPreviousChunk->bytesRead += fread(pObject->pVerts, 1, pPreviousChunk->length - pPreviousChunk->bytesRead, m_FilePointer);
-	assert((pPreviousChunk.getLength() - pPreviousChunk.getBytesRead()) == (pObject.getNumVert() * 3 * 4)):"fudeu vert";
-	pPreviousChunk.addBytesRead(pPreviousChunk.getLength() - pPreviousChunk.getBytesRead());
-	
-	// Now we should have all of the vertices read in.  Because 3D Studio Max
-	// Models with the Z-Axis pointing up (strange and ugly I know!), we need
-	// to flip the y values with the z values in our vertices.  That way it
-	// will be normal, with Y pointing up.  If you prefer to work with Z pointing
-	// up, then just delete this next loop.  Also, because we swap the Y and Z
-	// we need to negate the Z to make it come out correctly.
-	
-	// Go through all of the vertices that we just read and swap the Y and Z values
-	for(int i = 0; i < pObject.getNumVert(); i++)
-	{
+		// Read in the number of UV coordinates there are (short)
+		object.setNumTexcoords(in.readLEShort());
 		
-		pObject.getVertices(i).x = in.readLEFloat();
-		pObject.getVertices(i).z = - in.readLEFloat();
-		pObject.getVertices(i).y = in.readLEFloat();
+		previousChunk.addBytesRead(Short.SIZE/8);
+			
+			
+		// Read in the texture coodinates (an array 2 float)
+		previousChunk.addBytesRead(previousChunk.getLength() - previousChunk.getBytesRead());
 		
 		
-		
+		for(int i = 0; i < object.getNumTexcoords(); i++)
+		{
+			
+			object.getTexcoords(i).s = in.readLEFloat();
+			object.getTexcoords(i).t = in.readLEFloat();
+			
+		}	
 		
 	}
-}
+
+
+	///////////////////////////////// READ VERTICES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function reads in the vertices for the object
+	/////
+	///////////////////////////////// READ VERTICES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void readVertices(Object3d object, Chunk previousChunk, LEDataInputStream in) throws IOException
+	{
+		// Like most chunks, before we read in the actual vertices, we need
+		// to find out how many there are to read in.  Once we have that number
+		// we then fread() them into our vertice array.
+	
+		// Read in the number of vertices (int)
+		object.setNumVert(in.readLEShort());
+		previousChunk.addBytesRead(Short.SIZE/8);
+			
+		// Read in the array of vertices (an array of 3 floats)
+		previousChunk.addBytesRead(previousChunk.getLength() - previousChunk.getBytesRead());
+		
+		// Now we should have all of the vertices read in.  Because 3D Studio Max
+		// Models with the Z-Axis pointing up (strange and ugly I know!), we need
+		// to flip the y values with the z values in our vertices.  That way it
+		// will be normal, with Y pointing up.  If you prefer to work with Z pointing
+		// up, then just delete this next loop.  Also, because we swap the Y and Z
+		// we need to negate the Z to make it come out correctly.
+		
+		// Go through all of the vertices that we just read and swap the Y and Z values
+		for(int i = 0; i < object.getNumVert(); i++)
+		{
+			
+			object.getVertices(i).x = in.readLEFloat();
+			object.getVertices(i).z = - in.readLEFloat();
+			object.getVertices(i).y = in.readLEFloat();
+
+		}
+	}
 
 
 ///////////////////////////////// READ OBJECT MATERIAL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -586,9 +562,9 @@ public void readVertices(T3dObject pObject, TChunk pPreviousChunk, LEDataInputSt
 /////
 ///////////////////////////////// READ OBJECT MATERIAL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPreviousChunk, LEDataInputStream in) throws IOException
+public void readObjectMaterial(Model3d model, Object3d object, Chunk previousChunk, LEDataInputStream in) throws IOException
 {
-	String strMaterial;			// This is used to hold the objects material name
+	String materialName;			// This is used to hold the objects material name
 	
 
 	// *What is a material?*  - A material is either the color or the texture map of the object.
@@ -597,10 +573,9 @@ public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPrevi
 
 	// Here we read the material name that is assigned to the current object.
 	// strMaterial should now have a string of the material name, like "Material #2" etc..
-	strMaterial = readString(in);
-	pPreviousChunk.addBytesRead(strMaterial.length()+1);
-	//pPreviousChunk->bytesRead += GetString(strMaterial);
-
+	materialName = in.readString();
+	previousChunk.addBytesRead(materialName.length()+1);
+	
 	// Now that we have a material name, we need to go through all of the materials
 	// and check the name against each material.  When we find a material in our material
 	// list that matches this name we just read in, then we assign the materialID
@@ -609,73 +584,47 @@ public void readObjectMaterial(T3dModel pModel, T3dObject pObject, TChunk pPrevi
 	// Yes though, we could have just passed in the model and not the object too.
 
 	// Go through all of the textures
-	for(int i = 0; i < pModel.getMaterials().size(); i++)
+	for(int i = 0; i < model.getMaterials().size(); i++)
 	{
 		// If the material we just read in matches the current texture name
-		if(pModel.getMaterials(i).getName().equalsIgnoreCase(strMaterial))
+		if(model.getMaterials(i).getName().equalsIgnoreCase(materialName))
 		{
 			// Set the material ID to the current index 'i' and stop checking
-			pObject.setMaterialID(i);
+			object.setMaterialID(i);
 
 			// Now that we found the material, check if it's a texture map.
 			// If the strFile has a string length of 1 and over it's a texture
-			if(pModel.getMaterials(i).getTexFile().length() > 0) {
+			if(model.getMaterials(i).getTexFile().length() > 0) {
 
 				// Set the object's flag to say it has a texture map to bind.
-				pObject.setbHasTexture(true);
+				object.setbHasTexture(true);
 			}	
 			break;
 		}
 		else
 		{
 			// Set the ID to -1 to show there is no material for this object
-			pObject.setMaterialID(-1);
+			object.setMaterialID(-1);
 		}
 	}
 
 	// Read past the rest of the chunk since we don't care about shared vertices
 	// You will notice we subtract the bytes already read in this chunk from the total length.
-	skipJunk(pPreviousChunk, in);
+	skipJunk(previousChunk, in);
 	// Read past this chunk and add the bytes read to the byte counter
-	pPreviousChunk.addBytesRead(pPreviousChunk.getLength() - pPreviousChunk.getBytesRead());
+	previousChunk.addBytesRead(previousChunk.getLength() - previousChunk.getBytesRead());
 	//pPreviousChunk->bytesRead += fread(buffer, 1, pPreviousChunk->length - pPreviousChunk->bytesRead, m_FilePointer);
 }			
 
-	
-	// P R I V A T E   M E T H O D S
 
-    private String readString(LEDataInputStream in) throws IOException {
-        String result = new String();
-        byte inByte;
-        while ( (inByte = (byte) in.read()) != 0)
-            result += (char) inByte;
-        return result;
-    }
-
-   
-    
-    private int readData(LEDataInputStream in, int bytes) throws IOException {
-        int temp = 0;
-    	for(int i = 0; i < bytes; i++)
+    private void skipJunk(Chunk tempChunk, LEDataInputStream in) throws IOException, OutOfMemoryError 
+    {
+        for (int i = 0; (i < tempChunk.getLength() - tempChunk.getBytesRead()) && (!endOfStream); i++) 
         {
-        	temp += in.read()<< i*8;
-        }
-    	return temp;
-    }
-
-  
-    private void skipJunk(TChunk tempChunk, DataInputStream in) throws IOException, OutOfMemoryError {
-        for (int i = 0; (i < tempChunk.getLength() - tempChunk.getBytesRead()) && (!endOfStream); i++) {
             endOfStream = in.read() < 0;
         }
     }
-    /*
-    private void skipJunk1(TChunk tempChunk, DataInputStream in) throws IOException, OutOfMemoryError {
-    	endOfStream = ((int)in.skip(tempChunk.getLength() - tempChunk.getBytesRead()) < 0);
-    	
-    	
-    }
-*/
+  
 }
 
 
