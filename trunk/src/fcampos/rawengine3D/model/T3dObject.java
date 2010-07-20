@@ -267,27 +267,22 @@ public class T3dObject {
 	 * @param dimMax the dimMax to set
 	 */
 	public void setDimension() {
-		Vector3f dimMax = new Vector3f();
-		Vector3f dimMin = new Vector3f();
+		Vector3f dimMax = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
+		Vector3f dimMin = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+		
+		
 		for(int i=0; i < getNumVert(); i++)
 		{
-			if(i == 0)
-			{
-				dimMin.x = dimMax.x = getVertices(i).x;
-				dimMin.y = dimMax.y = getVertices(i).y;
-				dimMin.z = dimMax.z = getVertices(i).z;
-			}
-			else
-			{
+			
 				dimMin.x = Math.min(dimMin.x, getVertices(i).x);
+				dimMin.y = Math.min(dimMin.y, getVertices(i).y);
+				dimMin.z = Math.min(dimMin.z, getVertices(i).z);
 				
-				if(getVertices(i).x < dimMin.x) dimMin.x = getVertices(i).x;
-				if(getVertices(i).y < dimMin.y) dimMin.y = getVertices(i).y;
-				if(getVertices(i).z < dimMin.z) dimMin.z = getVertices(i).z;
-				if(getVertices(i).x > dimMax.x) dimMax.x = getVertices(i).x;
-				if(getVertices(i).y > dimMax.y) dimMax.y = getVertices(i).y;
-				if(getVertices(i).z > dimMax.z) dimMax.z = getVertices(i).z;
-			}
+				dimMax.x = Math.max(dimMax.x, getVertices(i).x);
+				dimMax.y = Math.max(dimMax.y, getVertices(i).y);
+				dimMax.z = Math.max(dimMax.z, getVertices(i).z);
+				
+			
 			
 		}
 		setDimMax(dimMax);
