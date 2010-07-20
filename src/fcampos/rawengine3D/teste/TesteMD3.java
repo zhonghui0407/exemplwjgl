@@ -32,14 +32,11 @@ public class TesteMD3 extends GameCore {
     public GameAction moveRight;
     public GameAction moveUp;
     public GameAction moveDown;
-    public GameAction zoomIn;
-    public GameAction zoomOut;
-    public GameAction exit;
-    public GameAction fullScreen;
+  
     public GameAction drawMode;
     public GameAction modTex;
     public GameAction debug;
-    public GameAction pause;
+ 
     
     int   g_ViewMode	  = GL_TRIANGLES;					// We want the default drawing mode to be normal
     boolean  g_bLighting     = true;							// Turn lighting on initially
@@ -51,10 +48,7 @@ public class TesteMD3 extends GameCore {
     // This is the speed that our model rotates.  (-speed rotates left)
     private int modo = GL_REPLACE;
     
-    
-    public InputManager inputManager;
    
-     
  // This will store our 3ds scene that we will pass into our octree
     public ModelQuake3 g_World = new ModelQuake3();
         
@@ -68,11 +62,7 @@ public class TesteMD3 extends GameCore {
         super.init();
         
         screen.setTitle("MD3 Loader");
-        screen.setFullScreen(false);
-        screen.setDisplayMode(800, 600, 32);
-        
-        inputManager = new InputManager();
-                
+                   
         createGameActions();
                    
         g_World.loadModel(MODEL_PATH, MODEL_NAME);
@@ -93,25 +83,20 @@ public class TesteMD3 extends GameCore {
     	// It seems that Quake2 orders their polygons clock-wise.
     	// Seleciona o modo de aplicação da textura
     	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, modo);
-    	glEnable(GL_CULL_FACE);								// Turn culling on
-    	glCullFace(GL_FRONT);		
+    	//glEnable(GL_CULL_FACE);								// Turn culling on
+    	//glCullFace(GL_FRONT);		
     	   
         
       
     }
     
 
-    public void update()
+    public void update(float elapsedTime)
     {
  	
     	checkSystemInput();
   
-    	if(pause.isPressed())
-    	{
-    		setPaused();
-    		
-    	}
-    	
+      	
         if(!isPaused())
         {
             checkGameInput();
@@ -122,16 +107,7 @@ public class TesteMD3 extends GameCore {
         
     }
 
-        public void checkSystemInput()
-        {
-            
-            if (exit.isPressed())
-            {
-                stop();
-            }
-            
-        }
-
+ 
         public void checkGameInput()
         {
         	
@@ -189,13 +165,7 @@ public class TesteMD3 extends GameCore {
 				}
             	
         	}
-           
-            if (fullScreen.isPressed())
-            {
-            	setFullScreen(!isFullScreen());
-           	
-            }
-            
+                     
             if(debug.isPressed())
             {
             	g_bDisplayNodes = !g_bDisplayNodes;
@@ -235,40 +205,18 @@ public class TesteMD3 extends GameCore {
         	
         }
              
-      public void createGameActions()
+        public void createGameActions()
         {
-            moveLeft = new GameAction("moveLeft");
-            moveRight = new GameAction("moveRight");
-            moveUp = new GameAction("moveUp");
-            moveDown = new GameAction("moveDown");
-            zoomIn = new GameAction("zoomIn");
-            zoomOut = new GameAction("zoomIn");
-            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            pause = new GameAction("pause", GameAction.DETECT_INITIAL_PRESS_ONLY);
+    	  super.createGameActions();
+            moveLeft = new GameAction("moveLeft", GameAction.NORMAL, Keyboard.KEY_LEFT);
+            moveRight = new GameAction("moveRight", GameAction.NORMAL, Keyboard.KEY_RIGHT);
+            moveUp = new GameAction("moveUp", GameAction.NORMAL, Keyboard.KEY_UP);
+            moveDown = new GameAction("moveDown", GameAction.NORMAL, Keyboard.KEY_DOWN);
             
-            inputManager.mapToKey(debug, Keyboard.KEY_SPACE);            
-            inputManager.mapToKey(modTex, Keyboard.KEY_M);
-            inputManager.mapToKey(exit, Keyboard.KEY_ESCAPE);
-            inputManager.mapToKey(drawMode, Keyboard.KEY_T);           
-            inputManager.mapToKey(zoomIn, Keyboard.KEY_HOME);
-            inputManager.mapToKey(zoomOut, Keyboard.KEY_END) ;
-            inputManager.mapToKey(moveLeft, Keyboard.KEY_LEFT);
-            inputManager.mapToKey(moveRight, Keyboard.KEY_RIGHT);
-            inputManager.mapToKey(moveUp, Keyboard.KEY_UP);
-            inputManager.mapToKey(moveDown, Keyboard.KEY_DOWN);
-            inputManager.mapToKey(pause, Keyboard.KEY_P);
-            
-            
-            inputManager.mapToKey(fullScreen, Keyboard.KEY_F1);
-            
-            
-            
-            
-           
+            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
+            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_M);
+            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_SPACE);
+  
         }
 }
         
