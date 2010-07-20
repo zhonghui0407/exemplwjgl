@@ -8,7 +8,7 @@ import fcampos.rawengine3D.graficos.TextureCoord;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
-public class T3dObject {
+public class Object3d {
 	
 	protected int numVertices;
 	protected int numFaces;
@@ -42,7 +42,7 @@ public class T3dObject {
 	
 	
 	
-	public T3dObject()
+	public Object3d()
 	{
 		
 		//faces = new ArrayList<TFace>();
@@ -57,7 +57,7 @@ public class T3dObject {
 			
 	}
 	
-	public T3dObject(T3dObject obj)
+	public Object3d(Object3d obj)
 	{
 		
 		this.faces = obj.faces;
@@ -357,7 +357,7 @@ public class T3dObject {
 	}
 	
 	
-	public void draw(T3dModel world)
+	public void draw(Model3d world)
 	{
 		int ult_texid, texid;	// última/atual textura 
 		int prim = GL_POLYGON;	// tipo de primitiva
