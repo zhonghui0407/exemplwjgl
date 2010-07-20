@@ -266,9 +266,10 @@ public class T3dObject {
 	/**
 	 * @param dimMax the dimMax to set
 	 */
-	public void setDimension() {
-		Vector3f dimMax = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
-		Vector3f dimMin = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+	public void setDimension() 
+	{
+		Vector3f dimMax = new Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
+		Vector3f dimMin = new Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 		
 		
 		for(int i=0; i < getNumVert(); i++)
@@ -281,9 +282,7 @@ public class T3dObject {
 				dimMax.x = Math.max(dimMax.x, getVertices(i).x);
 				dimMax.y = Math.max(dimMax.y, getVertices(i).y);
 				dimMax.z = Math.max(dimMax.z, getVertices(i).z);
-				
-			
-			
+	
 		}
 		setDimMax(dimMax);
 		setDimMin(dimMin);
@@ -291,90 +290,7 @@ public class T3dObject {
 		boundingBox = new BoundingBox();
 		boundingBox.createBoundingBox(dimMin, dimMax);
 	}
-	
-	/*
-	protected void boundingBox()
-	{
-		m_vLines = new ArrayList<Vector3f>();
-		// Below we create all the 8 points so it will be easier to input the lines
-		// of the cube.  With the dimensions we calculate the points.
-		Vector3f vTopLeftFront		= new Vector3f(dimMin.x, dimMax.y, dimMax.z);
-		Vector3f vTopLeftBack		= new Vector3f(dimMin.x, dimMax.y, dimMin.z);
-		Vector3f vTopRightBack		= new Vector3f(dimMax.x, dimMax.y, dimMin.z);
-		Vector3f vTopRightFront		= new Vector3f(dimMax.x, dimMax.y, dimMax.z);
 
-		Vector3f vBottom_LeftFront	= new Vector3f(dimMin.x, dimMin.y, dimMax.z);
-		Vector3f vBottom_LeftBack	= new Vector3f(dimMin.x, dimMin.y, dimMin.z);
-		Vector3f vBottomRightBack	= new Vector3f(dimMax.x, dimMin.y, dimMin.z);
-		Vector3f vBottomRightFront	= new Vector3f(dimMax.x, dimMin.y, dimMax.z);
-
-		////////// TOP LINES ////////// 
-
-		// Store the top front line of the box
-		m_vLines.add(vTopLeftFront);			m_vLines.add(vTopRightFront);
-
-		// Store the top back line of the box
-		m_vLines.add(vTopLeftBack);  			m_vLines.add(vTopRightBack);
-
-		// Store the top left line of the box
-		m_vLines.add(vTopLeftFront);			m_vLines.add(vTopLeftBack);
-
-		// Store the top right line of the box
-		m_vLines.add(vTopRightFront);			m_vLines.add(vTopRightBack);
-
-		////////// BOTTOM LINES ////////// 
-
-		// Store the bottom front line of the box
-		m_vLines.add(vBottom_LeftFront);		m_vLines.add(vBottomRightFront);
-
-		// Store the bottom back line of the box
-		m_vLines.add(vBottom_LeftBack);			m_vLines.add(vBottomRightBack);
-
-		// Store the bottom left line of the box
-		m_vLines.add(vBottom_LeftFront);		m_vLines.add(vBottom_LeftBack);
-
-		// Store the bottom right line of the box
-		m_vLines.add(vBottomRightFront);		m_vLines.add(vBottomRightBack);
-
-		////////// SIDE LINES ////////// 
-
-		// Store the bottom front line of the box
-		m_vLines.add(vTopLeftFront);			m_vLines.add(vBottom_LeftFront);
-
-		// Store the back left line of the box
-		m_vLines.add(vTopLeftBack);				m_vLines.add(vBottom_LeftBack);
-
-		// Store the front right line of the box
-		m_vLines.add(vTopRightBack);			m_vLines.add(vBottomRightBack);
-
-		// Store the front left line of the box
-		m_vLines.add(vTopRightFront);			m_vLines.add(vBottomRightFront);
-	}
-	
-
-	public void renderBoundingBox()			// This renders all of the lines
-	{
-		glDisable(GL_LIGHTING);		// Turn OFF lighting so the debug lines are bright yellow
-
-		glBegin(GL_LINES);		// Start rendering lines
-
-			glColor3f(1.0f, 1.0f, 1.0f);			// Turn the lines yellow
-
-			// Go through the whole list of lines stored in the vector m_vLines.
-			for(int i = 0; i < m_vLines.size(); i++)
-			{
-				// Pass in the current point to be rendered as part of a line
-				Vector3f temp = m_vLines.get(i);
-				glVertex3f(temp.x, temp.y, temp.z);
-			}	
-
-		glEnd();			// Stop rendering lines
-
-		// If we have lighting turned on, turn the lights back on
-		//if(TOctree.g_bLighting) 
-			glEnable(GL_LIGHTING);
-	}
-	*/
 	
 	public void drawBoundingBox()
 	{
@@ -388,7 +304,8 @@ public class T3dObject {
 	/**
 	 * @param dimMax the dimMax to set
 	 */
-	public void setDimMax(float maxx, float maxy, float maxz) {
+	public void setDimMax(float maxx, float maxy, float maxz) 
+	{
 		this.dimMax.x = maxx;
 		this.dimMax.y = maxy;
 		this.dimMax.z = maxz;
