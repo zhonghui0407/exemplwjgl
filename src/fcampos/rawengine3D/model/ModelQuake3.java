@@ -11,22 +11,22 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class ModelQuake3 {
 	// These are are models for the character's head and upper and lower body parts
-	private T3dModel m_Head;
-	private T3dModel m_Upper;
-	private T3dModel m_Lower;
+	private Model3d m_Head;
+	private Model3d m_Upper;
+	private Model3d m_Lower;
 
 	// This store the players weapon model (optional load)
-	private T3dModel m_Weapon;
+	private Model3d m_Weapon;
 	
 	public static TextureManager texManager;
 	public TMD3Loader loadMd3;					// This object allows us to load the.md3 and .shader file
 	
 	public ModelQuake3()
 	{
-		m_Head = new T3dModel();
-		m_Upper = new T3dModel();
-		m_Lower = new T3dModel();
-		m_Weapon = new T3dModel();
+		m_Head = new Model3d();
+		m_Upper = new Model3d();
+		m_Lower = new Model3d();
+		m_Weapon = new Model3d();
 		loadMd3 = new TMD3Loader();
 		texManager = new TextureManager();
 		
@@ -226,7 +226,7 @@ public final void loadWeapon(String strPath, String strModel) throws IOException
 /////
 ///////////////////////////////// LOAD WEAPON \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-private final void loadModelTextures(T3dModel pModel, String strPath) throws IOException
+private final void loadModelTextures(Model3d pModel, String strPath) throws IOException
 {
 	// This function loads the textures that are assigned to each mesh and it's
 	// sub-objects.  For instance, the Lara Croft character has a texture for the body
@@ -275,7 +275,7 @@ private final void loadModelTextures(T3dModel pModel, String strPath) throws IOE
 /////
 ///////////////////////////////// LINK MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public final void linkModel(T3dModel pModel, T3dModel pLink, String strTagName)
+public final void linkModel(Model3d pModel, Model3d pLink, String strTagName)
 {
 	
 	// Make sure we have a valid model, link and tag name, otherwise quit this function
@@ -368,7 +368,7 @@ public void drawModel()
 /////
 ///////////////////////////////// DRAW LINK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-private void drawLink(T3dModel pModel)
+private void drawLink(Model3d pModel)
 {
 	// This function is our recursive function that handles the bone animation
 	// so to speak.  We first draw the model that is passed in (first the legs),
@@ -395,7 +395,7 @@ private void drawLink(T3dModel pModel)
 	for(int i = 0; i < pModel.getNumOfTags(); i++)
 	{
 		// Get the current link from the models array of links (Pointers to models)
-		T3dModel pLink = pModel.getLinks(i);
+		Model3d pLink = pModel.getLinks(i);
 
 		// If this link has a valid address, let's draw it!
 		if(pLink != null)
@@ -428,7 +428,7 @@ private void drawLink(T3dModel pModel)
 /////
 ///////////////////////////////// RENDER MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-private void renderModel(T3dModel pModel)
+private void renderModel(Model3d pModel)
 {
 	// This function actually does the rendering to OpenGL.  If you have checked out
 	// our other file loading tutorials, it looks pretty much the same as those.  I
@@ -443,7 +443,7 @@ private void renderModel(T3dModel pModel)
 	for(int i = 0; i < pModel.getObject().size(); i++)
 	{
 		// Get the current object that we are displaying
-		T3dObject pObject = pModel.getObject(i);
+		Object3d pObject = pModel.getObject(i);
 
 		// If the object has a texture assigned to it, let's bind it to the model.
 		// This isn't really necessary since all models have textures, but I left this

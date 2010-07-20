@@ -1,7 +1,7 @@
 package fcampos.rawengine3D.teste;
 import fcampos.rawengine3D.input.*;
 import fcampos.rawengine3D.model.BoundingBox;
-import fcampos.rawengine3D.model.T3dModel;
+import fcampos.rawengine3D.model.Model3d;
 import fcampos.rawengine3D.resource.*;
 import fcampos.rawengine3D.gamecore.GameCore;
 import fcampos.rawengine3D.graficos.*;
@@ -85,7 +85,7 @@ public class Testesala extends GameCore {
     
     
  // This will store our 3ds scene that we will pass into our octree
-    public T3dModel g_World = new T3dModel();;
+    public Model3d g_World = new Model3d();;
     
  // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
     boolean g_bDisplayNodes = false;
@@ -140,11 +140,7 @@ public class Testesala extends GameCore {
     
     
     
-      private boolean fullscreen;
-    //public Int teste = new Int();
-    //Vector3f temp = new Vector3f();
-    
-    
+       
     
     
     public void LoadWorld()throws IOException
@@ -206,15 +202,14 @@ public class Testesala extends GameCore {
     {
         
     	super.init();
-    	//camera.setPosition(-17f, 17f, 17f,	0, 0, 0,	0, 1, 0);
     	camera = new CameraQuaternion(true);
-    	camera.setPosition(-17f, 4f, 17f,	0, 0, 0,	0, 1, 0);
+    	camera.setPosition(-17f, 20f, 17f,	0, 0, 0,	0, 1, 0);
     	float df=100.0f;
     	
     	
     	
               
-     // Precalculate the Sine and Cosine Lookup Tables.
+    	// Precalculate the Sine and Cosine Lookup Tables.
     	// Basically, loop through 360 Degrees and assign the Radian
     	// value to each array index (which represents the Degree).
     	for ( int i = 0; i < 360; i++ )
@@ -242,7 +237,7 @@ public class Testesala extends GameCore {
     	Octree.maxTriangles = 800;
 
     	// The maximum amount of subdivisions allowed (Levels of subdivision)
-    	Octree.maxSubdivisions = 4;
+    	Octree.maxSubdivisions = 5;
 
     	// The number of Nodes we've checked for collision.
     	Octree.numNodesCollided = 0;
@@ -255,19 +250,21 @@ public class Testesala extends GameCore {
     	
     	LoadWorld();
     	
-    	for(int i=0; i < g_World.getNumOfMaterials(); i++)
-    	{
-    		System.out.println(g_World.getMaterials(i).getName() + " indice " + i);
+    	
+    	
+    	//for(int i=0; i < g_World.getNumOfMaterials(); i++)
+    	//{
+    	//	System.out.println(g_World.getMaterials(i).getName() + " indice " + i);
     		
-    	}
+    	//}
     	
     	
-    	for(int i=0; i < g_World.getNumOfObjects(); i++)
-    	{
-    		System.out.println(g_World.getObject(i).getName());
-    		System.out.println(g_World.getObject(i).getMaterialID());
+    	//for(int i=0; i < g_World.getNumOfObjects(); i++)
+    	//{
+    	//	System.out.println(g_World.getObject(i).getName());
+    	//	System.out.println(g_World.getObject(i).getMaterialID());
     		//System.out.println(g_World.getPObject(i).getMaterialID());
-    	}
+    	//}
     	
     // System.out.println(g_World.getPMaterials(12).getColor()[0] + " " + g_World.getPMaterials(12).getColor()[1]
     //                    + " " + g_World.getPMaterials(12).getColor()[2]);
@@ -302,6 +299,8 @@ public class Testesala extends GameCore {
     	glEnable(GL_LIGHT0);
     	
     	glEnable(GL_LIGHTING);
+    	// Agora posiciona demais fontes de luz
+    	glLight(GL_LIGHT0, GL_POSITION, posLuz1F); 
     	
     	    	// Habilita Z-Buffer
     	glEnable(GL_DEPTH_TEST);
@@ -312,48 +311,10 @@ public class Testesala extends GameCore {
     	glMaterial( GL_FRONT, GL_SPECULAR , Conversion.allocFloats(spec) );
     	glMaterialf( GL_FRONT, GL_SHININESS, df );
     
-		
-        paused = false;
-        fullscreen = false;
-              
-    	
-    	
+	    	
     }
-    
  
-
-
-    public void setFullScreen(boolean p)
-    {
-        if (fullscreen != p)
-        {
-            this.fullscreen = p;
-            screen.setFullScreen(fullscreen);
-        }
-
-     }
-    
-    public boolean isFullScreen()
-    {
-        return fullscreen;
-    }
-
-    public boolean isPaused()
-    {
-        return paused;
-    }
-
-    public void setPaused(boolean p)
-    {
-        if (paused != p)
-        {
-            this.paused = p;
-            
-        }
-
-     }
-
-    public void update()
+    protected void update(float elapsedTime)
     {
     	
     	
@@ -362,24 +323,12 @@ public class Testesala extends GameCore {
         if(!isPaused())
         {
             checkGameInput();
+            camera.update();
                         
         }
     }
 
-        public void checkSystemInput()
-        {
-            if (pause.isPressed())
-            {
-                setPaused(!isPaused());
-                camera.setViewByMouse(!isPaused());
-                Mouse.setGrabbed(!isPaused());
-            }
-            if (exit.isPressed())
-            {
-                stop();
-            }
-        }
-
+ 
         public void checkGameInput()
         {
         	
@@ -388,11 +337,11 @@ public class Testesala extends GameCore {
         		octree.setRenderMode(!octree.isRenderMode());
         		octree.setObjectColliding(false);
         		if(octree.isRenderMode())
-        		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	// Render the triangles in fill mode		
-    		
-    		else {
-    			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	// Render the triangles in wire frame mode
-    		}
+        		{
+        			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	// Render the triangles in fill mode		
+        		}else {
+        			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	// Render the triangles in wire frame mode
+        		}
         		octree.createDisplayList(octree, g_World, octree.getDisplayListID());
         	}
         	
@@ -466,55 +415,60 @@ public class Testesala extends GameCore {
         			g_BallEntity.fVelX += g_BallEntity.fAccel * elapsedTime;
         			g_BallEntity.fVelZ += g_BallEntity.fAccel * elapsedTime;
         		}
-            	//System.out.println("pressionou:");
-            	//System.out.println(elapsedTime);
+            
             	
             }
             if (moveDown.isPressed())
             {
             	
-            	// Move the Ball Backwords.
+            	// Move the Ball Backwards.
         		if ( g_BallEntity.fVelX - (g_BallEntity.fAccel * elapsedTime) > g_BallEntity.fMinVel )
         		{
         			g_BallEntity.fVelX -= g_BallEntity.fAccel * elapsedTime;
         			g_BallEntity.fVelZ -= g_BallEntity.fAccel * elapsedTime;
         		}
             }
-           // System.out.println("min: " + g_BallEntity.fVelX);
-            
-            //System.out.println(g_Octree.g_bObjectColliding);
+          
         	// Apply Gravity to this Entity (using time based motion) if he's not colliding with anything.
         	if ( !octree.isObjectColliding() )
-        		g_BallEntity.fVelY += -((GRAVITY * GRAVITY) * elapsedTime) * 0.5f;
+        		g_BallEntity.fVelY += (GRAVITY * elapsedTime);
         	
         	
-        	//System.out.println(g_BallEntity.fVelY);
+        	
         	// Apply (spherical based) motion.
-        	//System.out.println(g_BallEntity.fAngle);
+        	
         	g_BallEntity.x += (g_fSinTable[(int)AR_RadToDeg( g_BallEntity.fAngle )] * g_BallEntity.fVelX) * elapsedTime;
         	g_BallEntity.y += g_BallEntity.fVelY * elapsedTime;
         	g_BallEntity.z += (g_fCosTable[(int)AR_RadToDeg( g_BallEntity.fAngle )] * g_BallEntity.fVelZ) * elapsedTime;
         	
-        	//System.out.println(g_BallEntity.y);
-        	
+                	
         	// Adjust the Forward I-Sectors Endpoint.
         	g_vForwardISector[1].x = g_fSinTable[(int)AR_RadToDeg( g_BallEntity.fAngle )] * g_BallEntity.fRadius * 0.2f;
         	g_vForwardISector[1].y = 0.0f;
         	g_vForwardISector[1].z = g_fCosTable[(int)AR_RadToDeg( g_BallEntity.fAngle )] * g_BallEntity.fRadius * 0.2f;
 
         	
-        	//System.out.println(g_BallEntity.fVelX);
-        	//System.out.println("calculo:  " + (g_fFriction * elapsedTime));
+        	
         	// Slow this guy down (friction).
         	if ( g_BallEntity.fVelX > g_fFriction * elapsedTime )
+        	{
         		g_BallEntity.fVelX -= g_fFriction * elapsedTime;
+        	}
+        	
         	if ( g_BallEntity.fVelZ > g_fFriction * elapsedTime )
+        	{
         		g_BallEntity.fVelZ -= g_fFriction * elapsedTime;
+        	}
         	
         	if ( g_BallEntity.fVelX < g_fFriction * elapsedTime )
+        	{
         		g_BallEntity.fVelX += g_fFriction * elapsedTime;
+        	}
+        	
         	if ( g_BallEntity.fVelZ < g_fFriction * elapsedTime )
+        	{
         		g_BallEntity.fVelZ += g_fFriction * elapsedTime;
+        	}
 
         	// If this Ball falls outside the world, drop back from the top.
         	if ( g_BallEntity.y < -30 )
@@ -526,17 +480,13 @@ public class Testesala extends GameCore {
 
         	Vector3f[] vGroundLine = {new Vector3f(), new Vector3f()};
         	Vector3f[] vForwardLine = {new Vector3f(), new Vector3f()};
-        	//Vector3f[] vIntersectionPoint = new Vector3f[1];
-        	//vIntersectionPoint.x = 0.0f;
-        	//vIntersectionPoint.y = 0.0f;
-        	//vIntersectionPoint.z = 0.0f;
-        	
-        	        	
+        	     	        	
         	
         	// Prepare a Temporary line transformed to the Balls exact world position.
         	vGroundLine[0].x = g_BallEntity.x + g_vGroundISector[0].x;
         	vGroundLine[0].y = g_BallEntity.y + g_vGroundISector[0].y;
         	vGroundLine[0].z = g_BallEntity.z + g_vGroundISector[0].z;
+        	
         	vGroundLine[1].x = g_BallEntity.x + g_vGroundISector[1].x;
         	vGroundLine[1].y = g_BallEntity.y + g_vGroundISector[1].y;
         	vGroundLine[1].z = g_BallEntity.z + g_vGroundISector[1].z;
@@ -545,6 +495,7 @@ public class Testesala extends GameCore {
         	vForwardLine[0].x = g_BallEntity.x + g_vForwardISector[0].x;
         	vForwardLine[0].y = g_BallEntity.y + g_vForwardISector[0].y;
         	vForwardLine[0].z = g_BallEntity.z + g_vForwardISector[0].z;
+        	
         	vForwardLine[1].x = g_BallEntity.x + g_vForwardISector[1].x;
         	vForwardLine[1].y = g_BallEntity.y + g_vForwardISector[1].y;
         	vForwardLine[1].z = g_BallEntity.z + g_vForwardISector[1].z;
@@ -559,7 +510,6 @@ public class Testesala extends GameCore {
         	Octree.numNodesCollided = 0;
 
         	// Test the line for an intersection with the Octree Geometry.
-        	//System.out.println("antes x: "+vIntersectionPt.x);
         	if ( octree.intersectLineWithOctree( octree, g_World, vGroundLine, vIntersectionPt ) )
         	{
         		// Move the Ball up from the point at which it collided with the ground. This is what
@@ -573,7 +523,7 @@ public class Testesala extends GameCore {
         		// Stop your up-down velocity.
         		g_BallEntity.fVelY = 0.0f;
         	}
-        	//System.out.println("primeira: "+ vIntersectionPt.x + " " + vIntersectionPt.y + " " + vIntersectionPt.z);
+        	
         	// Test the line for an intersection with the Octree Geometry.
         	if ( octree.intersectLineWithOctree( octree, g_World, vForwardLine, vIntersectionPt ) )
         	{
@@ -588,25 +538,20 @@ public class Testesala extends GameCore {
         		// Stop your up-down velocity.
         		g_BallEntity.fVelY = 0.0f;
         	}
-        	//System.out.println("segunda: "+ vIntersectionPt.x + " " + vIntersectionPt.y + " " + vIntersectionPt.z);
-            
+        	
+        	
         }
 
-        public void render() 
+        protected void render() 
         {
         	
 
         	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 
         	glLoadIdentity();
-        	camera.update();
+        	
         	camera.look();	
-        	// Agora posiciona demais fontes de luz
-        	glLight(GL_LIGHT0, GL_POSITION, posLuz1F); 
-        	//gluLookAt(camera.getPosition()[0].x, camera.getPosition()[0].y, camera.getPosition()[0].z,
-        	//		camera.getPosition()[1].x,	camera.getPosition()[1].y,	 camera.getPosition()[1].z,
-        	//		camera.getPosition()[2].x, camera.getPosition()[2].y, camera.getPosition()[2].z);	
-
+        	
         	// Each frame we calculate the new frustum.  In reality you only need to
         	// calculate the frustum when we move the camera.
         	GameCore.gFrustum.calculateFrustum();
@@ -630,16 +575,18 @@ public class Testesala extends GameCore {
         	glPushMatrix();
         		// If there was a collision, make the Orange ball Red.
         		if ( octree.isObjectColliding() )
+        		{
         			glColor3f( 1.0f, 0.0f, 0.0f );
-        		else
+        		}else{
         			glColor3f( 1.0f, 0.5f, 0.0f );// Disable Lighting.
+        		}
         		// Move the Ball into place.
         		glTranslatef(g_BallEntity.x, g_BallEntity.y, g_BallEntity.z);
         		
         		glDisable( GL_LIGHTING );
         		// Draw the Ground Intersection Line.
         		glBegin( GL_LINES );
-        			glColor3f( 1, 1, 0 );
+        			glColor3f( 1, 1, 1 );
         			glVertex3f( g_vGroundISector[0].x, g_vGroundISector[0].y, g_vGroundISector[0].z );
         			glVertex3f( g_vGroundISector[1].x, g_vGroundISector[1].y, g_vGroundISector[1].z );	
         		glEnd();
@@ -665,13 +612,7 @@ public class Testesala extends GameCore {
         		
         	glPopMatrix();
 
-        	// Update fps
-    		
-        	//screen.enterOrtho();
-        	//draw.drawString(1,"QPS: " + FPSCounter.get(), 5, 5);  
-        	
-        	//screen.leaveOrtho();
-        	//FPSCounter.get();
+        
         	screen.setTitle("Triangles: " + Octree.maxTriangles + "  -Total Draw: " + Octree.totalNodesDrawn + "  -Subdivisions: " +  Octree.maxSubdivisions +
         			 "  -FPS: " + FPSCounter.get() + "  -Node Collisions: " + Octree.numNodesCollided + "  -Object Colliding? " +
         				   octree.isObjectColliding() ); 	
@@ -682,59 +623,40 @@ public class Testesala extends GameCore {
        
       public void createGameActions()
         {
-            moveLeft = new GameAction("moveLeft");
-            moveRight = new GameAction("moveRight");
-            moveUp = new GameAction("moveUp");
-            moveDown = new GameAction("moveDown");
-            zoomIn = new GameAction("zoomIn");
-            zoomOut = new GameAction("zoomIn");
-            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            pause = new GameAction("pause", GameAction.DETECT_INITIAL_PRESS_ONLY);
            
-            left = new GameAction("left");
-            enter = new GameAction("enter", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            saveCamera = new GameAction("saveCamera", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            right = new GameAction("right");
+            super.createGameActions();
+      	  
+            moveLeft = new GameAction("moveLeft",GameAction.NORMAL, Keyboard.KEY_LEFT);
+            moveRight = new GameAction("moveRight",GameAction.NORMAL, Keyboard.KEY_RIGHT);
+            moveUp = new GameAction("moveUp",GameAction.NORMAL, Keyboard.KEY_UP);
+            moveDown = new GameAction("moveDown",GameAction.NORMAL, Keyboard.KEY_DOWN);
+            zoomIn = new GameAction("zoomIn",GameAction.NORMAL, Keyboard.KEY_W);
+            zoomOut = new GameAction("zoomOut", GameAction.NORMAL, Keyboard.KEY_S);
+            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_ESCAPE);
             
+            left = new GameAction("left",GameAction.NORMAL, Keyboard.KEY_A);
             
-            inputManager.mapToKey(exit, Keyboard.KEY_ESCAPE);
-            inputManager.mapToKey(pause, Keyboard.KEY_P);
-           
-            inputManager.mapToKey(zoomIn, Keyboard.KEY_W);
-            inputManager.mapToKey(zoomOut, Keyboard.KEY_S) ;
-            inputManager.mapToKey(moveLeft, Keyboard.KEY_LEFT);
-            inputManager.mapToKey(moveRight, Keyboard.KEY_RIGHT);
-            inputManager.mapToKey(moveUp, Keyboard.KEY_UP);
-            inputManager.mapToKey(moveDown, Keyboard.KEY_DOWN);
-            
-            
-            inputManager.mapToKey(left, Keyboard.KEY_A);
-            inputManager.mapToKey(enter, Keyboard.KEY_RETURN);
-            inputManager.mapToKey(debug, Keyboard.KEY_SPACE);
-            inputManager.mapToKey(fullScreen, Keyboard.KEY_F1);
-            inputManager.mapToKey(saveCamera, Keyboard.KEY_F11);
-            inputManager.mapToKey(drawMode, Keyboard.KEY_T);
-            inputManager.mapToKey(right, Keyboard.KEY_D);
-            
-            
-            
-           
+            enter = new GameAction("enter", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_RETURN);
+            debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_SPACE);
+            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F1);
+            saveCamera = new GameAction("saveCamera", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F11);
+            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
+            right = new GameAction("right",GameAction.NORMAL, Keyboard.KEY_D);
+                        
+   
         }
         
    // Convert from Degrees to Radians.
       private float AR_DegToRad(float x)
       {
-    	  //return ( ( x ) * AR_PI_DIV_180 );
+    	 
     	  return (float) Math.toRadians(x);
       }
 
       // Convert from Radians to Degrees.
       private float AR_RadToDeg(float x) 
       {
-    	 // return ( ( x ) * AR_INV_PI_DIV_180 );
+    	
     	  return (float) Math.toDegrees(x);
       }
 

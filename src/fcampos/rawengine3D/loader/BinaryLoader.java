@@ -22,17 +22,8 @@ public class BinaryLoader {
          * @param f the file to open.
          * @throws IOException 
          */
-      /*
-        public BinaryLoader(String f) {
-                try {
-                        URL file = new URL(f);
-                        open(file);
-                } catch (MalformedURLException e) {
-                       e.toString();
-                }
-        }
-        */
-        
+     
+		@SuppressWarnings("unused")
 		public BinaryLoader(String f) throws IOException {
             
         	File file = new File(f);
@@ -53,16 +44,17 @@ public class BinaryLoader {
                 open(f);
         }
 
-    public BinaryLoader(InputStream md2) {
-        try {
-            DataInputStream bis=new DataInputStream(md2);
-            fileContents = new byte[bis.available()];
-            bis.readFully(fileContents);
-            bis.close();
-        } catch (IOException e) {
-            e.toString();
-        }
-    }
+	    public BinaryLoader(InputStream md2) 
+	    {
+	        try {
+	            DataInputStream bis=new DataInputStream(md2);
+	            fileContents = new byte[bis.available()];
+	            bis.readFully(fileContents);
+	            bis.close();
+	        } catch (IOException e) {
+	            e.toString();
+	        }
+	    }
 
     /**
          *

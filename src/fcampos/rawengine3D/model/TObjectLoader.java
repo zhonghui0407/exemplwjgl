@@ -56,13 +56,13 @@ public class TObjectLoader {
 	 das texturas (se houver)
 	*/
 	
-	public void carregaObjeto(String arqName, boolean mipmap, boolean useAnisotropicFilter, T3dModel world) throws IOException
+	public void carregaObjeto(String arqName, boolean mipmap, boolean useAnisotropicFilter, Model3d world) throws IOException
 	{
 		
 		int vcont,ncont,fcont,tcont;
 		int material, texid;
 		BufferedReader reader = null;
-		T3dObject obj = null;
+		Object3d obj = null;
 		Texture tex = null;
 		@SuppressWarnings("unused")
 		Vector3f[] vertices = null;
@@ -96,7 +96,7 @@ public class TObjectLoader {
 				{
 					if(obj == null)
 					{
-						obj = new T3dObject();
+						obj = new Object3d();
 						obj.setName(line.substring(2));
 						world.addObject(obj);
 						world.addNumOfObjects(1);
@@ -110,7 +110,7 @@ public class TObjectLoader {
 							numFace = 0;
 							numNormais = 0;
 							numTexCoords = 0;
-							obj = new T3dObject();
+							obj = new Object3d();
 							obj.setName(line.substring(2));
 							world.addObject(obj);
 							world.addNumOfObjects(1);
@@ -591,10 +591,10 @@ public class TObjectLoader {
 			
 	// Lê um arquivo que define materiais para um objeto 3D no
 	// formato .OBJ
-	public void readMaterials(String arqName, T3dModel world) throws IOException //modificado
+	public void readMaterials(String arqName, Model3d world) throws IOException //modificado
 	{
 		
-		TMaterialInfo mat = null;
+		MaterialInfo mat = null;
 		
 		
 		BufferedReader reader = openArq(arqName);
@@ -647,7 +647,7 @@ public class TObjectLoader {
 					mat = null;
 					continue;
 				}
-				mat = new TMaterialInfo();
+				mat = new MaterialInfo();
 				// Adiciona à lista
 				world.addNumOfMaterials(1);
 				world.addMaterials(mat); //modificado
@@ -722,7 +722,7 @@ public class TObjectLoader {
 	
 	// Desabilita a geração de uma display list
 	// para o objeto especificado
-	public void desabilitaDisplayList(T3dModel obj)
+	public void desabilitaDisplayList(Model3d obj)
 	{
 		if(obj == null) return;
 		for(int i=0 ; i < obj.getObject().size(); i++)
@@ -742,7 +742,7 @@ public class TObjectLoader {
 	// Função interna para criar uma display list
 	// (na verdade, a display list em si é gerada durante a
 	// primeira vez em que o objeto é redesenhado)
-	private void criaDList(T3dModel obj)
+	private void criaDList(Model3d obj)
 	{
 		// Se o objeto não possui display list, gera uma identificação nova
 		for(int i=0 ; i < obj.getObject().size(); i++)
@@ -761,7 +761,7 @@ public class TObjectLoader {
 	// Cria uma display list para o objeto informado
 	// - se for null, cria display lists para TODOS os objetos
 	// (usada na rotina de desenho, se existir)
-	public void criaDisplayList(T3dModel obj, String temp)
+	public void criaDisplayList(Model3d obj, String temp)
 	{
 		
 		if(temp == null)

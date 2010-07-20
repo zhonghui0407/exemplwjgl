@@ -125,7 +125,7 @@ public class Octree{
 	private Vector3f centerNode;
 	
 	// This holds all the scene information (verts, normals, texture info, etc..) for this node
-	private T3dModel world;
+	private Model3d world;
 	
 	// This stores the indices into the original model's object list
 	private Vector<Integer>	objectList;
@@ -205,7 +205,7 @@ public class Octree{
 	/////
 	////////////////////////////GET SCENE TRIANGLE COUNT \\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public int getSceneTriangleCount(T3dModel world)
+	public int getSceneTriangleCount(Model3d world)
 	{
 		// This function is only called once, right before we create our first root node.
 		// Basically, we just go through all of the objects in our scene and add up their triangles.
@@ -231,7 +231,7 @@ public class Octree{
 	/////
 	///////////////////////////////// OCTREE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void getSceneDimensions(T3dModel world)
+	public void getSceneDimensions(Model3d world)
 	{
 		
 		// Return from this function if we passed in bad data.  This used to be a check
@@ -399,7 +399,7 @@ public class Octree{
 	/////
 	///////////////////////////////// CREATE NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void createNode(T3dModel world, int numberOfTriangles, Vector3f center, float width)
+	public void createNode(Model3d world, int numberOfTriangles, Vector3f center, float width)
 	{
 		// Initialize this node's center point.  Now we know the center of this node.
 		centerNode.setTo(center);
@@ -465,7 +465,7 @@ public class Octree{
 			for(int i = 0; i < world.getNumOfObjects(); i++)
 			{
 				// Store a point to the current object
-				T3dObject object = world.getObject(i);
+				Object3d object = world.getObject(i);
 	
 				// Now, we have a face list for each object, for every child node.
 				// We need to then check every triangle in this current object
@@ -596,7 +596,7 @@ public class Octree{
 /////
 ///////////////////////////////// CREATE NEW NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void createNewNode(T3dModel world, Vector<FaceList> listFaces, int triangleCount,
+public void createNewNode(Model3d world, Vector<FaceList> listFaces, int triangleCount,
 					  	  Vector3f center, float width, int nodeID)
 {
 	// This function is used as our helper function to partition the world data
@@ -616,7 +616,7 @@ public void createNewNode(T3dModel world, Vector<FaceList> listFaces, int triang
 	
 	// Here we create the temporary partitioned data model, which will contain
 	// all the objects and triangles in this end node.
-	T3dModel tempWorld = new T3dModel();
+	Model3d tempWorld = new Model3d();
 
 	// Intialize the temp model data and assign the object count to it
 	
@@ -627,10 +627,10 @@ public void createNewNode(T3dModel world, Vector<FaceList> listFaces, int triang
 	for(int i = 0; i < world.getNumOfObjects(); i++)
 	{
 		// Get a pointer to the current object to avoid ugly code
-		T3dObject pObject = world.getObject(i);
+		Object3d pObject = world.getObject(i);
 
 		// Create a new object, initialize it, then add it to our temp partition
-		T3dObject newObject = new T3dObject();
+		Object3d newObject = new Object3d();
 		
 		tempWorld.addObject(newObject);
 
@@ -708,7 +708,7 @@ public void createNewNode(T3dModel world, Vector<FaceList> listFaces, int triang
 /////
 ////////////////////////////ASSIGN TRIANGLES TO NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
+public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 {
 	// We take our pWorld partition and then copy it into our member variable
 	// face list, m_pWorld.  This holds the face indices that need to be rendered.
@@ -724,7 +724,7 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 	setTriangleCount(numberOfTriangles);
 
 	// Create and init an instance of our model structure to store the face index information
-	world = new T3dModel();
+	world = new Model3d();
 	
 	// Assign the number of objects to our face index list
 	world.setNumOfObjects(tempWorld.getNumOfObjects());
@@ -733,10 +733,10 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 	for(int i = 0; i < world.getNumOfObjects(); i++)
 	{
 		// Create a pointer to the current object
-		T3dObject pObject = tempWorld.getObject(i);
+		Object3d pObject = tempWorld.getObject(i);
 
 		// Create and init a new object to hold the face index information
-		T3dObject newObject = new T3dObject();
+		Object3d newObject = new Object3d();
 		
 		// If this object has face information, add it's index to our object index list
 		if(pObject.getNumFaces() > 0)
@@ -829,7 +829,7 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 	/////
 	////////////////////////////////DRAW OCTREE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void drawOctree(Octree node, T3dModel pRootWorld)
+	public void drawOctree(Octree node, Model3d pRootWorld)
 	{
 		// To draw our octree, all that needs to be done is call our display list ID.
 		// First we want to check if the current node is even in our frustum.  If it is,
@@ -877,7 +877,7 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 	/////
 	////////////////////////////////CREATE DISPLAY LIST \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void createDisplayList(Octree node, T3dModel rootWorld, int displayListOffset)
+	public void createDisplayList(Octree node, Model3d rootWorld, int displayListOffset)
 	{
 		// This function handles our rendering code in the beginning and assigns it all
 		// to a display list.  This increases our rendering speed, as long as we don't flood
@@ -929,8 +929,8 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 	
 				// Store pointers to the current face list and the root object 
 				// that holds all the data (verts, texture coordinates, normals, etc..)
-				T3dObject object     = node.world.getObject(i);
-				T3dObject rootObject = rootWorld.getObject(i);
+				Object3d object     = node.world.getObject(i);
+				Object3d rootObject = rootWorld.getObject(i);
 	
 				// Check to see if this object has a texture map, if so, bind the texture to it.
 				if(rootObject.getNumTexcoords() > 0) 
@@ -1090,92 +1090,93 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 	//	[in]	vLine			The Line to check intersection for.
 	//	[in]	vIntersectionPt	The Point at which the line intersected.
 	//	[return]		Wheter there was an intersection or not.
-	public boolean intersectLineWithOctree(Octree pNode, T3dModel pWorld, Vector3f vLine[], Vector3f vIntersectionPt )
+	public boolean intersectLineWithOctree(Octree node, Model3d world, Vector3f line[], Vector3f intersectionPoint )
 	{
 		// If the passed in node is invalid, leave.
-		if ( pNode == null )
+		if ( node == null )
 			return false;
 		
-		float fLeft, fRight, fBottom, fTop, fBack, fFront;
-	
-		Vector3f pCenter = new Vector3f(pNode.getCenter());
+		
+		float left, right, bottom, top, back, front;
+		
+		Vector3f center = new Vector3f(node.getCenter());
 	
 		// Find the Left, Right, Front and Back of this Node's AABB.
-		fLeft = pCenter.x - pNode.getWidth();
-		fRight = pCenter.x + pNode.getWidth();
-		fBottom = pCenter.y - pNode.getWidth();
-		fTop = pCenter.y + pNode.getWidth();
+		left = center.x - node.getWidth();
+		right = center.x + node.getWidth();
+		bottom = center.y - node.getWidth();
+		top = center.y + node.getWidth();
 		// Be careful here, depth is different in DirectX's Left handed coordinate system.
-		fBack = pCenter.z - pNode.getWidth();
-		fFront = pCenter.z + pNode.getWidth();
+		back = center.z - node.getWidth();
+		front = center.z + node.getWidth();
 	
 		// If BOTH Vertices of the Line are not in this Node, than there can not possibly
 		// be an intersection, return false.
 		if ( octreeCollisionDetection &&
-			 (( vLine[0].x < fLeft || vLine[0].x > fRight ) ||
-			 ( vLine[0].y < fBottom || vLine[0].y > fTop ) ||
-			 ( vLine[0].z < fBack || vLine[0].z > fFront )) 
+			 (( line[0].x < left || line[0].x > right ) ||
+			 ( line[0].y < bottom || line[0].y > top ) ||
+			 ( line[0].z < back || line[0].z > front )) 
 			 &&
-			 (( vLine[1].x < fLeft || vLine[1].x > fRight ) ||
-			 ( vLine[1].y < fBottom || vLine[1].y > fTop ) ||
-			 ( vLine[1].z < fBack || vLine[1].z > fFront )) )
+			 (( line[1].x < left || line[1].x > right ) ||
+			 ( line[1].y < bottom || line[1].y > top ) ||
+			 ( line[1].z < back || line[1].z > front )) )
 				return false;
 	
 		// If this node is subdivided, traverse to it's children.
-		if ( pNode.isSubDivided() )
+		if ( node.isSubDivided() )
 		{
 			// Lots of Logic Tests, but with a purpose. If ANY node comes back saying there was a collision in it or one
 			// of it's sub-nodes, return immediately without checking anymore nodes. This echos back recursivly to the root.
-			if ( intersectLineWithOctree( pNode.octreeNodes[TOP_LEFT_FRONT], pWorld, vLine, vIntersectionPt ) )
+			if ( intersectLineWithOctree( node.octreeNodes[TOP_LEFT_FRONT], world, line, intersectionPoint ) )
 				return true;
-			if ( intersectLineWithOctree( pNode.octreeNodes[TOP_LEFT_BACK], pWorld, vLine, vIntersectionPt ) )
+			if ( intersectLineWithOctree( node.octreeNodes[TOP_LEFT_BACK], world, line, intersectionPoint ) )
 				return true;
-			if ( intersectLineWithOctree( pNode.octreeNodes[TOP_RIGHT_BACK], pWorld, vLine, vIntersectionPt ) )
+			if ( intersectLineWithOctree( node.octreeNodes[TOP_RIGHT_BACK], world, line, intersectionPoint ) )
 				return true;
-			if ( intersectLineWithOctree( pNode.octreeNodes[TOP_RIGHT_FRONT], pWorld, vLine, vIntersectionPt ) )
+			if ( intersectLineWithOctree( node.octreeNodes[TOP_RIGHT_FRONT], world, line, intersectionPoint ) )
 				return true;
-			if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_LEFT_FRONT], pWorld, vLine, vIntersectionPt ) )
+			if ( intersectLineWithOctree( node.octreeNodes[BOTTOM_LEFT_FRONT], world, line, intersectionPoint ) )
 				return true;
-			if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_LEFT_BACK], pWorld, vLine, vIntersectionPt ) )
+			if ( intersectLineWithOctree( node.octreeNodes[BOTTOM_LEFT_BACK], world, line, intersectionPoint ) )
 				return true;
-			if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_RIGHT_BACK], pWorld, vLine, vIntersectionPt ) )
+			if ( intersectLineWithOctree( node.octreeNodes[BOTTOM_RIGHT_BACK], world, line, intersectionPoint ) )
 				return true;
-			if ( intersectLineWithOctree( pNode.octreeNodes[BOTTOM_RIGHT_FRONT], pWorld, vLine, vIntersectionPt ) )
+			if ( intersectLineWithOctree( node.octreeNodes[BOTTOM_RIGHT_FRONT], world, line, intersectionPoint ) )
 				return true;
 		}
 		else
 		{
 			// Make sure there is a world to test.
-			if (pNode.world == null )
+			if (node.world == null )
 				return false;
 	
 			// Increment the Count of how many collisions with terminal Nodes we have encountered.
 			numNodesCollided++;
 	
-			Vector3f[] vTempFace = new Vector3f[3];
+			Vector3f[] tempFace = new Vector3f[3];
 			int i, j, k;
 	
 			// Check all of this Nodes World Objects.
-			for ( i = 0; i < pNode.world.getNumOfObjects(); i++ )
+			for ( i = 0; i < node.world.getNumOfObjects(); i++ )
 			{
-				T3dObject pObject = pNode.world.getObject(i);
+				Object3d object = node.world.getObject(i);
 	
 				// Check all of the Worlds Faces.
-				for ( j = 0; j < pObject.getNumFaces(); j++ )
+				for ( j = 0; j < object.getNumFaces(); j++ )
 				{
 					// Look at the 3 Vertices of this Face.
 					for ( k = 0; k < 3; k++ )
 					{
 						// Get the Vertex Index;
-						int iIndex = pObject.getFace(j).getVertices(k);
+						int index = object.getFace(j).getVertices(k);
 	
 						// Now look in the Root World and just get the Vertices we need.
-						vTempFace[k] = new Vector3f(pWorld.getObject(i).getVertices(iIndex));
+						tempFace[k] = new Vector3f(world.getObject(i).getVertices(index));
 					}
 					CollisionMath collision = new CollisionMath();
 	
 					// If we had a Line to Polygon Intersection, return true, which should echo down to the root function call.
-					if ( collision.intersectedPolygon( vTempFace, vLine, 3, vIntersectionPt ) )
+					if ( collision.intersectedPolygon( tempFace, line, 3, intersectionPoint ) )
 					{
 						setObjectColliding(true);
 						return true;
@@ -1188,7 +1189,7 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 		return false;
 	}
 
-	public boolean checkCameraCollision(Octree node, T3dModel world, CameraQuaternion camera)
+	public boolean checkCameraCollision(Octree node, Model3d world, CameraQuaternion camera)
 	{	
 		// This function is pretty much a direct rip off of SpherePolygonCollision()
 		// We needed to tweak it a bit though, to handle the collision detection once 
@@ -1271,7 +1272,7 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 			// Check all of this Nodes World Objects.
 			for ( i = 0; i < node.world.getNumOfObjects(); i++ )
 			{
-				T3dObject object = node.world.getObject(i);
+				Object3d object = node.world.getObject(i);
 	
 				// Check all of the Worlds Faces.
 				for ( j = 0; j < object.getNumFaces(); j++ )
@@ -1329,7 +1330,7 @@ public void assignTrianglesToNode(T3dModel tempWorld, int numberOfTriangles)
 							// all it takes is to find how far we need to push the sphere back.
 							// GetCollisionOffset() returns us that offset according to the normal,
 							// radius, and current distance the center of the sphere is from the plane.
-							offset.setTo(collision.getCollisionOffset(normal, camera.getRadius(), distance.distance));
+							offset.setTo(collision.getCollisionOffset(normal, radius, distance.distance));
 	
 							// Now that we have the offset, we want to ADD it to the position and
 							// view vector in our camera.  This pushes us back off of the plane.  We

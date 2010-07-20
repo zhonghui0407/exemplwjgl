@@ -1,7 +1,7 @@
 package fcampos.rawengine3D.teste;
 import fcampos.rawengine3D.input.*;
-import fcampos.rawengine3D.model.T3dModel;
-import fcampos.rawengine3D.model.TMaterialInfo;
+import fcampos.rawengine3D.model.Model3d;
+import fcampos.rawengine3D.model.MaterialInfo;
 import fcampos.rawengine3D.model.TObjectLoader;
 import fcampos.rawengine3D.resource.*;
 import fcampos.rawengine3D.gamecore.GameCore;
@@ -96,29 +96,29 @@ public class TSala3D extends GameCore {
     private DrawString draw;
     
     // Objetos
-    private T3dModel plano = new T3dModel();
-    private T3dModel mesa = new T3dModel();
-    private T3dModel mesapeq = new T3dModel();
-    private T3dModel quadro = new T3dModel();
-    private T3dModel porta = new T3dModel();
-    private T3dModel janela = new T3dModel();
-    private T3dModel lamp = new T3dModel();
-    private T3dModel vidro = new T3dModel();
-    private T3dModel ceu = new T3dModel();
-    private T3dModel cadeira = new T3dModel();
-    private T3dModel arena = new T3dModel();
+    private Model3d plano = new Model3d();
+    private Model3d mesa = new Model3d();
+    private Model3d mesapeq = new Model3d();
+    private Model3d quadro = new Model3d();
+    private Model3d porta = new Model3d();
+    private Model3d janela = new Model3d();
+    private Model3d lamp = new Model3d();
+    private Model3d vidro = new Model3d();
+    private Model3d ceu = new Model3d();
+    private Model3d cadeira = new Model3d();
+    private Model3d arena = new Model3d();
     
     private float speed = 500.0f;
       
     
     // Tipos possíveis para objetos sobre as mesas
-    private T3dModel[] tipos = new T3dModel[7];
+    private Model3d[] tipos = new Model3d[7];
     
-    private ArrayList<T3dModel> objetos = new ArrayList<T3dModel>();
+    private ArrayList<Model3d> objetos = new ArrayList<Model3d>();
     
         
     // Apontador para material da fonte de luz
-    private TMaterialInfo mat_luz;
+    private MaterialInfo mat_luz;
 
     private Vector3f[] limitesMesa = new Vector3f[37];
     
@@ -192,7 +192,7 @@ public class TSala3D extends GameCore {
         }
         
        for(int i=0; i < tipos.length; i++){
-    	   tipos[i] = new T3dModel();
+    	   tipos[i] = new Model3d();
        }
        
        objetos.add(plano);

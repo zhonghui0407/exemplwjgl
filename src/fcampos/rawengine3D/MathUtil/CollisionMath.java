@@ -29,7 +29,8 @@ public class CollisionMath {
 	//
 	/////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
 
-	public final static double PI = 3.1415926535897932;
+	public final static double PI 		= 3.1415926535897932;
+	public final static double TWO_PI 	= 6.2831853071795864;
 	
 	Vector3f vNormal;
 	//public Fl originDistance;
@@ -38,48 +39,48 @@ public class CollisionMath {
 		
 	}
 	
-//////////////////////////////CLOSEST POINT ON LINE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This returns the point on the line vA_vB that is closest to the point vPoint
-/////
-////////////////////////////// CLOSEST POINT ON LINE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
-{
-	// Create the vector from end point vA to our point vPoint.
-	Vector3f vVector1 = VectorMath.subtract(vPoint, vA);
-
-	// Create a normalized direction vector from end point vA to end point vB
-    Vector3f vVector2 = VectorMath.subtract(vB, vA);
-    VectorMath.normalize(vVector2);
-
-	// Use the distance formula to find the distance of the line segment (or magnitude)
-    float d = VectorMath.distance(vA, vB);
-
-	// Using the dot product, we project the vVector1 onto the vector vVector2.
-	// This essentially gives us the distance from our projected vector from vA.
-    float t = VectorMath.getDotProduct(vVector2, vVector1);
-
-	// If our projected distance from vA, "t", is less than or equal to 0, it must
-	// be closest to the end point vA.  We want to return this end point.
-    if (t <= 0) 
-		return vA;
-
-	// If our projected distance from vA, "t", is greater than or equal to the magnitude
-	// or distance of the line segment, it must be closest to the end point vB.  So, return vB.
-    if (t >= d) 
-		return vB;
- 
-	// Here we create a vector that is of length t and in the direction of vVector2
-    Vector3f vVector3 = VectorMath.multiply(vVector2, t);
-
-	// To find the closest point on the line segment, we just add vVector3 to the original
-	// end point vA.  
-    Vector3f vClosestPoint = VectorMath.add(vA, vVector3);
-
-	// Return the closest point on the line segment
-	return vClosestPoint;
-}
+	//////////////////////////////CLOSEST POINT ON LINE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This returns the point on the line vA_vB that is closest to the point vPoint
+	/////
+	////////////////////////////// CLOSEST POINT ON LINE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f point)
+	{
+		// Create the vector from end point vA to our point vPoint.
+		Vector3f vectorVAtoPoint = VectorMath.subtract(point, vA);
+	
+		// Create a normalized direction vector from end point vA to end point vB
+	    Vector3f vectorVAtoVB = VectorMath.subtract(vB, vA);
+	    VectorMath.normalize(vectorVAtoVB);
+	
+		// Use the distance formula to find the distance of the line segment (or magnitude)
+	    float d = VectorMath.distance(vA, vB);
+	
+		// Using the dot product, we project the vectorVAtoPoint onto the vector vectorVAtoVB.
+		// This essentially gives us the distance from our projected vector from vA.
+	    float t = VectorMath.getDotProduct(vectorVAtoVB, vectorVAtoPoint);
+	
+		// If our projected distance from vA, "t", is less than or equal to 0, it must
+		// be closest to the end point vA.  We want to return this end point.
+	    if (t <= 0) 
+			return vA;
+	
+		// If our projected distance from vA, "t", is greater than or equal to the magnitude
+		// or distance of the line segment, it must be closest to the end point vB.  So, return vB.
+	    if (t >= d) 
+			return vB;
+	 
+		// Here we create a vector that is of length t and in the direction of vectorVAtoVB
+	    Vector3f vectorT = VectorMath.multiply(vectorVAtoVB, t);
+	
+		// To find the closest point on the line segment, we just add vectorT to the original
+		// end point vA.  
+	    Vector3f closestPoint = VectorMath.add(vA, vectorT);
+	
+		// Return the closest point on the line segment
+		return closestPoint;
+	}
 
 	
 	/////////////////////////////////// PLANE DISTANCE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -90,11 +91,11 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 										
 	private float planeDistance(Vector3f normal, Vector3f point)
 	{	
-		float distance = 0;		// This variable holds the distance from the plane tot he origin
+		float distance = 0;		// This variable holds the distance from the plane to he origin
 
 		// Use the plane equation to find the distance (Ax + By + Cz + D = 0)  We want to find D.
 		// So, we come up with D = -(Ax + By + Cz)
-															// Basically, the negated dot product of the normal of the plane and the point. (More about the dot product in another tutorial)
+		// Basically, the negated dot product of the normal of the plane and the point. 
 		distance = - VectorMath.getDotProduct(normal, point);
 
 		return distance;									// Return the distance
@@ -120,27 +121,27 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 	/////
 	/////////////////////////////////// INTERSECTED PLANE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 												
-	private boolean intersectedPlane(Vector3f vPoly[], Vector3f vLine[], Vector3f vNormal, Fl originDistance)
+	private boolean intersectedPlane(Vector3f poly[], Vector3f line[], Vector3f normal, Distance originDistance)
 	{
-		float distance1=0, distance2=0;						// The distances from the 2 points of the line from the plane
-		Vector3f temp = VectorMath.normal(vPoly);		
-		vNormal.setTo(temp); 							// We need to get the normal of our plane to go any further
+		float distance1=0, distance2=0;					// The distances from the 2 points of the line from the plane
+		Vector3f temp = VectorMath.normal(poly);		
+		normal.setTo(temp); 							// We need to get the normal of our plane to go any further
 
 		// Let's find the distance our plane is from the origin.  We can find this value
 		// from the normal to the plane (polygon) and any point that lies on that plane (Any vertice)
-		originDistance.abc = planeDistance(vNormal, vPoly[0]);
+		originDistance.distance = planeDistance(normal, poly[0]);
 
 		// Get the distance from point1 from the plane using: Ax + By + Cz + D = (The distance from the plane)
 
-		distance1 = ((vNormal.x * vLine[0].x)  +					// Ax +
-			         (vNormal.y * vLine[0].y)  +					// Bx +
-					 (vNormal.z * vLine[0].z)) + originDistance.abc;	// Cz + D
+		distance1 = ((normal.x * line[0].x)  +							// Ax +
+			         (normal.y * line[0].y)  +							// Bx +
+					 (normal.z * line[0].z)) + originDistance.distance;	// Cz + D
 		
 		// Get the distance from point2 from the plane using Ax + By + Cz + D = (The distance from the plane)
 		
-		distance2 = ((vNormal.x * vLine[1].x)  +					// Ax +
-			         (vNormal.y * vLine[1].y)  +					// Bx +
-					 (vNormal.z * vLine[1].z)) + originDistance.abc;	// Cz + D
+		distance2 = ((normal.x * line[1].x)  +							// Ax +
+			         (normal.y * line[1].y)  +							// Bx +
+					 (normal.z * line[1].z)) + originDistance.distance;	// Cz + D
 
 		// Now that we have 2 distances from the plane, if we times them together we either
 		// get a positive or negative number.  If it's a negative number, that means we collided!
@@ -153,12 +154,7 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 	}
 
 
-	/////////////////////////////////// DOT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-	/////
-	/////	This computers the dot product of 2 vectors
-	/////
-	/////////////////////////////////// DOT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
+	
 	
 	/////////////////////////////////// INTERSECTION POINT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	/////
@@ -166,32 +162,32 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 	/////
 	/////////////////////////////////// INTERSECTION POINT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 												
-	private Vector3f intersectionPoint(Vector3f vNormal, Vector3f vLine[], double distance)
+	private Vector3f intersectionPoint(Vector3f normal, Vector3f line[], double distance)
 	{
-		Vector3f vPoint = new Vector3f(); 		// Variables to hold the point and the line's direction
-		Vector3f vLineDir = new Vector3f();
+		Vector3f point = new Vector3f(); 		// Variables to hold the point and the line's direction
+		Vector3f lineDir = new Vector3f();
 		double numerator = 0.0, denominator = 0.0, dist = 0.0;
 
 		// Here comes the confusing part.  We need to find the 3D point that is actually
 		// on the plane.  Here are some steps to do that:
 		
 		// 1)  First we need to get the vector of our line, Then normalize it so it's a length of 1
-		vLineDir = VectorMath.subtract(vLine[1], vLine[0]);		// Get the Vector of the line
-		VectorMath.normalize(vLineDir);				// Normalize the lines vector
+		lineDir = VectorMath.subtract(line[1], line[0]);		// Get the Vector of the line
+		VectorMath.normalize(lineDir);				// Normalize the lines vector
 
 
 		// 2) Use the plane equation (distance = Ax + By + Cz + D) to find the distance from one of our points to the plane.
 		//    Here I just chose a arbitrary point as the point to find that distance.  You notice we negate that
 		//    distance.  We negate the distance because we want to eventually go BACKWARDS from our point to the plane.
 		//    By doing this is will basically bring us back to the plane to find our intersection point.
-		numerator = - (vNormal.x * vLine[0].x +		// Use the plane equation with the normal and the line
-					   vNormal.y * vLine[0].y +
-					   vNormal.z * vLine[0].z + distance);
+		numerator = - (normal.x * line[0].x +		// Use the plane equation with the normal and the line
+					   normal.y * line[0].y +
+					   normal.z * line[0].z + distance);
 
 		// 3) If we take the dot product between our line vector and the normal of the polygon,
 		//    this will give us the cosine of the angle between the 2 (since they are both normalized - length 1).
 		//    We will then divide our Numerator by this value to find the offset towards the plane from our arbitrary point.
-		denominator = VectorMath.getDotProduct(vNormal, vLineDir);		// Get the dot product of the line's vector and the normal of the plane
+		denominator = VectorMath.getDotProduct(normal, lineDir);		// Get the dot product of the line's vector and the normal of the plane
 					  
 		// Since we are using division, we need to make sure we don't get a divide by zero error
 		// If we do get a 0, that means that there are INFINATE points because the the line is
@@ -199,7 +195,7 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 		// In this case, we should just return any point on the line.
 
 		if( denominator == 0.0)						// Check so we don't divide by zero
-			return vLine[0];						// Return an arbitrary point on the line
+			return line[0];						// Return an arbitrary point on the line
 
 		// We divide the (distance from the point to the plane) by (the dot product)
 		// to get the distance (dist) that we need to move from our arbitrary point.  We need
@@ -220,11 +216,11 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 		// This essentially moves the point along the vector to a certain distance.  This now gives
 		// us the intersection point.  Yay!
 
-		vPoint.x = (float)(vLine[0].x + (vLineDir.x * dist));
-		vPoint.y = (float)(vLine[0].y + (vLineDir.y * dist));
-		vPoint.z = (float)(vLine[0].z + (vLineDir.z * dist));
+		point.x = (float) (line[0].x + (lineDir.x * dist));
+		point.y = (float) (line[0].y + (lineDir.y * dist));
+		point.z = (float) (line[0].z + (lineDir.z * dist));
 
-		return vPoint;								// Return the intersection point
+		return point;								// Return the intersection point
 	}
 
 
@@ -270,7 +266,7 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 		// with floating point numbers.  It usually won't always be perfectly 2 * PI, so we need
 		// to use a little twiddling.  I use .9999, but you can change this to fit your own desired accuracy.
 													
-		if(angle >= (MATCH_FACTOR * (2.0 * PI)) )	// If the angle is greater than 2 PI, (360 degrees)
+		if(angle >= (MATCH_FACTOR * (TWO_PI)) )	// If the angle is greater than 2 PI, (360 degrees)
 			return true;							// The point is inside of the polygon
 			
 		return false;								// If you get here, it obviously wasn't inside the polygon, so Return FALSE
@@ -283,17 +279,17 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 	/////
 	/////////////////////////////////// INTERSECTED POLYGON \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-	public boolean intersectedPolygon(Vector3f vPoly[], Vector3f vLine[], int verticeCount, Vector3f vIntersection)
+	public boolean intersectedPolygon(Vector3f poly[], Vector3f line[], int verticeCount, Vector3f intersectionPoint)
 	{
 		
-		Fl originDistance = new Fl();
+		Distance originDistance = new Distance();
 		
 		// First we check to see if our line intersected the plane.  If this isn't true
 		// there is no need to go on, so return false immediately.
 		// We pass in address of vNormal and originDistance so we only calculate it once
 		vNormal = new Vector3f();
 										 // Reference   // Reference
-		if(!intersectedPlane(vPoly, vLine, vNormal, originDistance))
+		if(!intersectedPlane(poly, line, vNormal, originDistance))
 			return false;
 
 		// Now that we have our normal and distance passed back from IntersectedPlane(), 
@@ -302,13 +298,13 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 		// this point test next, if we are inside the polygon.  To get the I-Point, we
 		// give our function the normal of the plan, the points of the line, and the originDistance.
 
-		vIntersection.setTo(intersectionPoint(vNormal, vLine, originDistance.abc));
+		intersectionPoint.setTo(intersectionPoint(vNormal, line, originDistance.distance));
 
 		// Now that we have the intersection point, we need to test if it's inside the polygon.
 		// To do this, we pass in :
 		// (our intersection point, the polygon, and the number of vertices our polygon has)
 
-		if(insidePolygon(vIntersection, vPoly, verticeCount))
+		if(insidePolygon(intersectionPoint, poly, verticeCount))
 			return true;							// We collided!	  Return success
 
 
@@ -317,212 +313,211 @@ public Vector3f closestPointOnLine(Vector3f vA, Vector3f vB, Vector3f vPoint)
 		return false;								// There was no collision, so return false
 	}
 
-///////////////////////////////// CLASSIFY SPHERE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This tells if a sphere is BEHIND, in FRONT, or INTERSECTS a plane, also it's distance
-/////
-///////////////////////////////// CLASSIFY SPHERE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public int classifySphere(Vector3f vCenter, Vector3f vNormal, Vector3f vPoint, float radius, Distance distance)
-{
-	// First we need to find the distance our polygon plane is from the origin.
-	float d = planeDistance(vNormal, vPoint);
-
-	// Here we use the famous distance formula to find the distance the center point
-	// of the sphere is from the polygon's plane.  
-	distance.distance = (vNormal.x * vCenter.x + vNormal.y * vCenter.y + vNormal.z * vCenter.z + d);
-
-	// Now we query the information just gathered.  Here is how Sphere Plane Collision works:
-	// If the distance the center is from the plane is less than the radius of the sphere,
-	// we know that it must be intersecting the plane.  We take the absolute value of the
-	// distance when we do this check because once the center of the sphere goes behind
-	// the polygon, the distance turns into negative numbers (with 0 being that the center
-	// is exactly on the plane).  What do I mean when I say "behind" the polygon?  How do
-	// we know which side is the front or back side?  Well, the side with the normal pointing
-	// out from it is the front side, the other side is the back side.  This is all dependant
-	// on the direction the vertices stored.  I recommend drawing them counter-clockwise.
-	// if you go clockwise the normal with then point the opposite way and will screw up
-	// everything.
-	// So, if we want to find if the sphere is in front of the plane, we just make sure
-	// the distance is greater than or equal to the radius.  let's say we have a radius
-	// of 5, and the distance the center is from the plane is 6; it's obvious that the
-	// sphere is 1 unit away from the plane.
-	// If the sphere isn't intersecting or in front of the plane, it HAS to be BEHIND it.
-
-	// If the absolute value of the distance we just found is less than the radius, 
-	// the sphere intersected the plane.
-	if(Math.abs(distance.distance) < radius)
-		return Distance.INTERSECTS;
-	// Else, if the distance is greater than or equal to the radius, the sphere is
-	// completely in FRONT of the plane.
-	else if(distance.distance >= radius)
-		return Distance.FRONT;
+	///////////////////////////////// CLASSIFY SPHERE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This tells if a sphere is BEHIND, in FRONT, or INTERSECTS a plane, also it's distance
+	/////
+	///////////////////////////////// CLASSIFY SPHERE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	// If the sphere isn't intersecting or in FRONT of the plane, it must be BEHIND
-	return Distance.BEHIND;
-}
-
-
-///////////////////////////////// EDGE SPHERE COLLSIION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This returns true if the sphere is intersecting any of the edges of the polygon
-/////
-///////////////////////////////// EDGE SPHERE COLLSIION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public boolean edgeSphereCollision(Vector3f vCenter, Vector3f vPolygon[], int vertexCount, float radius)
-{
-	Vector3f vPoint = new Vector3f();
-
-	// This function takes in the sphere's center, the polygon's vertices, the vertex count
-	// and the radius of the sphere.  We will return true from this function if the sphere
-	// is intersecting any of the edges of the polygon.  
-
-	// Go through all of the vertices in the polygon
-	for(int i = 0; i < vertexCount; i++)
+	public int classifySphere(Vector3f center, Vector3f normal, Vector3f point, float radius, Distance distance)
 	{
-		// This returns the closest point on the current edge to the center of the sphere.
-		vPoint.setTo(closestPointOnLine(vPolygon[i], vPolygon[(i + 1) % vertexCount], vCenter));
+		// First we need to find the distance our polygon plane is from the origin.
+		float d = planeDistance(normal, point);
+	
+		// Here we use the famous distance formula to find the distance the center point
+		// of the sphere is from the polygon's plane.  
+		distance.distance = (normal.x * center.x + normal.y * center.y + normal.z * center.z + d);
+	
+		// Now we query the information just gathered.  Here is how Sphere Plane Collision works:
+		// If the distance the center is from the plane is less than the radius of the sphere,
+		// we know that it must be intersecting the plane.  We take the absolute value of the
+		// distance when we do this check because once the center of the sphere goes behind
+		// the polygon, the distance turns into negative numbers (with 0 being that the center
+		// is exactly on the plane).  What do I mean when I say "behind" the polygon?  How do
+		// we know which side is the front or back side?  Well, the side with the normal pointing
+		// out from it is the front side, the other side is the back side.  This is all dependant
+		// on the direction the vertices stored.  I recommend drawing them counter-clockwise.
+		// if you go clockwise the normal with then point the opposite way and will screw up
+		// everything.
+		// So, if we want to find if the sphere is in front of the plane, we just make sure
+		// the distance is greater than or equal to the radius.  let's say we have a radius
+		// of 5, and the distance the center is from the plane is 6; it's obvious that the
+		// sphere is 1 unit away from the plane.
+		// If the sphere isn't intersecting or in front of the plane, it HAS to be BEHIND it.
+	
+		// If the absolute value of the distance we just found is less than the radius, 
+		// the sphere intersected the plane.
+		if(Math.abs(distance.distance) < radius)
+			return Distance.INTERSECTS;
+		// Else, if the distance is greater than or equal to the radius, the sphere is
+		// completely in FRONT of the plane.
+		else if(distance.distance >= radius)
+			return Distance.FRONT;
 		
-		// Now, we want to calculate the distance between the closest point and the center
-		float distance = VectorMath.distance(vPoint, vCenter);
-
-		// If the distance is less than the radius, there must be a collision so return true
-		if(distance < radius)
-			return true;
+		// If the sphere isn't intersecting or in FRONT of the plane, it must be BEHIND
+		return Distance.BEHIND;
 	}
 
-	// The was no intersection of the sphere and the edges of the polygon
-	return false;
-}
 
-
-////////////////////////////// SPHERE POLYGON COLLISION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This returns true if our sphere collides with the polygon passed in
-/////
-////////////////////////////// SPHERE POLYGON COLLISION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public boolean spherePolygonCollision(Vector3f vPolygon[], Vector3f vCenter, int vertexCount, float radius)
-{
-	// 1) STEP ONE - Finding the sphere's classification
+	///////////////////////////////// EDGE SPHERE COLLSIION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This returns true if the sphere is intersecting any of the edges of the polygon
+	/////
+	///////////////////////////////// EDGE SPHERE COLLSIION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	// Let's use our Normal() function to return us the normal to this polygon
-	Vector3f vNormal = VectorMath.normal(vPolygon);
-
-	// This will store the distance our sphere is from the plane
-	Distance distance = new Distance();
-
-	// This is where we determine if the sphere is in FRONT, BEHIND, or INTERSECTS the plane
-	int classification = classifySphere(vCenter, vNormal, vPolygon[0], radius, distance);
-
-	// If the sphere intersects the polygon's plane, then we need to check further
-	if(classification == Distance.INTERSECTS) 
+	public boolean edgeSphereCollision(Vector3f center, Vector3f polygon[], int vertexCount, float radius)
 	{
-		// 2) STEP TWO - Finding the pseudo intersection point on the plane
-
-		// Now we want to project the sphere's center onto the polygon's plane
-		Vector3f vOffset = VectorMath.multiply(vNormal, distance.distance);
-
-		// Once we have the offset to the plane, we just subtract it from the center
-		// of the sphere.  "vPosition" now a point that lies on the plane of the polygon.
-		Vector3f vPosition = VectorMath.subtract(vCenter,  vOffset);
-
-		// 3) STEP THREE - Check if the intersection point is inside the polygons perimeter
-
-		// If the intersection point is inside the perimeter of the polygon, it returns true.
-		// We pass in the intersection point, the list of vertices and vertex count of the poly.
-		if(insidePolygon(vPosition, vPolygon, 3))
-			return true;	// We collided!
-		else
+		Vector3f point = new Vector3f();
+	
+		// This function takes in the sphere's center, the polygon's vertices, the vertex count
+		// and the radius of the sphere.  We will return true from this function if the sphere
+		// is intersecting any of the edges of the polygon.  
+	
+		// Go through all of the vertices in the polygon
+		for(int i = 0; i < vertexCount; i++)
 		{
-			// 4) STEP FOUR - Check the sphere intersects any of the polygon's edges
-
-			// If we get here, we didn't find an intersection point in the perimeter.
-			// We now need to check collision against the edges of the polygon.
-			if(edgeSphereCollision(vCenter, vPolygon, vertexCount, radius))
-			{
+			// This returns the closest point on the current edge to the center of the sphere.
+			point.setTo(closestPointOnLine(polygon[i], polygon[(i + 1) % vertexCount], center));
+			
+			// Now, we want to calculate the distance between the closest point and the center
+			float distance = VectorMath.distance(point, center);
+	
+			// If the distance is less than the radius, there must be a collision so return true
+			if(distance < radius)
+				return true;
+		}
+	
+		// The was no intersection of the sphere and the edges of the polygon
+		return false;
+	}
+	
+	
+	////////////////////////////// SPHERE POLYGON COLLISION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This returns true if our sphere collides with the polygon passed in
+	/////
+	////////////////////////////// SPHERE POLYGON COLLISION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public boolean spherePolygonCollision(Vector3f polygon[], Vector3f center, int vertexCount, float radius)
+	{
+		// 1) STEP ONE - Finding the sphere's classification
+		
+		// Let's use our Normal() function to return us the normal to this polygon
+		Vector3f normal = VectorMath.normal(polygon);
+	
+		// This will store the distance our sphere is from the plane
+		Distance distance = new Distance();
+	
+		// This is where we determine if the sphere is in FRONT, BEHIND, or INTERSECTS the plane
+		int classification = classifySphere(center, normal, polygon[0], radius, distance);
+	
+		// If the sphere intersects the polygon's plane, then we need to check further
+		if(classification == Distance.INTERSECTS) 
+		{
+			// 2) STEP TWO - Finding the pseudo intersection point on the plane
+	
+			// Now we want to project the sphere's center onto the polygon's plane
+			Vector3f offset = VectorMath.multiply(normal, distance.distance);
+	
+			// Once we have the offset to the plane, we just subtract it from the center
+			// of the sphere.  "vPosition" now a point that lies on the plane of the polygon.
+			Vector3f position = VectorMath.subtract(center,  offset);
+	
+			// 3) STEP THREE - Check if the intersection point is inside the polygons perimeter
+	
+			// If the intersection point is inside the perimeter of the polygon, it returns true.
+			// We pass in the intersection point, the list of vertices and vertex count of the poly.
+			if(insidePolygon(position, polygon, 3))
 				return true;	// We collided!
+			else
+			{
+				// 4) STEP FOUR - Check the sphere intersects any of the polygon's edges
+	
+				// If we get here, we didn't find an intersection point in the perimeter.
+				// We now need to check collision against the edges of the polygon.
+				if(edgeSphereCollision(center, polygon, vertexCount, radius))
+				{
+					return true;	// We collided!
+				}
 			}
 		}
+	
+		// If we get here, there is obviously no collision
+		return false;
 	}
 
-	// If we get here, there is obviously no collision
-	return false;
-}
 
-
-/////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
-
-///////////////////////////////// GET COLLISION OFFSET \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This returns the offset to move the center of the sphere off the collided polygon
-/////
-///////////////////////////////// GET COLLISION OFFSET \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public Vector3f getCollisionOffset(Vector3f vNormal, float radius, float distance)
-{
-	Vector3f vOffset = new Vector3f();
-
-	// Once we find if a collision has taken place, we need make sure the sphere
-	// doesn't move into the wall.  In our app, the position will actually move into
-	// the wall, but we check our collision detection before we render the scene, which
-	// eliminates the bounce back effect it would cause.  The question is, how do we
-	// know which direction to move the sphere back?  In our collision detection, we
-	// account for collisions on both sides of the polygon.  Usually, you just need
-	// to worry about the side with the normal vector and positive distance.  If 
-	// you don't want to back face cull and have 2 sided planes, I check for both sides.
-	//
-	// Let me explain the math that is going on here.  First, we have the normal to
-	// the plane, the radius of the sphere, as well as the distance the center of the
-	// sphere is from the plane.  In the case of the sphere colliding in the front of
-	// the polygon, we can just subtract the distance from the radius, then multiply
-	// that new distance by the normal of the plane.  This projects that leftover
-	// distance along the normal vector.  For instance, say we have these values:
-	//
-	//	vNormal = (1, 0, 0)		radius = 5		distance = 3
-	//
-	// If we subtract the distance from the radius we get: (5 - 3 = 2)
-	// The number 2 tells us that our sphere is over the plane by a distance of 2.
-	// So basically, we need to move the sphere back 2 units.  How do we know which
-	// direction though?  This part is easy, we have a normal vector that tells us the
-	// direction of the plane.  
-	// If we multiply the normal by the left over distance we get:  (2, 0, 0)
-	// This new offset vectors tells us which direction and how much to move back.
-	// We then subtract this offset from the sphere's position, giving is the new
-	// position that is lying right on top of the plane.  Ba da bing!
-	// If we are colliding from behind the polygon (not usual), we do the opposite
-	// signs as seen below:
-	
-	// If our distance is greater than zero, we are in front of the polygon
-	if(distance > 0.00001)
-	{
-		// Find the distance that our sphere is overlapping the plane, then
-		// find the direction vector to move our sphere.
-		float distanceOver = radius - distance;
-		vOffset.setTo(VectorMath.multiply(vNormal, distanceOver));
-	}
-	else // Else colliding from behind the polygon
-	{
-		// Find the distance that our sphere is overlapping the plane, then
-		// find the direction vector to move our sphere.
-		float distanceOver = radius + distance;
-		vOffset.setTo(VectorMath.multiply(vNormal, -(distanceOver)));
-	}
-
-	// There is one problem with check for collisions behind the polygon, and that
-	// is if you are moving really fast and your center goes past the front of the
-	// polygon, it will then assume you were colliding from behind and not let
-	// you back in.  Most likely you will take out the if / else check, but I
-	// figured I would show both ways in case someone didn't want to back face cull.
-
-	// Return the offset we need to move back to not be intersecting the polygon.
-	return vOffset;
-}
-	
-	
-}
 	/////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
-
+	
+	///////////////////////////////// GET COLLISION OFFSET \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This returns the offset to move the center of the sphere off the collided polygon
+	/////
+	///////////////////////////////// GET COLLISION OFFSET \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public Vector3f getCollisionOffset(Vector3f normal, float radius, float distance)
+	{
+		Vector3f offset = new Vector3f();
+	
+		// Once we find if a collision has taken place, we need make sure the sphere
+		// doesn't move into the wall.  In our app, the position will actually move into
+		// the wall, but we check our collision detection before we render the scene, which
+		// eliminates the bounce back effect it would cause.  The question is, how do we
+		// know which direction to move the sphere back?  In our collision detection, we
+		// account for collisions on both sides of the polygon.  Usually, you just need
+		// to worry about the side with the normal vector and positive distance.  If 
+		// you don't want to back face cull and have 2 sided planes, I check for both sides.
+		//
+		// Let me explain the math that is going on here.  First, we have the normal to
+		// the plane, the radius of the sphere, as well as the distance the center of the
+		// sphere is from the plane.  In the case of the sphere colliding in the front of
+		// the polygon, we can just subtract the distance from the radius, then multiply
+		// that new distance by the normal of the plane.  This projects that leftover
+		// distance along the normal vector.  For instance, say we have these values:
+		//
+		//	vNormal = (1, 0, 0)		radius = 5		distance = 3
+		//
+		// If we subtract the distance from the radius we get: (5 - 3 = 2)
+		// The number 2 tells us that our sphere is over the plane by a distance of 2.
+		// So basically, we need to move the sphere back 2 units.  How do we know which
+		// direction though?  This part is easy, we have a normal vector that tells us the
+		// direction of the plane.  
+		// If we multiply the normal by the left over distance we get:  (2, 0, 0)
+		// This new offset vectors tells us which direction and how much to move back.
+		// We then subtract this offset from the sphere's position, giving is the new
+		// position that is lying right on top of the plane.  Ba da bing!
+		// If we are colliding from behind the polygon (not usual), we do the opposite
+		// signs as seen below:
+		
+		// If our distance is greater than zero, we are in front of the polygon
+		if(distance > 0.00001)
+		{
+			// Find the distance that our sphere is overlapping the plane, then
+			// find the direction vector to move our sphere.
+			float distanceOver = radius - distance;
+			offset.setTo(VectorMath.multiply(normal, distanceOver));
+		}
+		else // Else colliding from behind the polygon
+		{
+			// Find the distance that our sphere is overlapping the plane, then
+			// find the direction vector to move our sphere.
+			float distanceOver = radius + distance;
+			offset.setTo(VectorMath.multiply(normal, -(distanceOver)));
+		}
+	
+		// There is one problem with check for collisions behind the polygon, and that
+		// is if you are moving really fast and your center goes past the front of the
+		// polygon, it will then assume you were colliding from behind and not let
+		// you back in.  Most likely you will take out the if / else check, but I
+		// figured I would show both ways in case someone didn't want to back face cull.
+	
+		// Return the offset we need to move back to not be intersecting the polygon.
+		return offset;
+	}
+		
+		
+}
+	
 
 
 
