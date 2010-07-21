@@ -193,14 +193,14 @@ public class TesteMD2Animation extends GameCore {
         	     	
             if (moveLeft.isPressed())
             {
-            	g_RotationSpeed -= 0.01f;	
+            	g_RotationSpeed -= 0.001f;	
             	
             }
 
             if (moveRight.isPressed())
             {
             	
-            	g_RotationSpeed += 0.01f;	
+            	g_RotationSpeed += 0.001f;	
             }
            
          
