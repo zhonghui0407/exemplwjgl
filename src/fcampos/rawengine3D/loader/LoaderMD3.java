@@ -213,7 +213,7 @@ public class LoaderMD3 {
 	/////
 	///////////////////////////////// IMPORT MD2 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public boolean importMD3(Model3d model, String fileName)
+	public boolean importMD3(ModelMD3 model, String fileName)
 	{
 		
 		try
@@ -265,7 +265,7 @@ public class LoaderMD3 {
 	/////
 	///////////////////////////////// READ MD2 DATA \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	private void readMD3Data(Model3d model) throws Exception
+	private void readMD3Data(ModelMD3 model) throws Exception
 	{
 	
 	
@@ -342,7 +342,7 @@ public class LoaderMD3 {
 				vertices[i] = new TriangleMD3();
 	
 			  // Now that we have the data loaded into the md3 structures, let's convert them to
-			  // our data types like Model3D and Object3D.
+			  // our data types like ModelMD3 and Object3D.
 			convertDataStructures(model, meshHeader);
 	
 			  // Free all the memory for this mesh since we just converted it to our structures
@@ -363,7 +363,7 @@ public class LoaderMD3 {
 	 *  @param fileSkin Skin path.
 	 */
 	
-	public boolean loadSkin(Model3d model, String fileSkin)
+	public boolean loadSkin(ModelMD3 model, String fileSkin)
 	{
 		
 		// Make sure valid data was passed in
@@ -462,7 +462,7 @@ public class LoaderMD3 {
 	/////
 	///////////////////////////////// CONVERT DATA STRUCTURES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	private void convertDataStructures(Model3d model, MeshInfoMD3 meshHeader)
+	private void convertDataStructures(ModelMD3 model, MeshInfoMD3 meshHeader)
 	{
 		int i = 0;
 		
@@ -514,7 +514,7 @@ public class LoaderMD3 {
 		model.addObject(currentFrame);
 	}
 
-	public boolean loadShader(Model3d moodel, String fileShader)
+	public boolean loadShader(ModelMD3 model, String fileShader)
 	{
 		try
 		{
@@ -542,12 +542,12 @@ public class LoaderMD3 {
 	
 				// Add the local material info to our model's material list
 				 // Store the material ID for this object and set the texture boolean to true
-				moodel.getObject(currentIndex).setMaterialID(moodel.getMaterials().size());
-				moodel.getObject(currentIndex).setbHasTexture(true);
+				model.getObject(currentIndex).setMaterialID(model.getMaterials().size());
+				model.getObject(currentIndex).setbHasTexture(true);
 	
 				
 				  // Add the local material info structure to our model's material list
-				moodel.addMaterials(texture);
+				model.addMaterials(texture);
 	
 				
 				  // Here we increase the material index for the next texture (if any)

@@ -5,7 +5,6 @@ package fcampos.rawengine3D.teste;
 import fcampos.rawengine3D.input.*;
 import fcampos.rawengine3D.model.*;
 import fcampos.rawengine3D.gamecore.*;
-import fcampos.rawengine3D.loader.*;
 import fcampos.rawengine3D.MathUtil.*;
 
 
@@ -59,8 +58,7 @@ public class TesteMD2Animation extends GameCore {
   
     
  // This will store our 3ds scene that we will pass into our octree
-    public Model3d g_World = new Model3d();
-    public LoaderMD2 g_LoadMd2 = new LoaderMD2();
+    public ModelMD2 g_World = new ModelMD2(TEXTURE_NAME);
     
  // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
     boolean g_bDisplayNodes = false;
@@ -71,7 +69,7 @@ public class TesteMD2Animation extends GameCore {
     {
         super.init();
         
-        screen.setTitle("MD2 Loader");
+        screen.setTitle("MD2 Animation");
         
                     
         createGameActions();
@@ -95,65 +93,62 @@ public class TesteMD2Animation extends GameCore {
     	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, modo);
     	
     	glEnable(GL_TEXTURE_2D);     
-        g_LoadMd2.importMD2(g_World, FILE_NAME, TEXTURE_NAME);
+        g_World.load(FILE_NAME);
        // g_LoadMd2.importMD2(g_World, "models/Weapon.md2", "models/Weapon.jpg");
        // g_LoadMd2.importMD2(g_World, "modelsd2/model8/throne.md2", "modelsd2/model8/throne.png");
     }
     
  
-////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
-
-///////////////////////////////// RETURN CURRENT TIME \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This returns time t for the interpolation between the current and next key frame
-/////
-///////////////////////////////// RETURN CURRENT TIME \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-     static float elapsedTime   = 0.0f;
-	  static float lastTime	  = 0.0f;
-private float returnCurrentTime(Model3d pModel, int nextFrame)
-{
+	////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
 	
-	// This function is very similar to finding the frames per second.
-	// Instead of checking when we reach a second, we check if we reach
-	// 1 second / our animation speed. (1000 ms / kAnimationSpeed).
-	// That's how we know when we need to switch to the next key frame.
-	// In the process, we get the t value for how we are at to going to the
-	// next animation key frame.  We use time to do the interpolation, that way
-	// it runs the same speed on any persons computer, regardless of their specs.
-	// It might look chopier on a junky computer, but the key frames still be
-	// changing the same time as the other persons, it will just be not as smooth
-	// of a transition between each frame.  The more frames per second we get, the
-	// smoother the animation will be.
-
-	// Get the current time in milliseconds
-	float time = (float)Sys.getTime();
-	//System.out.println("time : " + time);
-	// Find the time that has elapsed since the last time that was stored
-	elapsedTime = time - lastTime;
-	
-	//System.out.println("elapsedTime : " + elapsedTime);
-	//System.out.println("last : " + lastTime);
-	
-
-	// To find the current t we divide the elapsed time by the ratio of 1 second / our anim speed.
-	// Since we aren't using 1 second as our t = 1, we need to divide the speed by 1000
-	// milliseconds to get our new ratio, which is a 5th of a second.
-	float t = elapsedTime / (1000.0f / kAnimationSpeed);
-
-	// If our elapsed time goes over a 5th of a second, we start over and go to the next key frame
-	if (elapsedTime >= (1000.0f / kAnimationSpeed) )
+	///////////////////////////////// RETURN CURRENT TIME \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This returns time t for the interpolation between the current and next key frame
+	/////
+	///////////////////////////////// RETURN CURRENT TIME \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	     static float elapsedTime   = 0.0f;
+		  static float lastTime	  = 0.0f;
+	private float returnCurrentTime(ModelMD2 model, int nextFrame)
 	{
-		// Set our current frame to the next key frame (which could be the start of the anim)
-		pModel.setCurrentFrame(nextFrame);
-		//System.out.println("current: "+pModel.getCurrentFrame());
-
-		// Set our last time to the current time just like we would when getting our FPS.
-		lastTime = time;
+		
+		// This function is very similar to finding the frames per second.
+		// Instead of checking when we reach a second, we check if we reach
+		// 1 second / our animation speed. (1000 ms / kAnimationSpeed).
+		// That's how we know when we need to switch to the next key frame.
+		// In the process, we get the t value for how we are at to going to the
+		// next animation key frame.  We use time to do the interpolation, that way
+		// it runs the same speed on any persons computer, regardless of their specs.
+		// It might look chopier on a junky computer, but the key frames still be
+		// changing the same time as the other persons, it will just be not as smooth
+		// of a transition between each frame.  The more frames per second we get, the
+		// smoother the animation will be.
+	
+		// Get the current time in milliseconds
+		float time = (float)Sys.getTime();
+		
+		// Find the time that has elapsed since the last time that was stored
+		elapsedTime = time - lastTime;
+		
+		
+		// To find the current t we divide the elapsed time by the ratio of 1 second / our anim speed.
+		// Since we aren't using 1 second as our t = 1, we need to divide the speed by 1000
+		// milliseconds to get our new ratio, which is a 5th of a second.
+		float t = elapsedTime / (1000.0f / kAnimationSpeed);
+	
+		// If our elapsed time goes over a 5th of a second, we start over and go to the next key frame
+		if (elapsedTime >= (1000.0f / kAnimationSpeed) )
+		{
+			// Set our current frame to the next key frame (which could be the start of the anim)
+			model.setCurrentFrame(nextFrame);
+			//System.out.println("current: "+pModel.getCurrentFrame());
+	
+			// Set our last time to the current time just like we would when getting our FPS.
+			lastTime = time;
+		}
+		//System.out.println("t: "+t);
+		// Return the time t so we can plug this into our interpolation.
+		return t;
 	}
-	//System.out.println("t: "+t);
-	// Return the time t so we can plug this into our interpolation.
-	return t;
-}
 
        
  
@@ -198,14 +193,14 @@ private float returnCurrentTime(Model3d pModel, int nextFrame)
         	     	
             if (moveLeft.isPressed())
             {
-            	g_RotationSpeed -= 0.001f;	
+            	g_RotationSpeed -= 0.01f;	
             	
             }
 
             if (moveRight.isPressed())
             {
             	
-            	g_RotationSpeed += 0.001f;	
+            	g_RotationSpeed += 0.01f;	
             }
            
          
@@ -249,7 +244,7 @@ private float returnCurrentTime(Model3d pModel, int nextFrame)
     /////
     ///////////////////////////////// ANIMATE MD2 MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-    private void animateMD2Model(Model3d pModel)
+    private void animateMD2Model(ModelMD2 model)
     {
     	// Now comes the juice of our tutorial.  Fear not, this is actually very intuitive
     	// if you drool over it for a while (stay away from the keyboard though...).
@@ -266,58 +261,58 @@ private float returnCurrentTime(Model3d pModel, int nextFrame)
     	// about them.
     	
     	// Make sure we have valid objects just in case. (size() is in the vector class)
-    	if(pModel.getObject().size() <= 0) return;
+    	if(model.getObject().size() <= 0) return;
 
     	// Here we grab the current animation that we are on from our model's animation list
-    	AnimationInfo pAnim = pModel.getAnimations(pModel.getCurrentAnim());
+    	AnimationInfo anim = model.getAnimations(model.getCurrentAnim());
 
     	// This gives us the current frame we are on.  We mod the current frame plus
     	// 1 by the current animations end frame to make sure the next frame is valid.
     	// If the next frame is past our end frame, then we go back to zero.  We check this next.
-    	int nextFrame = (pModel.getCurrentFrame() + 1) % pAnim.getEndFrame();
+    	int nextFrame = (model.getCurrentFrame() + 1) % anim.getEndFrame();
 
     	// If the next frame is zero, that means that we need to start the animation over.
     	// To do this, we set nextFrame to the starting frame of this animation.
     	if(nextFrame == 0) 
-    		nextFrame =  pAnim.getStartFrame();
+    		nextFrame =  anim.getStartFrame();
 
     	// Get the current key frame we are on
-    	Object3d pFrame =		 pModel.getObject(pModel.getCurrentFrame());
+    	Object3d frameObject =	 model.getObject(model.getCurrentFrame());
 
     	// Get the next key frame we are interpolating too
-    	Object3d pNextFrame =  pModel.getObject(nextFrame);
+    	Object3d nextFrameObject =  model.getObject(nextFrame);
 
     	// Get the first key frame so we have an address to the texture and face information
-    	Object3d pFirstFrame = pModel.getObject(0);
+    	Object3d firstFrameObject = model.getObject(0);
 
     	// Next, we want to get the current time that we are interpolating by.  Remember,
     	// if t = 0 then we are at the beginning of the animation, where if t = 1 we are at the end.
     	// Anyhing from 0 to 1 can be thought of as a percentage from 0 to 100 percent complete.
-    	float t = returnCurrentTime(pModel, nextFrame);
+    	float t = returnCurrentTime(model, nextFrame);
 
     	// Start rendering lines or triangles, depending on our current rendering mode (Lft Mouse Btn)
     	glBegin(g_ViewMode);
 
     		// Go through all of the faces (polygons) of the current frame and draw them
-    		for(int j = 0; j < pFirstFrame.getNumFaces(); j++)
+    		for(int j = 0; j < firstFrameObject.getNumFaces(); j++)
     		{
     			// Go through each corner of the triangle and draw it.
     			for(int whichVertex = 0; whichVertex < 3; whichVertex++)
     			{
     				// Get the index for each point of the face
-    				int vertIndex = pFirstFrame.getFace(j).getVertices(whichVertex);
+    				int vertIndex = firstFrameObject.getFace(j).getVertices(whichVertex);
 
     				// Get the index for each texture coordinate for this face
-    				int texIndex  = pFirstFrame.getFace(j).getTexCoords(whichVertex);
+    				int texIndex  = firstFrameObject.getFace(j).getTexCoords(whichVertex);
     						
     				// Make sure there was a UVW map applied to the object.  Notice that
     				// we use the first frame to check if we have texture coordinates because
     				// none of the other frames hold this information, just the first by design.
-    				if(pFirstFrame.getNumTexcoords() > 0) 
+    				if(firstFrameObject.getNumTexcoords() > 0) 
     				{
     					// Pass in the texture coordinate for this vertex
     					
-    					glTexCoord2f(pFirstFrame.getTexcoords(texIndex).s, pFirstFrame.getTexcoords(texIndex).t);
+    					glTexCoord2f(firstFrameObject.getTexcoords(texIndex).s, firstFrameObject.getTexcoords(texIndex).t);
     				}
 
     				// Now we get to the interpolation part! (*Bites his nails*)
@@ -327,14 +322,14 @@ private float returnCurrentTime(Model3d pModel, int nextFrame)
     				// key frame to the next.
     				
     				// Store the current and next frame's vertex
-    				Vector3f vPoint1 = new Vector3f(pFrame.getVertices(vertIndex));
-    				Vector3f vPoint2 = new Vector3f(pNextFrame.getVertices(vertIndex));
+    				Vector3f point1 = new Vector3f(frameObject.getVertices(vertIndex));
+    				Vector3f point2 = new Vector3f(nextFrameObject.getVertices(vertIndex));
 
     				// By using the equation: p(t) = p0 + t(p1 - p0), with a time t
     				// passed in, we create a new vertex that is closer to the next key frame.
-    				glVertex3f(vPoint1.x + t * (vPoint2.x - vPoint1.x), // Find the interpolated X
-    						   vPoint1.y + t * (vPoint2.y - vPoint1.y), // Find the interpolated Y
-    						   vPoint1.z + t * (vPoint2.z - vPoint1.z));// Find the interpolated Z
+    				glVertex3f(point1.x + t * (point2.x - point1.x), // Find the interpolated X
+    						   point1.y + t * (point2.y - point1.y), // Find the interpolated Y
+    						   point1.z + t * (point2.z - point1.z));// Find the interpolated Z
     			}
     		}
 
