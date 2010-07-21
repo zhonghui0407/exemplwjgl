@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/fcampos</name>
+			<type>2</type>
+			<location>E:/backup/temporarios/projetos/workspace/livro_opengl/src/fcampos</location>
+		</link>
+	</linkedResources>
 </projectDescription>
