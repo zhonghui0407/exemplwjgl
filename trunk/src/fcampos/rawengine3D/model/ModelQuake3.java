@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import fcampos.rawengine3D.MathUtil.Vector3f;
 import fcampos.rawengine3D.graficos.Texture;
-import fcampos.rawengine3D.loader.*;
 import fcampos.rawengine3D.resource.TextureManager;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -12,23 +11,22 @@ import static org.lwjgl.opengl.GL11.*;
 public class ModelQuake3 {
 	
 	// These are are models for the character's head and upper and lower body parts
-	private Model3d head;
-	private Model3d upper;
-	private Model3d lower;
+	private ModelMD3 head;
+	private ModelMD3 upper;
+	private ModelMD3 lower;
 
 	// This store the players weapon model (optional load)
-	private Model3d weapon;
+	private ModelMD3 weapon;
 	
 	public static TextureManager texManager;
-	public LoaderMD3 loadMd3;					// This object allows us to load the.md3 and .shader file
+	
 	
 	public ModelQuake3()
 	{
-		head = new Model3d();
-		upper = new Model3d();
-		lower = new Model3d();
-		weapon = new Model3d();
-		loadMd3 = new LoaderMD3();
+		head = new ModelMD3();
+		upper = new ModelMD3();
+		lower = new ModelMD3();
+		weapon = new ModelMD3();
 		texManager = new TextureManager();
 		
 	}
@@ -75,42 +73,42 @@ public class ModelQuake3 {
 		// appropriate file name to load is passed in for the last parameter.
 	
 		// Load the head mesh (*_head.md3) and make sure it loaded properly
-		if(!loadMd3.importMD3(head,  fileHeadModel))
+		if(!head.load(fileHeadModel))
 		{
 			System.out.println("[Error]: unable to load the HEAD part from model \"" + fileModel + "\".");
 			System.exit(0);
 		}
 	
 		 // Load the upper mesh (*_head.md3) and make sure it loaded properly
-		if(!loadMd3.importMD3(upper, fileUpperModel))		
+		if(!upper.load(fileUpperModel))		
 		{
 			System.out.println("[Error]: unable to load the UPPER part from model \"" + fileModel + "\".");
 			System.exit(0);
 		}
 	
 		  // Load the lower mesh (*_lower.md3) and make sure it loaded properly
-		if(!loadMd3.importMD3(lower, fileLowerModel))
+		if(!lower.load(fileLowerModel))
 		{
 			System.out.println("[Error]: unable to load the LOWER part from model \"" + fileModel + "\".");
 			System.exit(0);
 		}
 	
 		  // Load the lower skin (*_upper.skin) and make sure it loaded properly
-		if(!loadMd3.loadSkin(lower, fileLowerSkin))
+		if(!lower.loadSkin(fileLowerSkin))
 		{
 			System.out.println("[Error]: unable to load the LOWER part from model's skin \"" + fileModel + "\".");
 			System.exit(0);
 		}
 	
 		  // Load the upper skin (*_upper.skin) and make sure it loaded properly
-		if(!loadMd3.loadSkin(upper, fileUpperSkin))
+		if(!upper.loadSkin(fileUpperSkin))
 		{
 			System.out.println("[Error]: unable to load the UPPER part from model's skin \"" + fileModel + "\".");
 			System.exit(0);
 		}
 	
 		  // Load the head skin (*_head.skin) and make sure it loaded properly
-		if(!loadMd3.loadSkin(head, fileHeadSkin))
+		if(!head.loadSkin(fileHeadSkin))
 		{
 			System.out.println("[Error]: unable to load the HEAD part from model's skin \"" + fileModel + "\".");
 			System.exit(0);
@@ -178,7 +176,7 @@ public class ModelQuake3 {
 		// appropriate file name to load is passed in for the last parameter.
 	
 		 // Load the weapon mesh (*.md3) and make sure it loaded properly
-		if(!loadMd3.importMD3(weapon, fileWeaponModel))
+		if(!weapon.load(fileWeaponModel))
 		{
 			System.out.println("[Error]: unable to load the weapon model \"" + fileModel + "\".");
 			System.exit(0);
@@ -199,7 +197,7 @@ public class ModelQuake3 {
 		fileWeaponShader = filePath + "/" + fileModel + ".shader";
 	
 		  // Load our textures associated with the gun from the weapon shader file
-		if(!loadMd3.loadShader(weapon, fileWeaponShader))
+		if(!weapon.loadShader(fileWeaponShader))
 		{
 			System.out.println("[Error]: unable to load the shader for weapon \"" + fileModel + "\".");
 			System.exit(0);
@@ -227,7 +225,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// LOAD WEAPON \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	private final void loadModelTextures(Model3d model, String filePath) throws IOException
+	private final void loadModelTextures(ModelMD3 model, String filePath) throws IOException
 	{
 		// This function loads the textures that are assigned to each mesh and it's
 		// sub-objects.  For instance, the Lara Croft character has a texture for the body
@@ -276,7 +274,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// LINK MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public final void linkModel(Model3d model, Model3d link, String tagName)
+	public final void linkModel(ModelMD3 model, ModelMD3 link, String tagName)
 	{
 		
 		// Make sure we have a valid model, link and tag name, otherwise quit this function
@@ -369,7 +367,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// DRAW LINK \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	private void drawLink(Model3d model)
+	private void drawLink(ModelMD3 model)
 	{
 		// This function is our recursive function that handles the bone animation
 		// so to speak.  We first draw the model that is passed in (first the legs),
@@ -396,7 +394,7 @@ public class ModelQuake3 {
 		for(int i = 0; i < model.getNumOfTags(); i++)
 		{
 			// Get the current link from the models array of links (Pointers to models)
-			Model3d link = model.getLinks(i);
+			ModelMD3 link = model.getLinks(i);
 	
 			// If this link has a valid address, let's draw it!
 			if(link != null)
@@ -429,7 +427,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// RENDER MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	private void renderModel(Model3d model)
+	private void renderModel(ModelMD3 model)
 	{
 		// This function actually does the rendering to OpenGL.  If you have checked out
 		// our other file loading tutorials, it looks pretty much the same as those.  I

@@ -67,8 +67,6 @@ import fcampos.rawengine3D.gamecore.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
-
-
 public class Octree{
 
 	

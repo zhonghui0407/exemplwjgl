@@ -5,7 +5,6 @@ package fcampos.rawengine3D.teste;
 import fcampos.rawengine3D.input.*;
 import fcampos.rawengine3D.model.*;
 import fcampos.rawengine3D.gamecore.*;
-import fcampos.rawengine3D.loader.*;
 
 
 import java.io.*;
@@ -56,8 +55,8 @@ public class TesteMD2 extends GameCore {
   
     
  // This will store our 3ds scene that we will pass into our octree
-    public Model3d g_World = new Model3d();
-    public LoaderMD2 g_LoadMd2 = new LoaderMD2();
+    public ModelMD2 g_World = new ModelMD2(TEXTURE_NAME);
+   
     
  // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
     boolean g_bDisplayNodes = false;
@@ -100,7 +99,7 @@ public class TesteMD2 extends GameCore {
     	glEnable(GL_CULL_FACE);								// Turn culling on
     	glCullFace(GL_FRONT);		
     	glEnable(GL_TEXTURE_2D);     
-        g_LoadMd2.importMD2(g_World, FILE_NAME, TEXTURE_NAME);
+    	g_World.load(FILE_NAME);
         //g_LoadMd2.importMD2(g_World, "modelsd2/model8/head.md2", "modelsd2/model8/head.png");
        // g_LoadMd2.importMD2(g_World, "modelsd2/model8/throne.md2", "modelsd2/model8/throne.png");
     }

@@ -1,8 +1,8 @@
 package fcampos.rawengine3D.teste;
 import fcampos.rawengine3D.input.*;
-import fcampos.rawengine3D.model.Model3d;
+import fcampos.rawengine3D.loader.TObjectLoader;
 import fcampos.rawengine3D.model.MaterialInfo;
-import fcampos.rawengine3D.model.TObjectLoader;
+import fcampos.rawengine3D.model.ModelObj;
 import fcampos.rawengine3D.resource.*;
 import fcampos.rawengine3D.gamecore.GameCore;
 import fcampos.rawengine3D.graficos.*;
@@ -96,25 +96,25 @@ public class TSala3D extends GameCore {
     private DrawString draw;
     
     // Objetos
-    private Model3d plano = new Model3d();
-    private Model3d mesa = new Model3d();
-    private Model3d mesapeq = new Model3d();
-    private Model3d quadro = new Model3d();
-    private Model3d porta = new Model3d();
-    private Model3d janela = new Model3d();
-    private Model3d lamp = new Model3d();
-    private Model3d vidro = new Model3d();
-    private Model3d ceu = new Model3d();
-    private Model3d cadeira = new Model3d();
-    private Model3d arena = new Model3d();
+    private ModelObj plano = new ModelObj();
+    private ModelObj mesa = new ModelObj();
+    private ModelObj mesapeq = new ModelObj();
+    private ModelObj quadro = new ModelObj();
+    private ModelObj porta = new ModelObj();
+    private ModelObj janela = new ModelObj();
+    private ModelObj lamp = new ModelObj();
+    private ModelObj vidro = new ModelObj();
+    private ModelObj ceu = new ModelObj();
+    private ModelObj cadeira = new ModelObj();
+    private ModelObj arena = new ModelObj();
     
     private float speed = 500.0f;
       
     
     // Tipos possíveis para objetos sobre as mesas
-    private Model3d[] tipos = new Model3d[7];
+    private ModelObj[] tipos = new ModelObj[7];
     
-    private ArrayList<Model3d> objetos = new ArrayList<Model3d>();
+    private ArrayList<ModelObj> objetos = new ArrayList<ModelObj>();
     
         
     // Apontador para material da fonte de luz
@@ -171,7 +171,6 @@ public class TSala3D extends GameCore {
     
     private int modo = GL_MODULATE;
 
-    private boolean fullscreen;
     
     private CameraQuaternion camera;
     
@@ -192,7 +191,7 @@ public class TSala3D extends GameCore {
         }
         
        for(int i=0; i < tipos.length; i++){
-    	   tipos[i] = new Model3d();
+    	   tipos[i] = new ModelObj();
        }
        
        objetos.add(plano);
@@ -283,41 +282,40 @@ public class TSala3D extends GameCore {
     	glFog(GL_FOG_COLOR, Conversion.allocFloats(cor_neblina));
     	glFogf(GL_FOG_DENSITY, 0.0035f);
 
-    	plano.load("parede1.obj",true, false, plano);
+    	plano.load("parede1.obj",true, false);
     	// Não queremos gerar display list para o plano,
     	// pois a textura varia de acordo com o objeto
     	// desenhado (parede, chão ou teto)
     	lo.desabilitaDisplayList(plano);
-    	arena.load("arenaobj_Scene.obj", true, false, arena);
-    	mesa.load("mesagrande1.obj",true, false, mesa);
-    	mesapeq.load("mesapeq1.obj",true, false, mesapeq);
-    	cadeira.load("cadeira.obj",true, false, cadeira);
-    	quadro.load("quadronegro1.obj",true, false, quadro);
-    	porta.load("porta1.obj",true, false, porta);
-    	janela.load("janela1.obj",true, false, janela);
+    	arena.load("arenaobj_Scene.obj", true, false);
+    	mesa.load("mesagrande1.obj",true, false);
+    	mesapeq.load("mesapeq1.obj",true, false);
+    	cadeira.load("cadeira.obj",true, false);
+    	quadro.load("quadronegro1.obj",true, false);
+    	porta.load("porta1.obj",true, false);
+    	janela.load("janela1.obj",true, false);
     	
-    	lamp.load("lampada1.obj",true, false, lamp);
+    	lamp.load("lampada1.obj",true, false);
     	// Como o estado da lâmpada varia, não
     	// é interessante gerar display list para ela
     	lo.desabilitaDisplayList(lamp);
     	
-    	vidro.load("vidro1.obj",true, false, vidro);
-    	ceu.load("ceu2.obj",true, false, ceu);
+    	vidro.load("vidro1.obj",true, false);
+    	ceu.load("ceu2.obj",true, false);
 
     	// Carrega objetos que podem estar sobre as mesas
-    	tipos[0].load("lapis1.obj",true, false, tipos[0]);
-    	tipos[1].load("livro1.obj",true, false, tipos[1]);
-    	tipos[2].load("papel11.obj",true, false, tipos[2]);
-    	tipos[3].load("papel21.obj",true, false, tipos[3]);
-    	tipos[4].load("papel31.obj",true, false, tipos[4]);
-    	tipos[5].load("cuiabomba1.obj",true, false, tipos[5]);
-    	tipos[6].load("borracha1.obj",true, false, tipos[6]);
+    	tipos[0].load("lapis1.obj",true, false);
+    	tipos[1].load("livro1.obj",true, false);
+    	tipos[2].load("papel11.obj",true, false);
+    	tipos[3].load("papel21.obj",true, false);
+    	tipos[4].load("papel31.obj",true, false);
+    	tipos[5].load("cuiabomba1.obj",true, false);
+    	tipos[6].load("borracha1.obj",true, false);
     	
     	// Cria todas as display lists, exceto para
     	// as lâmpadas e para o plano
     	lo.criaDisplayList(mesa, null);
-        paused = false;
-        fullscreen = false;
+ 
         draw = new DrawString("texturas/font.png");
         // Preenche o array com o centro de cada mesa
     	defineLimitesMesas();
@@ -351,35 +349,6 @@ public class TSala3D extends GameCore {
     	glMatrixMode(GL_MODELVIEW);
     }
 
-    public void setFullScreen(boolean p)
-    {
-        if (fullscreen != p)
-        {
-            this.fullscreen = p;
-            screen.setFullScreen(fullscreen);
-        }
-
-     }
-    
-    public boolean isFullScreen()
-    {
-        return fullscreen;
-    }
-
-    public boolean isPaused()
-    {
-        return paused;
-    }
-
-    public void setPaused(boolean p)
-    {
-        if (paused != p)
-        {
-            this.paused = p;
-            
-        }
-
-     }
 
     public void update()
     {
@@ -394,19 +363,7 @@ public class TSala3D extends GameCore {
         }
     }
 
-        public void checkSystemInput()
-        {
-            if (pause.isPressed())
-            {
-                setPaused(!isPaused());
-                camera.setViewByMouse(!isPaused());
-                Mouse.setGrabbed(!isPaused());
-            }
-            if (exit.isPressed())
-            {
-                stop();
-            }
-        }
+ 
 
         public void checkGameInput()
         {
@@ -1098,7 +1055,8 @@ public class TSala3D extends GameCore {
 
         // Restaura posição e orientação da câmera,
         // e estado das 5 fontes de luz
-        private void restauraCamera() throws IOException
+        @SuppressWarnings("unused")
+		private void restauraCamera() throws IOException
         {
         	System.out.println("Usando arquivo padrão: camera.txt");
         	BufferedReader reader = lo.openArq(arqcam);
