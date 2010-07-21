@@ -216,7 +216,7 @@ public class LoaderMD2 {
 	/////
 	///////////////////////////////// IMPORT MD2 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-	public boolean importMD2(Model3d model, String fileName, String textureName)
+	public boolean importMD2(ModelMD2 model, String fileName, String textureName)
 	{
 		
 		try
@@ -396,7 +396,7 @@ public class LoaderMD2 {
 	/////
 	///////////////////////////////// PARSE ANIMATIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void parseAnimations(Model3d model)
+	public void parseAnimations(ModelMD2 model)
 	{
 			AnimationInfo animation = new AnimationInfo();
 			String lastName = "";
@@ -489,7 +489,7 @@ public class LoaderMD2 {
 	/////
 	///////////////////////////////// CONVERT DATA STRUCTURES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void convertDataStructures(Model3d model)
+	public void convertDataStructures(ModelMD2 model)
 	{
 		int j = 0;
 		
