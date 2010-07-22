@@ -174,6 +174,7 @@ public class TesteMD2Animation extends GameCore {
 
         public void checkGameInput()
         {
+        	super.checkGameInput(); // Checamos se as teclas foram pressionadas ou não.
           
         	if(moveUp.isPressed())
         	{
