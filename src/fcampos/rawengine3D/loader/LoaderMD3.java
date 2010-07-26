@@ -24,7 +24,7 @@ public class LoaderMD3 {
 	
 	/** This holds the header information that is read in at the beginning of the file.
 	 */
-	
+	@SuppressWarnings("unused")
 	private class HeaderMD3
 	{ 
 		String	fileID;							// This stores the file ID - Must be "IDP3"
@@ -59,7 +59,7 @@ public class LoaderMD3 {
 	
 	/** This structure is used to read in the mesh data for the .md3 models.
 	 */
-
+	@SuppressWarnings("unused")
 	private class MeshInfoMD3
 	{
 		String	meshID;							// This stores the mesh ID
@@ -115,7 +115,7 @@ public class LoaderMD3 {
 	
 	/** This stores the bone information (useless as far as I can see...).
 	 */
-	
+	@SuppressWarnings("unused")
 	private class BoneMD3
 	{
 		float[]	mins = new float[3];			// This is the min (x, y, z) value for the bone
@@ -189,7 +189,7 @@ public class LoaderMD3 {
 	
 	/** This stores a skin name (We don't use this, just the name of the model to get the texture).
 	 */
-	
+	@SuppressWarnings("unused")
 	private class SkinMD3 
 	{
 		String nameSkin;							// Skin name
@@ -471,13 +471,13 @@ public class LoaderMD3 {
 		
 		
 		// Assign the vertex, texture coord and face count to our new structure
-		currentFrame.setNumVert(meshHeader.numVertices * meshHeader.numMeshFrames);
-		currentFrame.setNumTex(meshHeader.numVertices);
+		currentFrame.setNumVertices(meshHeader.numVertices * meshHeader.numMeshFrames);
+		currentFrame.setNumTexcoords(meshHeader.numVertices);
 		currentFrame.setNumFaces(meshHeader.numTriangles);
 		currentFrame.setName(meshHeader.strName);
 		
 		// Go through all of the vertices and assign them over to our structure
-		for (i=0; i < currentFrame.getNumVert(); i++)
+		for (i=0; i < currentFrame.getNumVertices(); i++)
 		{
 			Vector3f temp = new Vector3f(vertices[i].vertex[0]/64.0f, vertices[i].vertex[1]/64.0f,
 										 vertices[i].vertex[2]/64.0f);

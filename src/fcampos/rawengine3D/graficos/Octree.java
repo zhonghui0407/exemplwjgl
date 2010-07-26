@@ -247,11 +247,11 @@ public class Octree{
 		for(int i = 0; i < world.getNumOfObjects(); i++)
 		{
 			// Increase the total vertice count
-			numberOfVerts += world.getObject(i).getNumVert();
+			numberOfVerts += world.getObject(i).getNumVertices();
 			world.getObject(i).setDimension();
 				
 			// Add the current object's vertices up
-			for(int n = 0; n < world.getObject(i).getNumVert(); n++)
+			for(int n = 0; n < world.getObject(i).getNumVertices(); n++)
 			{
 				// Add the current vertex to the center variable
 				centerNode = VectorMath.add(centerNode, world.getObject(i).getVertices(n));
@@ -283,7 +283,7 @@ public class Octree{
 		for(int i = 0; i < world.getNumOfObjects(); i++)
 		{
 			// Go through all of the current objects vertices
-			for(int j = 0; j < world.getObject(i).getNumVert(); j++)
+			for(int j = 0; j < world.getObject(i).getNumVertices(); j++)
 			{
 				// Get the distance in width, height and depth this vertex is from the center.
 				currentWidth  = (int)Math.abs(world.getObject(i).getVertices(j).x - centerNode.x);	
@@ -588,212 +588,212 @@ public class Octree{
 		}
 	}
 	
-///////////////////////////////// CREATE NEW NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This figures out the new node information and then passes it into CreateNode()
-/////
-///////////////////////////////// CREATE NEW NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void createNewNode(Model3d world, Vector<FaceList> listFaces, int triangleCount,
-					  	  Vector3f center, float width, int nodeID)
-{
-	// This function is used as our helper function to partition the world data
-	// to pass into the subdivided nodes.  The same things go on as in the previous
-	// tutorials, but it's dealing with more than just vertices.  We are given
-	// the world data that needs to be partitioned, the list of faces that are in
-	// the new node about to be created, the triangle count, the parent node's center
-	// and width, along with the enum ID that tells us which new node is being created.
-	//
-	// The tFaceList structure stores a vector of booleans, which tell us if that face
-	// index is in our end node (true) or not (false).  It also contains a integer
-	// to tell us how many of those faces (triangles) are "true", or in other words, 
-	// are in our node that is being created.  
-
-	// Check if the first node found some triangles in it, if not we don't continue
-	if(triangleCount < 0 || triangleCount == 0) return;
+	///////////////////////////////// CREATE NEW NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This figures out the new node information and then passes it into CreateNode()
+	/////
+	///////////////////////////////// CREATE NEW NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	// Here we create the temporary partitioned data model, which will contain
-	// all the objects and triangles in this end node.
-	Model3d tempWorld = new Model3d();
-
-	// Intialize the temp model data and assign the object count to it
-	
-	tempWorld.setNumOfObjects(world.getNumOfObjects());
-	
-		
-	// Go through all of the objects in the current partition passed in
-	for(int i = 0; i < world.getNumOfObjects(); i++)
+	public void createNewNode(Model3d world, Vector<FaceList> listFaces, int triangleCount,
+						  	  Vector3f center, float width, int nodeID)
 	{
-		// Get a pointer to the current object to avoid ugly code
-		Object3d pObject = world.getObject(i);
-
-		// Create a new object, initialize it, then add it to our temp partition
-		Object3d newObject = new Object3d();
+		// This function is used as our helper function to partition the world data
+		// to pass into the subdivided nodes.  The same things go on as in the previous
+		// tutorials, but it's dealing with more than just vertices.  We are given
+		// the world data that needs to be partitioned, the list of faces that are in
+		// the new node about to be created, the triangle count, the parent node's center
+		// and width, along with the enum ID that tells us which new node is being created.
+		//
+		// The tFaceList structure stores a vector of booleans, which tell us if that face
+		// index is in our end node (true) or not (false).  It also contains a integer
+		// to tell us how many of those faces (triangles) are "true", or in other words, 
+		// are in our node that is being created.  
+	
+		// Check if the first node found some triangles in it, if not we don't continue
+		if(triangleCount < 0 || triangleCount == 0) return;
 		
-		tempWorld.addObject(newObject);
-
-		// Assign the new node's face count, material ID, texture boolean and 
-		// vertices to the new object.  Notice that it's not that pObject's face
-		// count, but the pList's.  Also, we are just assigning the pointer to the
-		// vertices, not copying them.
-		//pTempWorld->pObject[i].numOfFaces  = pList[i].totalFaceCount;
-		tempWorld.getObject(i).setNumFaces(listFaces.get(i).totalFaceCount);
-		//pTempWorld->pObject[i].materialID  = pObject->materialID;
-		tempWorld.getObject(i).setMaterialID(pObject.getMaterialID());
-		//pTempWorld->pObject[i].bHasTexture = pObject->bHasTexture;
-		tempWorld.getObject(i).setbHasTexture(pObject.isbHasTexture());
-		//pTempWorld->pObject[i].pVerts      = pObject->pVerts;
-		tempWorld.getObject(i).setVertices(pObject.getVertices());
-
-		// Allocate memory for the new face list
-		//pTempWorld->pObject[i].pFaces = new tFace [pTempWorld->pObject[i].numOfFaces];
+		// Here we create the temporary partitioned data model, which will contain
+		// all the objects and triangles in this end node.
+		Model3d tempWorld = new Model3d();
+	
+		// Intialize the temp model data and assign the object count to it
 		
-		// Create a counter to count the current index of the new node vertices
-		int index = 0;
-
-		// Go through all of the current object's faces and only take the ones in this new node
-		for(int j = 0; j < pObject.getNumFaces(); j++)
+		tempWorld.setNumOfObjects(world.getNumOfObjects());
+		
+			
+		// Go through all of the objects in the current partition passed in
+		for(int i = 0; i < world.getNumOfObjects(); i++)
 		{
-			// If this current triangle is in the node, assign it's index to our new face list
-			if(listFaces.get(i).faceList.get(j))	
+			// Get a pointer to the current object to avoid ugly code
+			Object3d pObject = world.getObject(i);
+	
+			// Create a new object, initialize it, then add it to our temp partition
+			Object3d newObject = new Object3d();
+			
+			tempWorld.addObject(newObject);
+	
+			// Assign the new node's face count, material ID, texture boolean and 
+			// vertices to the new object.  Notice that it's not that pObject's face
+			// count, but the pList's.  Also, we are just assigning the pointer to the
+			// vertices, not copying them.
+			//pTempWorld->pObject[i].numOfFaces  = pList[i].totalFaceCount;
+			tempWorld.getObject(i).setNumFaces(listFaces.get(i).totalFaceCount);
+			//pTempWorld->pObject[i].materialID  = pObject->materialID;
+			tempWorld.getObject(i).setMaterialID(pObject.getMaterialID());
+			//pTempWorld->pObject[i].bHasTexture = pObject->bHasTexture;
+			tempWorld.getObject(i).setbHasTexture(pObject.isbHasTexture());
+			//pTempWorld->pObject[i].pVerts      = pObject->pVerts;
+			tempWorld.getObject(i).setVertices(pObject.getVertices());
+	
+			// Allocate memory for the new face list
+			//pTempWorld->pObject[i].pFaces = new tFace [pTempWorld->pObject[i].numOfFaces];
+			
+			// Create a counter to count the current index of the new node vertices
+			int index = 0;
+	
+			// Go through all of the current object's faces and only take the ones in this new node
+			for(int j = 0; j < pObject.getNumFaces(); j++)
 			{
-				//pTempWorld->pObject[i].pFaces[index] = pObject->pFaces[j];
-				tempWorld.getObject(i).setFaces(index, pObject.getFace(j));
-				index++;
+				// If this current triangle is in the node, assign it's index to our new face list
+				if(listFaces.get(i).faceList.get(j))	
+				{
+					//pTempWorld->pObject[i].pFaces[index] = pObject->pFaces[j];
+					tempWorld.getObject(i).setFaces(index, pObject.getFace(j));
+					index++;
+				}
 			}
 		}
-	}
-
-	// Now comes the initialization of the node.  First we allocate memory for
-	// our node and then get it's center point.  Depending on the nodeID, 
-	// GetNewNodeCenter() knows which center point to pass back (TOP_LEFT_FRONT, etc..)
-
-	// Allocate a new node for this octree
-	octreeNodes[nodeID] = new Octree();
-
-	// Get the new node's center point depending on the nodexIndex (which of the 8 subdivided cubes).
-	Vector3f nodeCenter = getNewNodeCenter(center, width, nodeID);
+	
+		// Now comes the initialization of the node.  First we allocate memory for
+		// our node and then get it's center point.  Depending on the nodeID, 
+		// GetNewNodeCenter() knows which center point to pass back (TOP_LEFT_FRONT, etc..)
+	
+		// Allocate a new node for this octree
+		octreeNodes[nodeID] = new Octree();
+	
+		// Get the new node's center point depending on the nodexIndex (which of the 8 subdivided cubes).
+		Vector3f nodeCenter = getNewNodeCenter(center, width, nodeID);
+			
+		// Below, before and after we recurse further down into the tree, we keep track
+		// of the level of subdivision that we are in.  This way we can restrict it.
+	
+		// Increase the current level of subdivision
+		currentSubdivision++;
+	
+		// This chance is just that we pass in the temp partitioned world for this node,
+		// instead of passing in just straight vertices.
+	
+		// Recurse through this node and subdivide it if necessary
+		octreeNodes[nodeID].createNode(tempWorld, triangleCount, nodeCenter, width / 2);
+	
+		// Decrease the current level of subdivision
+		currentSubdivision--;
+	
+		// To free the temporary partition, we just go through all of it's objects and
+		// free the faces.  The rest of the dynamic data was just being pointed too and
+		// does not to be deleted.  Finally, we delete the allocated pTempWorld.
+	
 		
-	// Below, before and after we recurse further down into the tree, we keep track
-	// of the level of subdivision that we are in.  This way we can restrict it.
-
-	// Increase the current level of subdivision
-	currentSubdivision++;
-
-	// This chance is just that we pass in the temp partitioned world for this node,
-	// instead of passing in just straight vertices.
-
-	// Recurse through this node and subdivide it if necessary
-	octreeNodes[nodeID].createNode(tempWorld, triangleCount, nodeCenter, width / 2);
-
-	// Decrease the current level of subdivision
-	currentSubdivision--;
-
-	// To free the temporary partition, we just go through all of it's objects and
-	// free the faces.  The rest of the dynamic data was just being pointed too and
-	// does not to be deleted.  Finally, we delete the allocated pTempWorld.
-
+		// Delete the allocated partition
+		tempWorld = null;
+	}
 	
-	// Delete the allocated partition
-	tempWorld = null;
-}
-
-
-
-////////////////////////////ASSIGN TRIANGLES TO NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This allocates memory for the face indices to assign to the current end node
-/////
-////////////////////////////ASSIGN TRIANGLES TO NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
-{
-	// We take our pWorld partition and then copy it into our member variable
-	// face list, m_pWorld.  This holds the face indices that need to be rendered.
-	// Since we are using vertex arrays, we can't use the tFace structure for the
-	// indices, so we need to create an array that has all the face indices in a row.
-	// This will be stored in our pIndices array, which is of type unsigned int.
-	// Remember, it must be unsigned int for vertex arrays to register it.
-
-	// Since we did not subdivide this node we want to set our flag to false
-	subDivided = false;
-
-	// Initialize the triangle count of this end node 
-	setTriangleCount(numberOfTriangles);
-
-	// Create and init an instance of our model structure to store the face index information
-	world = new Model3d();
 	
-	// Assign the number of objects to our face index list
-	world.setNumOfObjects(tempWorld.getNumOfObjects());
+	
+	////////////////////////////ASSIGN TRIANGLES TO NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This allocates memory for the face indices to assign to the current end node
+	/////
+	////////////////////////////ASSIGN TRIANGLES TO NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
 
-	// Go through all of the objects in the partition that was passed in
-	for(int i = 0; i < world.getNumOfObjects(); i++)
+	public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 	{
-		// Create a pointer to the current object
-		Object3d pObject = tempWorld.getObject(i);
-
-		// Create and init a new object to hold the face index information
-		Object3d newObject = new Object3d();
+		// We take our pWorld partition and then copy it into our member variable
+		// face list, m_pWorld.  This holds the face indices that need to be rendered.
+		// Since we are using vertex arrays, we can't use the tFace structure for the
+		// indices, so we need to create an array that has all the face indices in a row.
+		// This will be stored in our pIndices array, which is of type unsigned int.
+		// Remember, it must be unsigned int for vertex arrays to register it.
+	
+		// Since we did not subdivide this node we want to set our flag to false
+		subDivided = false;
+	
+		// Initialize the triangle count of this end node 
+		setTriangleCount(numberOfTriangles);
+	
+		// Create and init an instance of our model structure to store the face index information
+		world = new Model3d();
 		
-		// If this object has face information, add it's index to our object index list
-		if(pObject.getNumFaces() > 0)
+		// Assign the number of objects to our face index list
+		world.setNumOfObjects(tempWorld.getNumOfObjects());
+	
+		// Go through all of the objects in the partition that was passed in
+		for(int i = 0; i < world.getNumOfObjects(); i++)
 		{
-			addObjectIndexToList(i);
+			// Create a pointer to the current object
+			Object3d pObject = tempWorld.getObject(i);
+	
+			// Create and init a new object to hold the face index information
+			Object3d newObject = new Object3d();
+			
+			// If this object has face information, add it's index to our object index list
+			if(pObject.getNumFaces() > 0)
+			{
+				addObjectIndexToList(i);
+			}
+	
+			// Add our new object to our face index list
+			world.addObject(newObject);
+	
+			// Store the number of faces in a local variable
+			int numOfFaces = pObject.getNumFaces();
+	
+			// Assign the number of faces to this current face list
+			world.getObject(i).setNumFaces(numOfFaces);
+	
+			//Remember, we also have faces indices
+			// in a row, pIndices, which can be used to pass in for vertex arrays.  
+					
+			world.getObject(i).startIndices(numOfFaces * 3);
+	
+			// Initialize the face indices for vertex arrays (are copied below
+			//memset(m_pWorld->pObject[i].pIndices, 0, sizeof(UINT) * numOfFaces * 3);
+	
+			// Copy the faces from the partition passed in to our end nodes face index list
+			//memcpy(m_pWorld->pObject[i].pFaces, pObject->pFaces, sizeof(tFace) * numOfFaces);
+			world.getObject(i).setFaces(pObject.getFace());
+			
+			// Since we are using vertex arrays, we want to create a array with all of the
+			// faces in a row.  That way we can pass it into glDrawElements().  We do this below.
+	
+			// Go through all the faces and assign them in a row to our pIndices array
+			for(int j = 0; j < numOfFaces * 3; j += 3)
+			{
+				//m_pWorld->pObject[i].pIndices[j]     = m_pWorld->pObject[i].pFaces[j / 3].vertIndex[0];
+				world.getObject(i).setIndices(j, world.getObject(i).getFace(j / 3).getVertices(0));
+				//m_pWorld->pObject[i].pIndices[j + 1] = m_pWorld->pObject[i].pFaces[j / 3].vertIndex[1];
+				world.getObject(i).setIndices(j + 1, world.getObject(i).getFace(j / 3).getVertices(1));
+				//m_pWorld->pObject[i].pIndices[j + 2] = m_pWorld->pObject[i].pFaces[j / 3].vertIndex[2];
+				world.getObject(i).setIndices(j + 2, world.getObject(i).getFace(j / 3).getVertices(2));
+			}
+	
+			// We can now free the pFaces list if we want since it isn't going to be used from here
+			// on out.  If you do NOT want to use vertex arrays, don't free the pFaces, and get
+			// rid of the loop up above to store the pIndices.
+	
+			/* NOTE ******************************************************/
+			/* Don't delete these. We use the faces to check collisions. */
+			//delete [] m_pWorld->pObject[i].pFaces;
+			//m_pWorld->pObject[i].pFaces = NULL;
+			/* NOTE ******************************************************/
 		}
-
-		// Add our new object to our face index list
-		world.addObject(newObject);
-
-		// Store the number of faces in a local variable
-		int numOfFaces = pObject.getNumFaces();
-
-		// Assign the number of faces to this current face list
-		world.getObject(i).setNumFaces(numOfFaces);
-
-		//Remember, we also have faces indices
-		// in a row, pIndices, which can be used to pass in for vertex arrays.  
-				
-		world.getObject(i).startIndices(numOfFaces * 3);
-
-		// Initialize the face indices for vertex arrays (are copied below
-		//memset(m_pWorld->pObject[i].pIndices, 0, sizeof(UINT) * numOfFaces * 3);
-
-		// Copy the faces from the partition passed in to our end nodes face index list
-		//memcpy(m_pWorld->pObject[i].pFaces, pObject->pFaces, sizeof(tFace) * numOfFaces);
-		world.getObject(i).setFaces(pObject.getFace());
-		
-		// Since we are using vertex arrays, we want to create a array with all of the
-		// faces in a row.  That way we can pass it into glDrawElements().  We do this below.
-
-		// Go through all the faces and assign them in a row to our pIndices array
-		for(int j = 0; j < numOfFaces * 3; j += 3)
-		{
-			//m_pWorld->pObject[i].pIndices[j]     = m_pWorld->pObject[i].pFaces[j / 3].vertIndex[0];
-			world.getObject(i).setIndices(j, world.getObject(i).getFace(j / 3).getVertices(0));
-			//m_pWorld->pObject[i].pIndices[j + 1] = m_pWorld->pObject[i].pFaces[j / 3].vertIndex[1];
-			world.getObject(i).setIndices(j + 1, world.getObject(i).getFace(j / 3).getVertices(1));
-			//m_pWorld->pObject[i].pIndices[j + 2] = m_pWorld->pObject[i].pFaces[j / 3].vertIndex[2];
-			world.getObject(i).setIndices(j + 2, world.getObject(i).getFace(j / 3).getVertices(2));
-		}
-
-		// We can now free the pFaces list if we want since it isn't going to be used from here
-		// on out.  If you do NOT want to use vertex arrays, don't free the pFaces, and get
-		// rid of the loop up above to store the pIndices.
-
-		/* NOTE ******************************************************/
-		/* Don't delete these. We use the faces to check collisions. */
-		//delete [] m_pWorld->pObject[i].pFaces;
-		//m_pWorld->pObject[i].pFaces = NULL;
-		/* NOTE ******************************************************/
+	
+		// Assign the current display list ID to be the current end node count
+		displayListID = totalNodesCount;
+	
+		// Increase the amount of end nodes created (Nodes with vertices stored)
+		totalNodesCount++;
 	}
-
-	// Assign the current display list ID to be the current end node count
-	displayListID = totalNodesCount;
-
-	// Increase the amount of end nodes created (Nodes with vertices stored)
-	totalNodesCount++;
-}
 
 	////////////////////////////ADD OBJECT INDEX TO LIST \\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	/////
@@ -906,11 +906,17 @@ public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 			// Make sure we have valid data assigned to this node
 			if(node.world == null) return;
 	
+			
 			// Add our display list offset to our current display list ID
-			node.displayListID += displayListOffset;
+			if(node.displayListID == 1)
+			{
+				node.displayListID = 1;
+			}else{
+				node.displayListID += displayListOffset;
+			}
 	
 			// Start the display list and assign it to the end nodes ID
-			glNewList(node.displayListID,GL_COMPILE);
+			glNewList(node.displayListID,GL_COMPILE_AND_EXECUTE);
 	
 			// Create a temp counter for our while loop below to store the objects drawn
 			int counter = 0;
@@ -955,11 +961,33 @@ public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 				if((materialCount > 0) && (rootObject.getMaterialID() >= 0)) 
 				{
 					
-					byte[] pColor = rootWorld.getMaterials(rootObject.getMaterialID()).getColor();
+					float[] pColor = rootWorld.getMaterials(rootObject.getMaterialID()).getColorConverted();
+					
+					if(pColor[0] == 0 && pColor[1] == 0 && pColor[2] == 0)
+					{
+						for(int t=0; t<rootObject.getNumFaces(); t++)
+						{
+							
+							if(rootObject.getFace(t).getIndMat() != -1)
+							{
+								
+								glDisable(GL_COLOR_MATERIAL);
+						
+								glMaterial(GL_FRONT, GL_AMBIENT, rootWorld.getMaterials(rootObject.getFace(t).getIndMat()).getKd());
+								//glMaterial(GL_FRONT,GL_DIFFUSE, rootWorld.getMaterials(rootObject.getFace(t).getIndMat()).getKd());
+								//glMaterial(GL_FRONT,GL_SPECULAR, rootWorld.getMaterials(rootObject.getFace(t).getIndMat()).getKs());
+								//glMaterial(GL_FRONT,GL_EMISSION, rootWorld.getMaterials(rootObject.getFace(t).getIndMat()).getKe());
+								//glMaterialf(GL_FRONT,GL_SHININESS, rootWorld.getMaterials(rootObject.getFace(t).getIndMat()).getSpec());
+							}
+						}
+						
+					}else{
 					
 					
-					glColor3ub(pColor[0], pColor[1], pColor[2]);
+					glColor3f(pColor[0], pColor[1], pColor[2]);
 					//glColor3ub((byte)0,(byte) 255, (byte)0);
+					}
+					
 					
 				}
 	
@@ -989,7 +1017,7 @@ public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 				// by FAR the vertex arrays are incredibly faster.  You decide :)
 	
 				// Make sure we have texture coordinates to render
-				if(rootObject.getNumTex() > 0) 
+				if(rootObject.getNumTexcoords() > 0) 
 				{
 					// Turn on the texture coordinate state
 					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -997,9 +1025,9 @@ public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 					// Point OpenGL to our texture coordinate array.
 					// We have them in a pair of 2, of type float and 0 bytes of stride between them.
 					//glTexCoordPointer(2, GL_FLOAT, 0, pRootObject->pTexVerts);
-					float[] temp = new float[rootObject.getNumTex() * 2];
+					float[] temp = new float[rootObject.getNumTexcoords() * 2];
 					int b = 0;
-					for(int a=0; a < rootObject.getNumTex(); a++)
+					for(int a=0; a < rootObject.getNumTexcoords(); a++)
 					{
 						temp[b] = rootObject.getTexcoords()[a].s;
 						temp[b+1] = rootObject.getTexcoords()[a].t;
@@ -1013,16 +1041,16 @@ public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 				}
 	
 				// Make sure we have vertices to render
-				if(rootObject.getNumVert() > 0)
+				if(rootObject.getNumVertices() > 0)
 				{
 					// Turn on the vertex array state
 					glEnableClientState(GL_VERTEX_ARRAY);
 	
 					// Point OpenGL to our vertex array.  We have our vertices stored in
 					// 3 floats, with 0 stride between them in bytes.
-					float[] temp = new float[rootObject.getNumVert() * 3];
+					float[] temp = new float[rootObject.getNumVertices() * 3];
 					int b = 0;
-					for(int a=0; a < rootObject.getNumVert(); a++)
+					for(int a=0; a < rootObject.getNumVertices(); a++)
 					{
 						temp[b] = rootObject.getVertices(a).x;
 						temp[b+1] = rootObject.getVertices(a).y;
@@ -1036,7 +1064,7 @@ public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 				}
 	
 				// Make sure we have normals to render
-				if(rootObject.getNumNorm() > 0)
+				if(rootObject.getNumNormais() > 0)
 				{
 					// Turn on the normals state
 					glEnableClientState(GL_NORMAL_ARRAY);
@@ -1044,9 +1072,9 @@ public void assignTrianglesToNode(Model3d tempWorld, int numberOfTriangles)
 					// Point OpenGL to our normals array.  We have our normals
 					// stored as floats, with a stride of 0 between.
 					
-					float[] temp = new float[rootObject.getNumNorm() * 3];
+					float[] temp = new float[rootObject.getNumNormais() * 3];
 					int b = 0;
-					for(int a=0; a < rootObject.getNumNorm(); a++)
+					for(int a=0; a < rootObject.getNumNormais(); a++)
 					{
 						temp[b] = rootObject.getNormal(a).x;
 						temp[b+1] = rootObject.getNormal(a).y;

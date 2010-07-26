@@ -1,6 +1,7 @@
 package fcampos.rawengine3D.model;
 
 
+import fcampos.rawengine3D.MathUtil.VectorMath;
 import fcampos.rawengine3D.loader.TObjectLoader;
 
 public class ModelObj extends Model3d {
@@ -17,6 +18,7 @@ public class ModelObj extends Model3d {
 		loader = new TObjectLoader();
 		try{
 			loader.carregaObjeto(arqName, mipmap, useAnisotropicFilter, this);
+			VectorMath.computeNormals(this);
 			return true;
 		}catch (Exception e) {
 			return false;
@@ -26,14 +28,16 @@ public class ModelObj extends Model3d {
 		
 	}
 	
-	public void draw(ModelObj world)
+	public void draw()
 	{
 		//System.out.println(pObject.get(0).getName());
 		for(int i=0; i< object.size(); i++)
 		{
 			Object3d obj = object.get(i);
-			obj.draw(world);
+			//System.out.println(obj.getName());
+			obj.draw(this);
 		}
 	}
-
+	
+	
 }

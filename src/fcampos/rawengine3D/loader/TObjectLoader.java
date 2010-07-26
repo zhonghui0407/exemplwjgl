@@ -25,7 +25,7 @@ import fcampos.rawengine3D.graficos.*;
 import fcampos.rawengine3D.model.MaterialInfo;
 import fcampos.rawengine3D.model.Model3d;
 import fcampos.rawengine3D.model.Object3d;
-import fcampos.rawengine3D.model.TFace;
+import fcampos.rawengine3D.model.Face;
 import fcampos.rawengine3D.resource.*;
 import fcampos.rawengine3D.MathUtil.*;
 
@@ -87,9 +87,9 @@ public class TObjectLoader {
 				if (line == null)
 				{
 					reader.close();
-					obj.setNumVert(numVert); 
+					obj.setNumVertices(numVert); 
 					obj.setNumFaces(numFace);
-					obj.setNumNorm(numNormais);
+					obj.setNumNormais(numNormais);
 					obj.setNumTexcoords(numTexCoords);
 					obj = null;
 					break;
@@ -106,9 +106,9 @@ public class TObjectLoader {
 						world.addNumOfObjects(1);
 					} else {
 							
-							obj.setNumVert(numVert); 
+							obj.setNumVertices(numVert); 
 							obj.setNumFaces(numFace);
-							obj.setNumNorm(numNormais);
+							obj.setNumNormais(numNormais);
 							obj.setNumTexcoords(numTexCoords);
 							numVert = 0;
 							numFace = 0;
@@ -293,10 +293,13 @@ public class TObjectLoader {
     			if(line.substring(7).contains("jpg"))
     			{
     				tex = texManager.getFlippedImage(line.substring(7), mipmap, useAnisotropicFilter);
+    				//System.out.println("if: " + obj.getName());
     			}else
     				{
     					tex = texManager.getNormalImage(line.substring(7), mipmap, useAnisotropicFilter);
+    					//System.out.println("else: " + obj.getName());
     				}
+    			
     			texid = tex.getTexID();
     			
     			
@@ -338,6 +341,7 @@ public class TObjectLoader {
     		// Normal ?
     		if (line.startsWith("vn "))
     		{
+    			
     			String[] lin = line.substring(3).split(" ");
     			
     			//normals[ncont].setTo(Conversion.convertK3f(lin));
@@ -347,6 +351,8 @@ public class TObjectLoader {
     			// Registra que o arquivo possui definição de normais por
     			// vértice
     			//obj.setNormaisPorVertice(true);
+    			 
+    			 
     			continue;
     		}
     		
@@ -368,7 +374,7 @@ public class TObjectLoader {
     			    			
     			// Associa à face o índice do material corrente, ou -1 se
     			// não houver
-    			obj.setFaces(fcont, new TFace());
+    			obj.setFaces(fcont, new Face());
     			//obj.getFace(fcont).setIndMat(material);
     			if(material !=  -1)
     			{
@@ -379,6 +385,10 @@ public class TObjectLoader {
     			
     			// Associa à face o texid da textura selecionada ou -1 se
     			// não houver
+    			
+    			//System.out.println("name: " + obj.getName());
+    			//System.out.println("texid: " + texid);
+    			
     			obj.getFace(fcont).setTexId(texid);
     			    			
     			// Temporários para armazenar os índices desta face

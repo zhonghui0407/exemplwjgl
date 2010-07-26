@@ -147,7 +147,7 @@ public abstract class GameCore {
 		glLoadIdentity(); //Reinicia a Matriz de Projeção		
 		
 		// Calcula a proporção da Janela
-		gluPerspective(45.0f, screen.getWidth() / screen.getHeight(), 0.1f, 500.0f);
+		gluPerspective(45.0f, screen.getWidth() / screen.getHeight(), 0.1f, 100.0f);
 		glMatrixMode(GL_MODELVIEW); // Selecione a Matrix de ModelView
 		glLoadIdentity(); //Reinicia a Matriz ModelView		
 		

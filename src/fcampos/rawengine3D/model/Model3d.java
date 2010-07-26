@@ -7,14 +7,11 @@ public class Model3d {
 
 	
 	protected int numOfObjects;					// The number of objects in the model
-	protected int numOfMaterials;					// The number of materials for the model
-
+	protected int numOfMaterials;				// The number of materials for the model
 
 	protected Vector<MaterialInfo> materials;	// The list of material information (Textures and colors)
 	protected Vector<Object3d> object;			// The object list for our model	
-	
 
-	
 	public Model3d()
 	{
 		numOfObjects = 0;

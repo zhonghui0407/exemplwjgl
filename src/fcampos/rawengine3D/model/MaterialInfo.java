@@ -12,7 +12,8 @@ public class MaterialInfo {
 	private String name;	// Identificação do material
 	private Texture tex;
 	private String texFile = "";
-	private byte[] color;
+	private byte[] colorByte;
+	private float[] colorConverted;
 	private FloatBuffer ka;	// Ambiente
 	private FloatBuffer kd;	// Difuso
 	private FloatBuffer ks;	// Especular
@@ -35,6 +36,7 @@ public class MaterialInfo {
 		setKe(new float[SIZE_FLOAT]);
 		setSpec(0.0f);
 		setColor(new byte[3]);
+		colorConverted = new float[3];
 	}
 
 	/**
@@ -175,17 +177,17 @@ public class MaterialInfo {
 	 * @param color the color to set
 	 */
 	public void setColor(byte[] color) {
-		this.color = color;
+		this.colorByte = color;
 	}
 	
 	/**
-	 * @param color the color to set
+	 * @param colorByte the color to set
 	 */
-	//public void setColor() {
-		//this.color[0] &= (byte) 0xff;
-		//this.color[1] &= (byte) 0xff;
-		//this.color[2] &= (byte) 0xff;
-	//}
+	public void setColor() {
+		this.colorConverted[0] = colorByte[0] & 0xff;
+		this.colorConverted[1] = colorByte[1] & 0xff;
+		this.colorConverted[2] = colorByte[2] & 0xff;
+	}
 	
 	
 
@@ -193,7 +195,20 @@ public class MaterialInfo {
 	 * @return the color
 	 */
 	public byte[] getColor() {
-		return color;
+		
+		return colorByte;
+	}
+	
+	/**
+	 * @return the color
+	 */
+	public float[] getColorConverted() 
+	{
+		setColor();
+		this.colorConverted[0] /= 255;
+		this.colorConverted[1] /= 255;
+		this.colorConverted[2] /= 255;
+		return colorConverted;
 	}
 
 	/**

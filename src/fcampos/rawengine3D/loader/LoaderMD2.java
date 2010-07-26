@@ -509,7 +509,7 @@ public class LoaderMD2 {
 		Object3d currentFrame = new Object3d();
 		
 		// Assign the vertex, texture coord and face count to our new structure
-		currentFrame.setNumVert(header.numVertices);
+		currentFrame.setNumVertices(header.numVertices);
 		
 		
 		// Allocate memory for the vertices, texture coordinates and face data.
@@ -518,7 +518,7 @@ public class LoaderMD2 {
 		//currentFrame.pFaces    = new tFace [currentFrame.numOfFaces];
 		
 		// Go through all of the vertices and assign them over to our structure
-		for (j=0; j < currentFrame.getNumVert(); j++)
+		for (j=0; j < currentFrame.getNumVertices(); j++)
 		{
 			Vector3f temp = new Vector3f(frames[i].pVertices[j].vertex.x, frames[i].pVertices[j].vertex.y,
 										frames[i].pVertices[j].vertex.z);
@@ -540,7 +540,7 @@ public class LoaderMD2 {
 		
 		// We can now free the old vertices stored in this frame of animation
 		//delete m_pFrames[0].pVertices;
-		currentFrame.setNumTex(header.numTexCoords);
+		currentFrame.setNumTexcoords(header.numTexCoords);
 		currentFrame.setNumFaces(header.numTriangles);
 		
 		// Go through all of the uv coordinates and assign them over to our structure.

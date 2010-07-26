@@ -430,7 +430,7 @@ public class Loader3DS{
 		readChunk(tempChunk, in);
 		
 		in.read(material.getColor());
-		
+		material.setColor();
 		tempChunk.addBytesRead(tempChunk.getLength() - tempChunk.getBytesRead());
 		
 		
@@ -531,7 +531,7 @@ public class Loader3DS{
 		// we then fread() them into our vertice array.
 	
 		// Read in the number of vertices (int)
-		object.setNumVert(in.readLEShort());
+		object.setNumVertices(in.readLEShort());
 		previousChunk.addBytesRead(Short.SIZE/8);
 			
 		// Read in the array of vertices (an array of 3 floats)
@@ -545,7 +545,7 @@ public class Loader3DS{
 		// we need to negate the Z to make it come out correctly.
 		
 		// Go through all of the vertices that we just read and swap the Y and Z values
-		for(int i = 0; i < object.getNumVert(); i++)
+		for(int i = 0; i < object.getNumVertices(); i++)
 		{
 			
 			object.getVertices(i).x = in.readLEFloat();

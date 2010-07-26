@@ -59,36 +59,21 @@ public Matrix4f multiplyMatrix(Matrix4f m)
 {
    // Return the value of this Matrix * m.
    return new Matrix4f(matrix[0] * m.matrix[0] + matrix[4] * m.matrix[1] + matrix[8] * m.matrix[2] + matrix[12] * m.matrix[3],
-			
-		       matrix[1] * m.matrix[0] + matrix[5] * m.matrix[1] + matrix[9] * m.matrix[2] + matrix[13] * m.matrix[3],
-
+				       matrix[1] * m.matrix[0] + matrix[5] * m.matrix[1] + matrix[9] * m.matrix[2] + matrix[13] * m.matrix[3],
                        matrix[2] * m.matrix[0] + matrix[6] * m.matrix[1] + matrix[10] * m.matrix[2] + matrix[14] * m.matrix[3],
-
-	               matrix[3] * m.matrix[0] + matrix[7] * m.matrix[1] + matrix[11] * m.matrix[2] + matrix[15] * m.matrix[3],
-
-		       matrix[0] * m.matrix[4] + matrix[4] * m.matrix[5] + matrix[8] * m.matrix[6] + matrix[12] * m.matrix[7],
-
-		       matrix[1] * m.matrix[4] + matrix[5] * m.matrix[5] + matrix[9] * m.matrix[6] + matrix[13] * m.matrix[7],
-
-     		       matrix[2] * m.matrix[4] + matrix[6] * m.matrix[5] + matrix[10] * m.matrix[6] + matrix[14] * m.matrix[7],
-
-		       matrix[3] * m.matrix[4] + matrix[7] * m.matrix[5] + matrix[11] * m.matrix[6] + matrix[15] * m.matrix[7],
-
-		       matrix[0] * m.matrix[8] + matrix[4] * m.matrix[9] + matrix[8] * m.matrix[10] + matrix[12] * m.matrix[11],
-   
-		       matrix[1] * m.matrix[8] + matrix[5] * m.matrix[9] + matrix[9] * m.matrix[10] + matrix[13] * m.matrix[11],
-
-		       matrix[2] * m.matrix[8] + matrix[6] * m.matrix[9] + matrix[10] * m.matrix[10] + matrix[14] * m.matrix[11],
-
-		       matrix[3] * m.matrix[8] + matrix[7] * m.matrix[9] + matrix[11] * m.matrix[10] + matrix[15] * m.matrix[11], 
-
+                       matrix[3] * m.matrix[0] + matrix[7] * m.matrix[1] + matrix[11] * m.matrix[2] + matrix[15] * m.matrix[3],
+                       matrix[0] * m.matrix[4] + matrix[4] * m.matrix[5] + matrix[8] * m.matrix[6] + matrix[12] * m.matrix[7],
+                       matrix[1] * m.matrix[4] + matrix[5] * m.matrix[5] + matrix[9] * m.matrix[6] + matrix[13] * m.matrix[7],
+                       matrix[2] * m.matrix[4] + matrix[6] * m.matrix[5] + matrix[10] * m.matrix[6] + matrix[14] * m.matrix[7],
+                       matrix[3] * m.matrix[4] + matrix[7] * m.matrix[5] + matrix[11] * m.matrix[6] + matrix[15] * m.matrix[7],
+                       matrix[0] * m.matrix[8] + matrix[4] * m.matrix[9] + matrix[8] * m.matrix[10] + matrix[12] * m.matrix[11],
+                       matrix[1] * m.matrix[8] + matrix[5] * m.matrix[9] + matrix[9] * m.matrix[10] + matrix[13] * m.matrix[11],
+                       matrix[2] * m.matrix[8] + matrix[6] * m.matrix[9] + matrix[10] * m.matrix[10] + matrix[14] * m.matrix[11],
+                       matrix[3] * m.matrix[8] + matrix[7] * m.matrix[9] + matrix[11] * m.matrix[10] + matrix[15] * m.matrix[11], 
                        matrix[0] * m.matrix[12] + matrix[4] * m.matrix[13] + matrix[8] * m.matrix[14] + matrix[12] * m.matrix[15],
-
-		       matrix[1] * m.matrix[12] + matrix[5] * m.matrix[13] + matrix[9] * m.matrix[14] + matrix[13] * m.matrix[15],
-
-		       matrix[2] * m.matrix[12] + matrix[6] * m.matrix[13] + matrix[10] * m.matrix[14] + matrix[14] * m.matrix[15],
-
-		       matrix[3] * m.matrix[12] + matrix[7] * m.matrix[13] + matrix[11] * m.matrix[14] + matrix[15] * m.matrix[15]);
+                       matrix[1] * m.matrix[12] + matrix[5] * m.matrix[13] + matrix[9] * m.matrix[14] + matrix[13] * m.matrix[15],
+                       matrix[2] * m.matrix[12] + matrix[6] * m.matrix[13] + matrix[10] * m.matrix[14] + matrix[14] * m.matrix[15],
+                       matrix[3] * m.matrix[12] + matrix[7] * m.matrix[13] + matrix[11] * m.matrix[14] + matrix[15] * m.matrix[15]);
 	
 		}
 
@@ -96,36 +81,21 @@ public Matrix4f divideMatrix(Matrix4f m)
 {
    // Return the value of this Matrix / m.
    return new Matrix4f(matrix[0] / m.matrix[0] + matrix[4] / m.matrix[1] + matrix[8] / m.matrix[2] + matrix[12] / m.matrix[3],
-			
-		       matrix[1] / m.matrix[0] + matrix[5] / m.matrix[1] + matrix[9] / m.matrix[2] + matrix[13] / m.matrix[3],
-
+		   			   matrix[1] / m.matrix[0] + matrix[5] / m.matrix[1] + matrix[9] / m.matrix[2] + matrix[13] / m.matrix[3],
                        matrix[2] / m.matrix[0] + matrix[6] / m.matrix[1] + matrix[10] / m.matrix[2] + matrix[14] / m.matrix[3],
-
-	               matrix[3] / m.matrix[0] + matrix[7] / m.matrix[1] + matrix[11] / m.matrix[2] + matrix[15] / m.matrix[3],
-
-		       matrix[0] / m.matrix[4] + matrix[4] / m.matrix[5] + matrix[8] / m.matrix[6] + matrix[12] / m.matrix[7],
-
-		       matrix[1] / m.matrix[4] + matrix[5] / m.matrix[5] + matrix[9] / m.matrix[6] + matrix[13] / m.matrix[7],
-
-     		       matrix[2] / m.matrix[4] + matrix[6] / m.matrix[5] + matrix[10] / m.matrix[6] + matrix[14] / m.matrix[7],
-
-		       matrix[3] / m.matrix[4] + matrix[7] / m.matrix[5] + matrix[11] / m.matrix[6] + matrix[15] / m.matrix[7],
-
-		       matrix[0] / m.matrix[8] + matrix[4] / m.matrix[9] + matrix[8] / m.matrix[10] + matrix[12] / m.matrix[11],
-   
-		       matrix[1] / m.matrix[8] + matrix[5] / m.matrix[9] + matrix[9] / m.matrix[10] + matrix[13] / m.matrix[11],
-
-		       matrix[2] / m.matrix[8] + matrix[6] / m.matrix[9] + matrix[10] / m.matrix[10] + matrix[14] / m.matrix[11],
-
-		       matrix[3] / m.matrix[8] + matrix[7] / m.matrix[9] + matrix[11] / m.matrix[10] + matrix[15] / m.matrix[11], 
-
+                       matrix[3] / m.matrix[0] + matrix[7] / m.matrix[1] + matrix[11] / m.matrix[2] + matrix[15] / m.matrix[3],
+                       matrix[0] / m.matrix[4] + matrix[4] / m.matrix[5] + matrix[8] / m.matrix[6] + matrix[12] / m.matrix[7],
+                       matrix[1] / m.matrix[4] + matrix[5] / m.matrix[5] + matrix[9] / m.matrix[6] + matrix[13] / m.matrix[7],
+                       matrix[2] / m.matrix[4] + matrix[6] / m.matrix[5] + matrix[10] / m.matrix[6] + matrix[14] / m.matrix[7],
+                       matrix[3] / m.matrix[4] + matrix[7] / m.matrix[5] + matrix[11] / m.matrix[6] + matrix[15] / m.matrix[7],
+                       matrix[0] / m.matrix[8] + matrix[4] / m.matrix[9] + matrix[8] / m.matrix[10] + matrix[12] / m.matrix[11],
+                       matrix[1] / m.matrix[8] + matrix[5] / m.matrix[9] + matrix[9] / m.matrix[10] + matrix[13] / m.matrix[11],
+                       matrix[2] / m.matrix[8] + matrix[6] / m.matrix[9] + matrix[10] / m.matrix[10] + matrix[14] / m.matrix[11],
+                       matrix[3] / m.matrix[8] + matrix[7] / m.matrix[9] + matrix[11] / m.matrix[10] + matrix[15] / m.matrix[11], 
                        matrix[0] / m.matrix[12] + matrix[4] / m.matrix[13] + matrix[8] / m.matrix[14] + matrix[12] / m.matrix[15],
-
-		       matrix[1] / m.matrix[12] + matrix[5] / m.matrix[13] + matrix[9] / m.matrix[14] + matrix[13] / m.matrix[15],
-
-		       matrix[2] / m.matrix[12] + matrix[6] / m.matrix[13] + matrix[10] / m.matrix[14] + matrix[14] / m.matrix[15],
-
-		       matrix[3] / m.matrix[12] + matrix[7] / m.matrix[13] + matrix[11] / m.matrix[14] + matrix[15] / m.matrix[15]);
+                       matrix[1] / m.matrix[12] + matrix[5] / m.matrix[13] + matrix[9] / m.matrix[14] + matrix[13] / m.matrix[15],
+                       matrix[2] / m.matrix[12] + matrix[6] / m.matrix[13] + matrix[10] / m.matrix[14] + matrix[14] / m.matrix[15],
+                       matrix[3] / m.matrix[12] + matrix[7] / m.matrix[13] + matrix[11] / m.matrix[14] + matrix[15] / m.matrix[15]);
 	
 		}
 
@@ -137,15 +107,50 @@ public Matrix4f subtract(float f)
                      matrix[12] - f, matrix[13] - f, matrix[14] - f, matrix[15] - f);
 }
 
-/*
-public void subtract(float f)
+public Vector3f getEulerAngles()
 {
-		    (matrix[0]  - f, matrix[1]  - f, matrix[2]  - f, matrix[3]  - f,
-   		     matrix[4]  - f, matrix[5]  - f, matrix[6]  - f, matrix[7]  - f,
-                     matrix[8]  - f, matrix[9]  - f, matrix[10] - f, matrix[11] - f,
-                     matrix[12] - f, matrix[13] - f, matrix[14] - f, matrix[15] - f);
-}
+	//%%%%%%%%%%%%%
+	// NOT WORKING
+	//%%%%%%%%%%%%%
+
+	double angle_x, angle_y, angle_z;		// temp angles
+	double cy, tx, ty, sy;
+/*
+	angle_y = -asin(m[2]);		// calculate y axis angle
+	cy		= cos(angle_y);
 */
+
+	sy	= -matrix[2];
+	cy	= Math.sqrt(1 - sy*sy);
+	angle_y	= Math.atan2(sy, cy);
+
+
+	if (Quaternion.EPSILON < Math.abs(cy))		// no gimbal lock?
+	{
+		tx	= matrix[10] / cy;		// get x axis angle
+		ty	= matrix[6] / cy;
+
+		angle_x	= Math.atan2(ty, tx);
+
+		tx	= matrix[0] / cy;		// get z axis angle
+		ty	= matrix[1] / cy;
+
+		angle_z	= Math.atan2(ty, tx);
+	}
+	else		// gimbal lock
+	{
+		angle_x	= 0.0f;			// set x axis angle to 0
+
+		tx	= matrix[9];				// get z axis angle
+		ty	= matrix[5];
+
+		angle_z	= Math.atan2(ty, tx);
+	}
+
+	
+
+	return new Vector3f((float)Math.toDegrees(angle_x), (float)Math.toDegrees(angle_y), (float)Math.toDegrees(angle_z));
+}
 
 public Matrix4f add(float f)
 {

@@ -1076,7 +1076,8 @@ public class Sala3D extends GameCore {
 
         // Restaura posição e orientação da câmera,
         // e estado das 5 fontes de luz
-        private void restauraCamera() throws IOException
+        @SuppressWarnings("unused")
+		private void restauraCamera() throws IOException
         {
         	System.out.println("Usando arquivo padrão: camera.txt");
         	BufferedReader reader = lo.openArq(arqcam);
