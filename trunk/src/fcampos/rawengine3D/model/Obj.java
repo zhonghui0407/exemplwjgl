@@ -23,7 +23,7 @@ public class Obj {
 	
 	private int numDisplayList;				// display list, se houver
 	
-	private ArrayList<Face> faces;
+	private ArrayList<FaceObj> faces;
 	private ArrayList<Material> material;
 	
 	private String name;
@@ -50,7 +50,7 @@ public class Obj {
 		dimMin = new Vector3f();
 		dimMax = new Vector3f();
 		center = new Vector3f();
-		faces = new ArrayList<Face>();
+		faces = new ArrayList<FaceObj>();
 		setTextura(-1);
 		material = new ArrayList<Material>();
 		drawMode = "t";
@@ -86,7 +86,7 @@ public class Obj {
 		
 		for (int i = 0; i < total; i++)
 		{
-			Face face = new Face();
+			FaceObj face = new FaceObj();
 			faces.add(face);
 		}
 		
@@ -198,14 +198,14 @@ public class Obj {
 	/**
 	 * @param faces the faces to set
 	 */
-	public void setFaces(Face face) {
+	public void setFaces(FaceObj face) {
 		this.faces.add(face);
 	}
 	
 	/**
 	 * @return the faces
 	 */
-	public Face getFace(int index) {
+	public FaceObj getFace(int index) {
 		return faces.get(index);
 	}
 	

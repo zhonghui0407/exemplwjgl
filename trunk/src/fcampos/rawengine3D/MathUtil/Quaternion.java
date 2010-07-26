@@ -5,7 +5,9 @@ package fcampos.rawengine3D.MathUtil;
 public class Quaternion extends Vector4f {
 
 
-private static final float PI_VALUE = 3.141592654f;
+	private static final float PI_VALUE = 3.141592654f;
+	public static final float EPSILON	= 0.005f;		// error tolerance for check
+
 //public float x, y, z, w;
 
 
@@ -29,7 +31,7 @@ private static final float PI_VALUE = 3.141592654f;
             this(q.x, q.y, q.z, q.w);
          }
 
-      public static Quaternion multiply(Quaternion u, Quaternion q)
+      public final static Quaternion multiply(Quaternion u, Quaternion q)
          {
             return new Quaternion(u.w * q.x + u.x * q.w + u.y * q.z - u.z * q.y,
                                	  u.w * q.y - u.x * q.z + u.y * q.w + u.z * q.x,
@@ -115,6 +117,87 @@ private static final float PI_VALUE = 3.141592654f;
             z *= sine;
             w = (float)Math.cos(radians);
          }
+      
+      public void eulerToQuat(float angleX, float angleY, float angleZ)
+      {
+      	double	halfX, halfY, halfZ;		// temp half euler angles
+      	double	cosRoll, cosPitch, cosYaw, sinRoll, sinPitch, sinYaw, cpcy, spsy;		// temp vars in roll,pitch yaw
+
+      	halfX = Math.toRadians(angleX) / 2.0;	// convert to rads and half them
+      	halfY = Math.toRadians(angleY) / 2.0;
+      	halfZ = Math.toRadians(angleZ) / 2.0;
+
+      	cosRoll = Math.cos(halfX);
+      	cosPitch = Math.cos(halfY);
+      	cosYaw = Math.cos(halfZ);
+
+      	sinRoll = Math.sin(halfX);
+      	sinPitch = Math.sin(halfY);
+      	sinYaw = Math.sin(halfZ);
+
+      	cpcy = cosPitch * cosYaw;
+      	spsy = sinPitch * sinYaw;
+
+      	this.w = (float) (cosRoll * cpcy + sinRoll * spsy);
+
+      	this.x = (float) (sinRoll * cpcy - cosRoll * spsy);
+      	this.y = (float) (cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw);
+      	this.z = (float) (cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw);
+
+      	normalize();
+      	
+      	
+      }	
+      
+      public float getAxisAngle(Vector3f v, float angle)
+      {
+      	double	temp_angle;		// temp angle
+      	float	scale;			// temp vars
+
+      	temp_angle = Math.acos(w);
+
+      	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      	// Another version where scale is sqrt (x2 + y2 + z2)
+      	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      	scale = (float)Math.sqrt(x*x + y*y + z*z);
+//      	scale = (float)sin(temp_angle);
+
+      	assert(0 <= temp_angle);		// make sure angle is 0 - PI
+      	assert(PI_VALUE >= temp_angle);
+
+      	if (floatEquality(0.0f, scale))		// angle is 0 or 360 so just simply set axis to 0,0,1 with angle 0
+      	{
+      		angle = 0.0f;
+
+      		v.setTo(0.0f, 0.0f, 1.0f);		// any axis will do
+      	}
+      	else
+      	{
+      		angle = (float)(temp_angle * 2.0);		// angle in radians
+
+      		v.setTo((x / scale), (y / scale), (z / scale));
+      		VectorMath.normalize(v);
+
+      		assert(0.0f <= angle);			// make sure rotation around axis is 0 - 360
+      		assert(2*PI_VALUE >= angle);
+      		assert(isUnit(v));				// make sure a unit axis comes up
+      	}
+
+      	return angle;
+      }	// end void GetAxisAngle(..)
+
+
+      public Vector3f getEulerAngles()
+      {
+      	Matrix4f matrix = new Matrix4f();			// temp matrix
+
+      	createMatrix(matrix);		// get matrix of this quaternion
+
+      	Vector3f v = matrix.getEulerAngles();
+
+      	return v;
+      }	// end void GetEulerAngles(.,)
+
 
       public float length()
          {
@@ -139,7 +222,28 @@ private static final float PI_VALUE = 3.141592654f;
             return new Quaternion(-x, -y, -z, w);
          }
 
-
+      public boolean isEqual(Quaternion q1)
+      {
+    	  if(q1.x == x && q1.y == y && q1.z == z && q1.w == w) 
+    	  {
+    			return true;
+    	  }else{
+    		  return false;
+    	  }
+    	  
+      }
+      
+      public boolean isEqual(Quaternion q1, Quaternion q2)
+      {
+    	  if(q1.x == q2.x && q1.y == q2.y && q1.z == q2.z && q1.w == q2.w) 
+    	  {
+    			return true;
+    	  }else{
+    		  return false;
+    	  }
+    	  
+      }
+      
       public Quaternion crossProduct(Quaternion q)
          {
             Quaternion crossProduct = new Quaternion();
@@ -219,7 +323,7 @@ private static final float PI_VALUE = 3.141592654f;
 		    // M = ¦ 2xy - 2zw         1 - (2x  + 2z )   2zy + 2xw			0	 ¦
 		   	//     ¦									 						 ¦
 		    //     ¦                                            2     2			 ¦
-		   	//     ¦ 2xz + 2yw         2yz - 2xw         1 - (2x  + 2y )	0    ¦
+		   	//     ¦ 2xz + 2yw         2zy - 2xw         1 - (2x  + 2y )	0    ¦
 		   	//     ¦									 						 ¦
 			//     ¦									 						 ¦
 			//     ¦ 0						0		 			0			1	 |													 ¦
@@ -254,7 +358,7 @@ private static final float PI_VALUE = 3.141592654f;
             m.matrix[14] = 0;  
             m.matrix[15] = 1.0f;
          }
-
+/*
       public void Slerp(Quaternion q1, Quaternion q2, float t)
       {
          float cosTheta = 0.0f;
@@ -292,6 +396,55 @@ private static final float PI_VALUE = 3.141592654f;
          z = beta * q1.z + t * q2Array[2];
          w = beta * q1.w + t * q2Array[3];
       }
+  */    
+	   
+	      public void Slerp(Quaternion q1, Quaternion q2, float t)
+	      {
+	         float cosTheta = 0.0f;
+	         float sinTheta = 0.0f;
+	         float beta = 0.0f;
+	        
 
-	                         // x, y , z, and w axis.
+	         // Temporary array to hold second quaternion.
+	       
+	         cosTheta = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
+
+	         if(cosTheta < 0.0f)
+	            {
+	               // Flip sigh if so.
+	              q2.conjugate();
+	              cosTheta = -cosTheta;
+	            }
+
+	         beta = 1.0f - t;
+	         
+	      // Set the first and second scale for the interpolation
+	     	float scale0 = 1 - t, scale1 = t;
+
+	         if(1.0f - cosTheta > 0.1f)
+	            {
+	               // We are using spherical interpolation.
+	               float theta = (float)Math.acos(cosTheta);
+	               sinTheta = (float)Math.sin(theta);
+	               scale0 = (float)Math.sin(theta * beta) / sinTheta;
+	               scale1 = (float)Math.sin(theta * t) / sinTheta;
+	            }
+
+	         // Interpolation.
+	         x = scale0 * q1.x + scale1 * q2.x;
+	         y = scale0 * q1.y + scale1 * q2.y;
+	         z = scale0 * q1.z + scale1 * q2.z;
+	         w = scale0 * q1.w + scale1 * q2.w;
+	      }
+      private boolean floatEquality(float x, float v)
+      {
+    	  return ( ((v) - EPSILON) < (x) && (x) < ((v) + EPSILON) );		// float equality test
+      }
+      
+      private boolean isUnit(Vector3f v)
+      {
+      	return(floatEquality(1.0f, VectorMath.magnitude(v)) );
+      }	// end int IsUnit()
+
+	                        
 }

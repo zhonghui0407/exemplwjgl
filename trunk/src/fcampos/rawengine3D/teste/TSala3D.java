@@ -78,20 +78,17 @@ public class TSala3D extends GameCore {
     public GameAction moveDown;
     public GameAction zoomIn;
     public GameAction zoomOut;
-    public GameAction exit;
-    public GameAction pause;
     public GameAction angCam;
     public GameAction solid;
     public GameAction fog;
     public GameAction modTex;
-    public GameAction fullScreen;
     public GameAction[] lights = new GameAction[5]; 
     public GameAction saveCamera;
     public GameAction restoreCamera;
     public GameAction anisotropic;
     
     
-    public InputManager inputManager;
+ 
     public TextureManager texManager;
     private DrawString draw;
     
@@ -129,7 +126,6 @@ public class TSala3D extends GameCore {
     
     public TObjectLoader lo = new TObjectLoader();
     
-    public boolean paused;
     
     private float luzAmb1[] = { 0.1f, 0.1f, 0.1f, 1f };	// luz ambiente
     private float luzDif1[] = { LOW, LOW, LOW, 1.0f };	// luz difusa
@@ -181,6 +177,8 @@ public class TSala3D extends GameCore {
     	super.init();
     	
     	screen.setTitle("TSala3D");
+    	camera = new CameraQuaternion(true);
+    	
     	camera.setPosition(3000.0f, 1600.0f, -13000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
         
         fAspect = screen.getWidth() / screen.getHeight();
@@ -204,11 +202,8 @@ public class TSala3D extends GameCore {
        objetos.add(vidro);
        objetos.add(ceu);
        objetos.add(cadeira);
-       
-       
-        
-        inputManager = new InputManager();
-        texManager = lo.getTexManager();
+   
+       texManager = lo.getTexManager();
         
         createGameActions();
         
@@ -287,7 +282,7 @@ public class TSala3D extends GameCore {
     	// pois a textura varia de acordo com o objeto
     	// desenhado (parede, chão ou teto)
     	lo.desabilitaDisplayList(plano);
-    	arena.load("arenaobj_Scene.obj", true, false);
+    	//arena.load("arenaobj_Scene.obj", true, false);
     	mesa.load("mesagrande1.obj",true, false);
     	mesapeq.load("mesapeq1.obj",true, false);
     	cadeira.load("cadeira.obj",true, false);
@@ -350,7 +345,7 @@ public class TSala3D extends GameCore {
     }
 
 
-    public void update()
+    public void update(float elapsedTime)
     {
     	
     	
@@ -367,6 +362,7 @@ public class TSala3D extends GameCore {
 
         public void checkGameInput()
         {
+        	super.checkGameInput();
           
             if (moveLeft.isPressed())
             {
@@ -1164,51 +1160,30 @@ public class TSala3D extends GameCore {
      }
      
       public void createGameActions()
-        {
-            moveLeft = new GameAction("moveLeft");
-            moveRight = new GameAction("moveRight");
-            moveUp = new GameAction("moveUp");
-            moveDown = new GameAction("moveDown");
-            zoomIn = new GameAction("zoomIn");
-            zoomOut = new GameAction("zoomIn");
-            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            pause = new GameAction("pause", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            angCam = new GameAction("angCam", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            solid = new GameAction("solid", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            fog = new GameAction("fog", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            saveCamera = new GameAction("saveCamera", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            restoreCamera  = new GameAction("restoreCamera", GameAction.DETECT_INITIAL_PRESS_ONLY);
-            anisotropic = new GameAction("anisotropic", GameAction.DETECT_INITIAL_PRESS_ONLY);
+      {
+    	  super.createGameActions();
+            moveLeft = new GameAction("moveLeft", GameAction.NORMAL, Keyboard.KEY_LEFT);
+            moveRight = new GameAction("moveRight", GameAction.NORMAL, Keyboard.KEY_RIGHT);
+            moveUp = new GameAction("moveUp", GameAction.NORMAL, Keyboard.KEY_UP);
+            moveDown = new GameAction("moveDown", GameAction.NORMAL, Keyboard.KEY_DOWN);
+            zoomIn = new GameAction("zoomIn", GameAction.NORMAL, Keyboard.KEY_X);
+            zoomOut = new GameAction("zoomIn", GameAction.NORMAL, Keyboard.KEY_S);
+           
+            angCam = new GameAction("angCam", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_A);
+            solid = new GameAction("solid", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
+            fog = new GameAction("fog", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_N);
+            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_M);
+           
+            saveCamera = new GameAction("saveCamera", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F11);
+            restoreCamera  = new GameAction("restoreCamera", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F12);
+            anisotropic = new GameAction("anisotropic", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F2);
             
             for(int i=0; i < lights.length; i++)
             {
-            	lights[i] = new GameAction("Light"+i, GameAction.DETECT_INITIAL_PRESS_ONLY);
-            	inputManager.mapToKey(lights[i], Keyboard.KEY_1+i);
-            }
+            	lights[i] = new GameAction("Light"+i, GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_1+i);
+            	            }
 
-            inputManager.mapToKey(exit, Keyboard.KEY_ESCAPE);
-            inputManager.mapToKey(pause, Keyboard.KEY_P);
-           
-            inputManager.mapToKey(zoomIn, Keyboard.KEY_X);
-            inputManager.mapToKey(zoomOut, Keyboard.KEY_S) ;
-            inputManager.mapToKey(moveLeft, Keyboard.KEY_LEFT);
-            inputManager.mapToKey(moveRight, Keyboard.KEY_RIGHT);
-            inputManager.mapToKey(moveUp, Keyboard.KEY_UP);
-            inputManager.mapToKey(moveDown, Keyboard.KEY_DOWN);
-            
-            inputManager.mapToKey(angCam, Keyboard.KEY_A);
-            inputManager.mapToKey(solid, Keyboard.KEY_T);
-            inputManager.mapToKey(fog, Keyboard.KEY_N);
-            inputManager.mapToKey(modTex, Keyboard.KEY_M);
-            inputManager.mapToKey(fullScreen, Keyboard.KEY_F1);
-            inputManager.mapToKey(saveCamera, Keyboard.KEY_F11);
-            inputManager.mapToKey(restoreCamera, Keyboard.KEY_F12);
-            inputManager.mapToKey(anisotropic, Keyboard.KEY_F2);
-            
-            
-            
+         
            
         }
 

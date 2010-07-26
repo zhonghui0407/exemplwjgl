@@ -1,4 +1,5 @@
 package fcampos.rawengine3D.teste;
+
 import fcampos.rawengine3D.input.*;
 import fcampos.rawengine3D.model.BoundingBox;
 import fcampos.rawengine3D.model.Model3DS;
@@ -10,7 +11,6 @@ import fcampos.rawengine3D.MathUtil.*;
 import fcampos.rawengine3D.fps.*;
 
 import java.io.*;
-import java.nio.FloatBuffer;
 
 
 import org.lwjgl.input.*;
@@ -59,32 +59,33 @@ public class CameraCollision extends GameCore {
     public GameAction moveDown;
     public GameAction zoomIn;
     public GameAction zoomOut;
-    public GameAction exit;
+
     public GameAction left;
     public GameAction enter;
     public GameAction debug;
-    public GameAction fullScreen;
-    public GameAction saveCamera;
+    
+    public GameAction light;
     public GameAction drawMode;
     public GameAction fog;
     public GameAction right;
     public GameAction run;
     
-    public InputManager inputManager;
  
-    private static final float LOW = 0.5f;
+    //private static final float LOW = 0.5f;
     
-    private float luzAmb1[] = { 0.4f, 0.4f, 0.4f, 1f };	// luz ambiente
-    private float luzDif1[] = { LOW, LOW, LOW, 1.0f };	// luz difusa
-    private float luzEsp1[] = { 0.0f, 0.0f, 0.0f, 1.0f };	// luz especular
-    private float spec[] 	= { 1.0f, 1.0f, 1.0f, 1.0f };	// luz especular
-    private float posLuz1[] = { 0, 10, 17f, 1 };	// posição da fonte de luz
+    //private float luzAmb1[] = { 0.4f, 0.4f, 0.4f, 1f };	// luz ambiente
+    //private float luzDif1[] = { LOW, LOW, LOW, 1.0f };	// luz difusa
+    //private float luzEsp1[] = { 0.0f, 0.0f, 0.0f, 1.0f };	// luz especular
+    //private float spec[] 	= { 1.0f, 1.0f, 1.0f, 1.0f };	// luz especular
+    //private float posLuz1[] = { 0, 10, 17f, 1 };	// posição da fonte de luz
        
-    private FloatBuffer posLuz1F;	// posição da fonte de luz
+   // private FloatBuffer posLuz1F;	// posição da fonte de luz
     
     private CameraQuaternion camera;
     
     public static Vector3f velocity = new Vector3f();
+    
+    private boolean g_bLighting = true;
  
     @Override
     public void init() throws IOException
@@ -106,7 +107,7 @@ public class CameraCollision extends GameCore {
     	//camera.setPosition(1f, 1f, -5f,	0,0, 0,	0, 1, 0);
     	
     	
-    	float df=100.0f;
+    	//float df=100.0f;
     	
     	// We need to specify our camera's radius in the beginning, I chose 1.
     	camera.setRadius(1.5f);
@@ -125,10 +126,10 @@ public class CameraCollision extends GameCore {
 
     	// The maximum amount of triangles per node.  If a node has equal or less 
     	// than this, stop subdividing and store the face indices in that node
-    	Octree.maxTriangles = 800;
+    	Octree.maxTriangles = 1000;
 
     	// The maximum amount of subdivisions allowed (Levels of subdivision)
-    	Octree.maxSubdivisions = 4;
+    	Octree.maxSubdivisions = 5;
 
     	// The number of Nodes we've checked for collision.
     	Octree.numNodesCollided = 0;
@@ -141,34 +142,39 @@ public class CameraCollision extends GameCore {
     	
     	LoadWorld();
  
-        posLuz1F = Conversion.allocFloats(posLuz1);
+        //posLuz1F = Conversion.allocFloats(posLuz1);
         
      // Turn the color back to blue'ish purple and disable fog
 		glClearColor(0.5f, 0.5f, 1.0f, 1.0f);
     	
     	// Ajusta iluminação
-    	glLight( GL_LIGHT0, GL_AMBIENT,  Conversion.allocFloats(luzAmb1)); 
-    	glLight( GL_LIGHT0, GL_DIFFUSE,  Conversion.allocFloats(luzDif1));
-    	glLight( GL_LIGHT0, GL_SPECULAR, Conversion.allocFloats(luzEsp1));
+    	//glLight( GL_LIGHT0, GL_AMBIENT,  Conversion.allocFloats(luzAmb1)); 
+    	//glLight( GL_LIGHT0, GL_DIFFUSE,  Conversion.allocFloats(luzDif1));
+    	//glLight( GL_LIGHT0, GL_SPECULAR, Conversion.allocFloats(luzEsp1));
     	
     	
 
     	// Habilita todas as fontes de luz
-    	glEnable(GL_LIGHT0);
+    	//glEnable(GL_LIGHT0);
     	
-    	glEnable(GL_LIGHTING);
+    	//glEnable(GL_LIGHTING);
     	
     	    	// Habilita Z-Buffer
-    	glEnable(GL_DEPTH_TEST);
-    	glCullFace(GL_BACK);								// Don't draw the back sides of polygons
+    	
+    	//glCullFace(GL_BACK);								// Don't draw the back sides of polygons
     	//glEnable(GL_CULL_FACE);	
     	
     	// Seleciona o modo de GL_COLOR_MATERIAL
     	//glColorMaterial(GL_FRONT, GL_DIFFUSE);
-    	glEnable(GL_COLOR_MATERIAL);
-    	glMaterial( GL_FRONT, GL_SPECULAR , Conversion.allocFloats(spec) );
-    	glMaterialf( GL_FRONT, GL_SHININESS, df );
+    	//glEnable(GL_COLOR_MATERIAL);
     	
+    	//glMaterial( GL_FRONT_AND_BACK, GL_DIFFUSE , Conversion.allocFloats(luzDif1) );
+    	//glMaterial( GL_FRONT_AND_BACK, GL_SPECULAR , Conversion.allocFloats(spec) );
+    	//glMaterialf( GL_FRONT_AND_BACK, GL_SHININESS, df );
+    	
+    	glEnable(GL_LIGHT0);								// Turn on a light with defaults set
+    	glEnable(GL_LIGHTING);								// Turn on lighting
+    	glEnable(GL_COLOR_MATERIAL);						// Allow color
     	
     	// Cor da neblina
     	float cor_neblina[] = {0.5f, 0.5f, 0.5f, 1.0f};
@@ -181,7 +187,7 @@ public class CameraCollision extends GameCore {
 
     	//glEnable(GL_FOG);									// This enables our OpenGL Fog
 
-    	glLight(GL_LIGHT0, GL_POSITION, posLuz1F); 
+    	//glLight(GL_LIGHT0, GL_POSITION, posLuz1F); 
 		
     	createGameActions();
         
@@ -272,6 +278,16 @@ public class CameraCollision extends GameCore {
         		speed = 10*speed;
         	}
         	
+        	if(light.isPressed())
+        	{
+        		g_bLighting = !g_bLighting;						// Turn lighting ON/OFF
+
+        		if(g_bLighting) {								// If lighting is ON
+        			glEnable(GL_LIGHTING);						// Enable OpenGL lighting
+        		} else {
+        			glDisable(GL_LIGHTING);						// Disable OpenGL lighting
+        		}
+        	}
         
         	if (drawMode.isPressed())
         	{
@@ -287,11 +303,7 @@ public class CameraCollision extends GameCore {
         		octree.createDisplayList(octree, world, octree.getDisplayListID());
         	}
         	
-        	if (fullScreen.isPressed())
-            {
-            	setFullScreen(!isFullScreen());
-            }
-            
+        	
             if(enter.isPressed())
             {
             	Octree.octreeCollisionDetection = !Octree.octreeCollisionDetection;
@@ -431,15 +443,15 @@ public class CameraCollision extends GameCore {
             moveDown = new GameAction("moveDown",GameAction.NORMAL, Keyboard.KEY_DOWN);
             zoomIn = new GameAction("zoomIn",GameAction.NORMAL, Keyboard.KEY_W);
             zoomOut = new GameAction("zoomOut", GameAction.NORMAL, Keyboard.KEY_S);
-            exit = new GameAction("exit", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_ESCAPE);
+          
             
             run = new GameAction("run", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_LSHIFT);
             left = new GameAction("left",GameAction.NORMAL, Keyboard.KEY_A);
             
             enter = new GameAction("enter", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_RETURN);
             debug = new GameAction("debug", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_SPACE);
-            fullScreen  = new GameAction("fullScreen", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F1);
-            saveCamera = new GameAction("saveCamera", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F11);
+            
+            light = new GameAction("light", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_L);
             drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
             right = new GameAction("right",GameAction.NORMAL, Keyboard.KEY_D);
             fog = new GameAction("fog", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_F);

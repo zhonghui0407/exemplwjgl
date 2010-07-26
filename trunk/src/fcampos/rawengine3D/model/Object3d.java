@@ -20,7 +20,7 @@ public class Object3d {
 	protected int materialID;
 	protected int numDisplayList;				// display list, se houver
 	
-	protected ArrayList<TFace> faces;
+	protected ArrayList<Face> faces;
 	protected ArrayList<Integer> indices;
 	
 	protected String name;
@@ -49,7 +49,7 @@ public class Object3d {
 		dimMin = new Vector3f();
 		dimMax = new Vector3f();
 		center = new Vector3f();
-		faces = new ArrayList<TFace>();
+		faces = new ArrayList<Face>();
 		setNumDisplayList(-1);
 		drawMode = "t";
 		materialID = -1;
@@ -80,9 +80,21 @@ public class Object3d {
 		for (int i = 0; i < total; i++)
 		{
 			
-			faces.add(new TFace());
+			faces.add(new Face());
 		}
 		
+	}
+	
+	/**
+	 * @param numVertFaces the numVertFaces to set
+	 */
+	public void setNumVertices(int numVertices) {
+		this.numVertices = numVertices;
+		vertices = new Vector3f[numVertices];
+		for (int a=0; a < numVertices; a++)
+		{
+			vertices[a] = new Vector3f();
+		}
 	}
 
 	
@@ -192,31 +204,31 @@ public class Object3d {
 	/**
 	 * @param faces the faces to set
 	 */
-	public void setFaces(TFace face) {
+	public void setFaces(Face face) {
 		this.faces.add(face);
 	}
 	
 	/**
 	 * @param faces the faces to set
 	 */
-	public void setFaces(int index, TFace face) {
+	public void setFaces(int index, Face face) {
 		this.faces.set(index, face);
 	}
 	/**
 	 * @param faces the faces to set
 	 */
-	public void setFaces(ArrayList<TFace> face) {
+	public void setFaces(ArrayList<Face> face) {
 		this.faces = face;
 	}
 	
 	/**
 	 * @return the faces
 	 */
-	public TFace getFace(int index) {
+	public Face getFace(int index) {
 		return faces.get(index);
 	}
 	
-	public ArrayList<TFace> getFace() {
+	public ArrayList<Face> getFace() {
 		return faces;
 	}
 	
@@ -272,7 +284,7 @@ public class Object3d {
 		Vector3f dimMin = new Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 		
 		
-		for(int i=0; i < getNumVert(); i++)
+		for(int i=0; i < getNumVertices(); i++)
 		{
 			
 				dimMin.x = Math.min(dimMin.x, getVertices(i).x);
@@ -439,6 +451,8 @@ public class Object3d {
 			
 			// Se o objeto possui uma textura associada, utiliza
 			// o seu texid ao invés da informação em cada face
+			//System.out.println(name);
+			//System.out.println(getFace(i).getTexId());
 			if(getFace(i).getTexId() != -1)
 				{
 				// Lê o texid associado à face (-1 se não houver)
@@ -476,16 +490,15 @@ public class Object3d {
 				// envia a normal correspondente
 				if(getFace(i).isPerVertexNormal())
 				{
-					
 					glNormal3f(getNormal(getFace(i).getNormal(vf)).x, 
-							getNormal(getFace(i).getNormal(vf)).y,
-							getNormal(getFace(i).getNormal(vf)).z);
+							   getNormal(getFace(i).getNormal(vf)).y,
+							   getNormal(getFace(i).getNormal(vf)).z);
 				}
 				// Se houver uma textura associada...
 				if(texid!=-1)
 				{
 					// Envia as coordenadas associadas ao vértice 
-					
+					//System.out.println(name + " " + texid);
 					glTexCoord2f(getTexcoords(getFace(i).getTexCoords(vf)).s, 
 								 getTexcoords(getFace(i).getTexCoords(vf)).t);
 				}
@@ -525,10 +538,10 @@ public class Object3d {
 	 */
 	public void setMaterialID(int materialID) {
 		this.materialID = materialID;
-		for(int i=0; i < faces.size(); i++)
-		{
-			faces.get(i).setTexId(materialID);
-		}
+		//for(int i=0; i < faces.size(); i++)
+		//{
+		//	faces.get(i).setTexId(materialID);
+		//}
 	}
 
 	/**
@@ -539,50 +552,9 @@ public class Object3d {
 	}
 
 	
-	public int getNumNorm()
-	{
-		return numNormais;
-	}
 	
-	public void setNumNorm(int numNormais)
-	{
-		this.numNormais = numNormais;
-		normal = new Vector3f[numNormais];
-	}
 	
-	public int getNumTex()
-	{
-		return numTexcoords;
-	}
 	
-	public void setNumTex(int numTexcoords)
-	{
-		this.numTexcoords = numTexcoords;
-		texCoords = new TextureCoord[numTexcoords];
-		
-		for(int i=0; i < texCoords.length; i++)
-		{
-			texCoords[i] = new TextureCoord();
-		}
-	}
-	
-	/**
-	 * @param numVertFaces the numVertFaces to set
-	 */
-	public void setNumVert(int numVertices) {
-		this.numVertices = numVertices;
-		vertices = new Vector3f[numVertices];
-		for (int a=0; a < numVertices; a++)
-		{
-			vertices[a] = new Vector3f();
-		}
-	}
-	/**
-	 * @return the numVertFaces
-	 */
-	public int getNumVert() {
-		return numVertices;
-	}
 
 	/**
 	 * @param pIndices the pIndices to set

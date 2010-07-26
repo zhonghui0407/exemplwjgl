@@ -340,7 +340,7 @@ public class TextureLoader {
         //URL url = TextureLoader.class.getClassLoader().getResource(ref);
         
     	File file = new File(ref);
-    	
+    	System.out.println(file.getAbsolutePath());
     	 if (file == null) {
              throw new IOException("Cannot find: "+ref);
          }

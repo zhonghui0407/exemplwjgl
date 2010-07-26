@@ -192,7 +192,7 @@ public final class VectorMath
 			// Here we allocate all the memory we need to calculate the normals
 			Vector3f[] normals		= new Vector3f[object.getNumFaces()];
 			Vector3f[] tempNormals	= new Vector3f[object.getNumFaces()];
-			object.setNumNorm(object.getNumVert());
+			object.setNumNormais(object.getNumVertices());
 
 			// Go though all of the faces of this object
 			for(int i=0; i < object.getNumFaces(); i++)
@@ -204,8 +204,8 @@ public final class VectorMath
 
 				// Now let's calculate the face normals (Get 2 vectors and find the cross product of those 2)
 
-				vector1 = VectorMath.subtract(poly[2], poly[0]);				// Get the vector of the polygon (we just need 2 sides for the normal)
-				vector2 = VectorMath.subtract(poly[1], poly[0]);				// Get a second vector of the polygon
+				vector1 = VectorMath.subtract(poly[0], poly[2]);				// Get the vector of the polygon (we just need 2 sides for the normal)
+				vector2 = VectorMath.subtract(poly[2], poly[1]);				// Get a second vector of the polygon
 
 				normal  = VectorMath.cross_product(vector1, vector2);		// Return the cross product of the 2 vectors (normalize vector, but not a unit vector)
 				tempNormals[i] = new Vector3f(normal);					// Save the un-normalized normal for the vertex normals
@@ -219,7 +219,7 @@ public final class VectorMath
 			Vector3f sum = new Vector3f();
 			int shared=0;
 
-			for (int i = 0; i < object.getNumVert(); i++)			// Go through all of the vertices
+			for (int i = 0; i < object.getNumVertices(); i++)			// Go through all of the vertices
 			{
 				for (int j = 0; j < object.getNumFaces(); j++)	// Go through all of the triangles
 				{												// Check if the vertex is shared by another face
