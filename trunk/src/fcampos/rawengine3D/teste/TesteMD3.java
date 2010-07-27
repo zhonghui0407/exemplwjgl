@@ -51,6 +51,8 @@ public class TesteMD3 extends GameCore {
    
  // This will store our 3ds scene that we will pass into our octree
     public ModelQuake3 g_World = new ModelQuake3();
+    
+    
         
  // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
     boolean g_bDisplayNodes = false;
@@ -68,7 +70,7 @@ public class TesteMD3 extends GameCore {
         g_World.loadModel(MODEL_PATH, MODEL_NAME);
         g_World.loadWeapon(MODEL_PATH, GUN_NAME);
                 
-        
+        g_World.loadAnimations(MODEL_PATH+"\\lara_animation.cfg");
         // Here, we turn on a lighting and enable lighting.  We don't need to
     	// set anything else for lighting because we will just take the defaults.
     	// We also want color, so we turn that on

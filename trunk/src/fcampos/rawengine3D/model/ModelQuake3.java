@@ -1,14 +1,25 @@
 package fcampos.rawengine3D.model;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Arrays;
 
 import fcampos.rawengine3D.MathUtil.Vector3f;
 import fcampos.rawengine3D.graficos.Texture;
+import fcampos.rawengine3D.io.TextFile;
 import fcampos.rawengine3D.resource.TextureManager;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class ModelQuake3 {
+	
+	// These defines are used to pass into GetModel(), which is member function of ModelMD3
+
+	private final static int kLower =  0;			// This stores the ID for the legs model
+	private final static int kUpper =  1;			// This stores the ID for the torso model
+	private final static int kHead 	=  2;			// This stores the ID for the head model
+	private final static int kWeapon = 3;			// This stores the ID for the weapon model
+
 	
 	// These are are models for the character's head and upper and lower body parts
 	private ModelMD3 head;
@@ -29,6 +40,32 @@ public class ModelQuake3 {
 		weapon = new ModelMD3();
 		texManager = new TextureManager();
 		
+	}
+	
+	////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+	
+	///////////////////////////////// GET BODY PART \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This returns a specific model from the character (kLower, kUpper, kHead, kWeapon)
+	/////
+	///////////////////////////////// GET BODY PART \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public Model3d getModel(int whichPart)
+	{
+		// Return the legs model if desired
+		if(whichPart == kLower) 
+		return lower;
+		
+		// Return the torso model if desired
+		if(whichPart == kUpper) 
+		return upper;
+		
+		// Return the head model if desired
+		if(whichPart == kHead) 
+		return head;
+		
+		// Return the weapon model
+		return weapon;
 	}
 	
 	///////////////////////////////// LOAD MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -127,6 +164,24 @@ public class ModelQuake3 {
 		loadModelTextures(lower, filePath);
 		loadModelTextures(upper, filePath);
 		loadModelTextures(head, filePath);
+		
+		
+////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+		// We added to this function the code that loads the animation config file
+
+		// This stores the file name for the .cfg animation file
+		
+		// Add the path and file name prefix to the animation.cfg file
+		String configFile = filePath + "/" + fileModel + "_animation.cfg";
+
+		// Load the animation config file (*_animation.config) and make sure it loaded properly
+		if(!loadAnimations(configFile))
+		{
+			// Display an error message telling us the file could not be found
+			System.out.println("[Error]: Unable to load the Animation Config File!");
+			System.exit(0);
+		}
 	
 		// The character data should all be loaded when we get here (except the weapon).
 		// Now comes the linking of the body parts.  This makes it so that the legs (lower.md3)
@@ -264,8 +319,178 @@ public class ModelQuake3 {
 					
 			}
 	}
+	
+
+	///////////////////////////////// LOAD ANIMATIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This loads the .cfg file that stores all the animation information
+	/////
+	///////////////////////////////// LOAD ANIMATIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public boolean loadAnimations(String configFile) throws IOException
+	{
+		// This function is given a path and name to an animation config file to load.
+		// The implementation of this function is arbitrary, so if you have a better way
+		// to parse the animation file, that is just as good.  Whatever works.
+		// Basically, what is happening here, is that we are grabbing an animation line:
+		//
+		// "0	31	0	25		// BOTH_DEATH1"
+		//
+		// Then parsing it's values.  The first number is the starting frame, the next
+		// is the frame count for that animation (endFrame would equal startFrame + frameCount),
+		// the next is the looping frames (ignored), and finally the frames per second that
+		// the animation should run at.  The end of this line is the name of the animation.
+		// Once we get that data, we store the information in our tAnimationInfo object, then
+		// after we finish parsing the file, the animations are assigned to each model.  
+		// Remember, that only the torso and the legs objects have animation.  It is important
+		// to note also that the animation prefixed with BOTH_* are assigned to both the legs
+		// and the torso animation list, hence the name "BOTH" :)
+		
+		// Create an animation object for every valid animation in the Quake3 Character
+		AnimationInfo[] animations = new AnimationInfo[Animations.MAX_ANIMATIONS.ordinal()];
+		
+		// Open the config file
+		BufferedReader reader = TextFile.openFile(configFile);
+		
+		
+		
+		int currentAnim = 0;				// This stores the current animation count
+		int torsoOffset = 0;				// The offset between the first torso and leg animation
+		
+		// Here we go through every word in the file until a numeric number if found.
+		// This is how we know that we are on the animation lines, and past header info.
+		// This of course isn't the most solid way, but it works fine.  It wouldn't hurt
+		// to put in some more checks to make sure no numbers are in the header info.
+		
+		String line = null;
+		while((line = reader.readLine()) != null)
+		{
+			
+					
+			if(line.isEmpty() || !Character.isDigit(line.charAt(0)))
+			{
+				continue;
+			}
+						
+			// If we get here, we must be on an animation line, so let's parse the data.
+			// We should already have the starting frame stored in strWord, so let's extract it.
+			
+			String[] linSplit = line.split("	");	
+			// Get the number stored in the strWord string and create some variables for the rest
+			
+			
+			int startFrame = Integer.parseInt(linSplit[0]);
+			int numOfFrames = Integer.parseInt(linSplit[1]);
+			int loopingFrames = Integer.parseInt(linSplit[2]);
+			int framesPerSecond = Integer.parseInt(linSplit[3]);
+			
+			// Read in the number of frames, the looping frames, then the frames per second
+			// for this current animation we are on.
+						
+			// Initialize the current animation structure with the data just read in
+			animations[currentAnim] = new AnimationInfo();
+			animations[currentAnim].setStartFrame(startFrame);
+			animations[currentAnim].setEndFrame(startFrame + numOfFrames);
+			animations[currentAnim].setLoopingFrames(loopingFrames);
+			animations[currentAnim].setFramesPerSecond(framesPerSecond);
+			
+			// Read past the "//" and read in the animation name (I.E. "BOTH_DEATH1").
+			// This might not be how every config file is set up, so make sure.
+						
+			// Copy the name of the animation to our animation structure
+			animations[currentAnim].setAnimName(linSplit[5].substring(3));
+			// If the animation is for both the legs and the torso, add it to their animation list
+			String animName = animations[currentAnim].getAnimName();
+			if(animName.startsWith("BOTH"))
+			{
+				// Add the animation to each of the upper and lower mesh lists
+				upper.addAnimations(animations[currentAnim]);
+				lower.addAnimations(animations[currentAnim]);
+			}
+				// If the animation is for the torso, add it to the torso's list
+				else if(animName.startsWith("TORSO"))
+				{
+					upper.addAnimations(animations[currentAnim]);
+				}
+				// If the animation is for the legs, add it to the legs's list
+				else if(animName.startsWith("LEGS"))
+				{	
+				// Because I found that some config files have the starting frame for the
+				// torso and the legs a different number, we need to account for this by finding
+				// the starting frame of the first legs animation, then subtracting the starting
+				// frame of the first torso animation from it.  For some reason, some exporters
+				// might keep counting up, instead of going back down to the next frame after the
+				// end frame of the BOTH_DEAD3 anim.  This will make your program crash if so.
+				
+				// If the torso offset hasn't been set, set it
+				
+				if(torsoOffset == 0)
+				{
+					torsoOffset = animations[Animations.LEGS_WALKCR.ordinal()].getStartFrame() - 
+								  animations[Animations.TORSO_GESTURE.ordinal()].getStartFrame();
+				}
+				
+				// Minus the offset from the legs animation start and end frame.
+				animations[currentAnim].setStartFrame(animations[currentAnim].getStartFrame() - torsoOffset);
+				animations[currentAnim].setEndFrame(animations[currentAnim].getEndFrame() - torsoOffset);
+				
+				// Add the animation to the list of leg animations
+				lower.addAnimations(animations[currentAnim]);
+				}
+				
+				// Increase the current animation count
+				currentAnim++;
+		}
+	
+		reader.close();
+		// Store the number if animations for each list by the STL vector size() function
+				
+		// Return a success
+		return true;
+	}
 
 
+	///////////////////////////////// UPDATE MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This sets the current frame of animation, depending on it's fps and t
+	/////
+	///////////////////////////////// UPDATE MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*	
+	
+	public void updateModel(ModelMD3 pModel)
+	{
+		// Initialize a start and end frame, for models with no animation
+		int startFrame = 0;
+		int endFrame   = 1;
+	
+		// This function is used to keep track of the current and next frames of animation
+		// for each model, depending on the current animation.  Some models down have animations,
+		// so there won't be any change.
+	
+		// Here we grab the current animation that we are on from our model's animation list
+		AnimationInfo pAnim = pModel.getAnimations(pModel.get);
+	
+		// If there is any animations for this model
+		if(pModel->numOfAnimations)
+		{
+			// Set the starting and end frame from for the current animation
+			startFrame = pAnim->startFrame;
+			endFrame   = pAnim->endFrame;
+		}
+		
+		// This gives us the next frame we are going to.  We mod the current frame plus
+		// 1 by the current animations end frame to make sure the next frame is valid.
+		pModel->nextFrame = (pModel->currentFrame + 1) % endFrame;
+	
+		// If the next frame is zero, that means that we need to start the animation over.
+		// To do this, we set nextFrame to the starting frame of this animation.
+		if(pModel->nextFrame == 0) 
+			pModel->nextFrame =  startFrame;
+	
+		// Next, we want to get the current time that we are interpolating by.  Remember,
+		// if t = 0 then we are at the beginning of the animation, where if t = 1 we are at the end.
+		// Anything from 0 to 1 can be thought of as a percentage from 0 to 100 percent complete.
+		SetCurrentTime(pModel);
+	}
 
 
 	///////////////////////////////// LINK MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -417,7 +642,6 @@ public class ModelQuake3 {
 				glPopMatrix();
 			}
 		}
-	
 	}
 
 

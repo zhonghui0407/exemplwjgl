@@ -1,6 +1,7 @@
 package fcampos.rawengine3D.model;
 
 
+
 import fcampos.rawengine3D.loader.LoaderMD3;
 import fcampos.rawengine3D.loader.LoaderMD3.TagMD3;
 
@@ -10,13 +11,16 @@ public class ModelMD3 extends Model3d {
 	protected TagMD3[]	tags;			// This stores all the tags for the model animations
 	protected int numOfTags;						// This stores the number of tags in the model
 	
+		
 	public LoaderMD3 loaderMD3;					// This object allows us to load the.md3 and .shader file
 
 	
 	public ModelMD3()
 	{
 		super();
+		loaderMD3 = new LoaderMD3();
 		
+			
 	}
 	
 	/**
@@ -123,11 +127,11 @@ public class ModelMD3 extends Model3d {
 	{
 		return numOfTags;
 	}
+	
 
 	@Override
 	public boolean load(String fileName)
 	{
-		loaderMD3 = new LoaderMD3();
 		
 		return loaderMD3.importMD3(this, fileName);
 		
@@ -141,6 +145,14 @@ public class ModelMD3 extends Model3d {
 	public boolean loadShader(String fileShader)
 	{
 		return loaderMD3.loadShader(this, fileShader);
+	}
+
+	
+	/**
+	 * @return the numOfAnimations
+	 */
+	public int getNumOfAnimations() {
+		return animations.size();
 	}
 
 

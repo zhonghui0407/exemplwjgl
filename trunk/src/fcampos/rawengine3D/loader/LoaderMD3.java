@@ -207,11 +207,11 @@ public class LoaderMD3 {
 
 	
 	
-	///////////////////////////////// IMPORT MD2 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	///////////////////////////////// IMPORT MD3 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	/////
-	/////	This is called by the client to open the .Md2 file, read it, then clean up
+	/////	This is called by the client to open the .Md3 file, read it, then clean up
 	/////
-	///////////////////////////////// IMPORT MD2 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	///////////////////////////////// IMPORT MD3 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
 	public boolean importMD3(ModelMD3 model, String fileName)
 	{
