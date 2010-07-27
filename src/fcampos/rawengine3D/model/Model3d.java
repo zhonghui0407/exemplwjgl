@@ -10,7 +10,11 @@ public class Model3d {
 	protected int numOfMaterials;				// The number of materials for the model
 
 	protected Vector<MaterialInfo> materials;	// The list of material information (Textures and colors)
-	protected Vector<Object3d> object;			// The object list for our model	
+	protected Vector<Object3d> object;			// The object list for our model
+	protected Vector<AnimationInfo> animations; // The list of animations 
+	
+	private int currentAnim;					// The current index into pAnimations list (NEW)
+	private int currentFrame;					// The current frame of the current animation (NEW)
 
 	public Model3d()
 	{
@@ -19,6 +23,7 @@ public class Model3d {
 		
 		materials = new Vector<MaterialInfo>();
 		object = new Vector<Object3d>();
+		animations = new Vector<AnimationInfo>();
 		
 		
 	}
@@ -117,6 +122,65 @@ public class Model3d {
 	public Object3d getObject(int index) {
 		return object.get(index);
 	}
+	
+	/**
+	 * @param pAnimations the pAnimations to set
+	 */
+	public void setAnimations(Vector<AnimationInfo> pAnimations) {
+		this.animations = pAnimations;
+	}
+	
+	public void addAnimations(AnimationInfo animation)
+	{
+		animations.add(animation);
+	}
+
+	public AnimationInfo getAnimations(int index)
+	{
+		return animations.get(index);
+	}
+
+	/**
+	 * @return the pAnimations
+	 */
+	public Vector<AnimationInfo> getAnimations() {
+		return animations;
+	}
+	
+	/**
+	 * @param currentAnim the currentAnim to set
+	 */
+	public void setCurrentAnim(int currentAnim) {
+		this.currentAnim = currentAnim;
+	}
+
+
+	/**
+	 * @return the currentAnim
+	 */
+	public int getCurrentAnim() {
+		return currentAnim;
+	}
+
+
+	/**
+	 * @param currentFrame the currentFrame to set
+	 */
+	public void setCurrentFrame(int currentFrame) {
+		this.currentFrame = currentFrame;
+	}
+
+
+	/**
+	 * @return the currentFrame
+	 */
+	public int getCurrentFrame() {
+		return currentFrame;
+	}
+
+
+
+
 	
 	public int findMaterial(String nome) 
 	{

@@ -363,6 +363,7 @@ public final class CameraQuaternion
 
 		// Create the resulting quaternion by multiplying the rotation quat by the view quat
 		// then multiplying that by the conjugate of the rotation quat.
+		
 		qNewView = Quaternion.multiply(Quaternion.multiply(qRotation,qView), qRotation.conjugate());
 
 		// Update the view information by adding the position to the resulting quaternion.

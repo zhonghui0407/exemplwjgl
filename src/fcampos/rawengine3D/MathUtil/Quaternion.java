@@ -218,10 +218,11 @@ public class Quaternion extends Vector4f {
 
 
       public Quaternion conjugate()
-         {
-            return new Quaternion(-x, -y, -z, w);
-         }
-
+      { 
+          return new Quaternion(-x, -y, -z, w);
+      }
+      
+    
       public boolean isEqual(Quaternion q1)
       {
     	  if(q1.x == x && q1.y == y && q1.z == z && q1.w == w) 
@@ -397,45 +398,51 @@ public class Quaternion extends Vector4f {
          w = beta * q1.w + t * q2Array[3];
       }
   */    
-	   
-	      public void Slerp(Quaternion q1, Quaternion q2, float t)
-	      {
-	         float cosTheta = 0.0f;
-	         float sinTheta = 0.0f;
-	         float beta = 0.0f;
-	        
+
+	   public Quaternion Slerp(Quaternion q1, Quaternion q2, float t)
+	   {
+	    	  Quaternion qInterpolated = new Quaternion();
+	        	        	        
+	         if(isEqual(q1, q2))
+	         {
+	        	 return q1;
+	         }
 
 	         // Temporary array to hold second quaternion.
 	       
-	         cosTheta = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
+	        float cosTheta = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
 
-	         if(cosTheta < 0.0f)
-	            {
+	        if(cosTheta < 0.0f)
+	        {
 	               // Flip sigh if so.
-	              q2.conjugate();
-	              cosTheta = -cosTheta;
-	            }
+	           q2 = q2.conjugate();
+	           cosTheta = -cosTheta;
+	        }
 
-	         beta = 1.0f - t;
+	        float beta = 1.0f - t;
 	         
 	      // Set the first and second scale for the interpolation
-	     	float scale0 = 1 - t, scale1 = t;
+	     	float scale0 = 1.0f - t;
+	     	float scale1 = t;
 
-	         if(1.0f - cosTheta > 0.1f)
-	            {
+	        if(1.0f - cosTheta > 0.1f)
+	        {
 	               // We are using spherical interpolation.
 	               float theta = (float)Math.acos(cosTheta);
-	               sinTheta = (float)Math.sin(theta);
+	               float sinTheta = (float)Math.sin(theta);
 	               scale0 = (float)Math.sin(theta * beta) / sinTheta;
 	               scale1 = (float)Math.sin(theta * t) / sinTheta;
-	            }
+	         }
 
 	         // Interpolation.
-	         x = scale0 * q1.x + scale1 * q2.x;
-	         y = scale0 * q1.y + scale1 * q2.y;
-	         z = scale0 * q1.z + scale1 * q2.z;
-	         w = scale0 * q1.w + scale1 * q2.w;
-	      }
+	         qInterpolated.x = scale0 * q1.x + scale1 * q2.x;
+	         qInterpolated.y = scale0 * q1.y + scale1 * q2.y;
+	         qInterpolated.z = scale0 * q1.z + scale1 * q2.z;
+	         qInterpolated.w = scale0 * q1.w + scale1 * q2.w;
+	         
+	         return qInterpolated;
+	   }
+	   
       private boolean floatEquality(float x, float v)
       {
     	  return ( ((v) - EPSILON) < (x) && (x) < ((v) + EPSILON) );		// float equality test
