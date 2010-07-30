@@ -15,6 +15,10 @@ public class Model3d {
 	
 	private int currentAnim;					// The current index into pAnimations list (NEW)
 	private int currentFrame;					// The current frame of the current animation (NEW)
+	private int nextFrame;						// The next frame of animation to interpolate too
+	private float t;							// The ratio of 0.0f to 1.0f between each key frame
+	private float lastTime;						// This stores the last time that was stored
+
 
 	public Model3d()
 	{
@@ -24,6 +28,9 @@ public class Model3d {
 		materials = new Vector<MaterialInfo>();
 		object = new Vector<Object3d>();
 		animations = new Vector<AnimationInfo>();
+		setNextFrame(0);
+		setT(0f);
+		setLastTime(0);
 		
 		
 	}
@@ -148,6 +155,14 @@ public class Model3d {
 	}
 	
 	/**
+	 * @return the numOfAnimations
+	 */
+	public int getNumOfAnimations() 
+	{
+		return animations.size();
+	}
+	
+	/**
 	 * @param currentAnim the currentAnim to set
 	 */
 	public void setCurrentAnim(int currentAnim) {
@@ -192,6 +207,54 @@ public class Model3d {
 			}
 		}
 		return -1;
+	}
+
+
+	/**
+	 * @param nextFrame the nextFrame to set
+	 */
+	public void setNextFrame(int nextFrame) {
+		this.nextFrame = nextFrame;
+	}
+
+
+	/**
+	 * @return the nextFrame
+	 */
+	public int getNextFrame() {
+		return nextFrame;
+	}
+
+
+	/**
+	 * @param t the t to set
+	 */
+	public void setT(float t) {
+		this.t = t;
+	}
+
+
+	/**
+	 * @return the t
+	 */
+	public float getT() {
+		return t;
+	}
+
+
+	/**
+	 * @param lastTime the lastTime to set
+	 */
+	public void setLastTime(float lastTime) {
+		this.lastTime = lastTime;
+	}
+
+
+	/**
+	 * @return the lastTime
+	 */
+	public float getLastTime() {
+		return lastTime;
 	}
 
 

@@ -79,5 +79,10 @@ public class Vector3f
 		this.z = - this.z;
     }
     
+    public String toString()
+    {
+    	return new String("X:" + x + " Y:" + y + " Z:" + z);
+    }
+    
 
 }

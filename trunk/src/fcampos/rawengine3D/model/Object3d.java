@@ -89,12 +89,17 @@ public class Object3d {
 	 * @param numVertFaces the numVertFaces to set
 	 */
 	public void setNumVertices(int numVertices) {
-		this.numVertices = numVertices;
+		
 		vertices = new Vector3f[numVertices];
 		for (int a=0; a < numVertices; a++)
 		{
 			vertices[a] = new Vector3f();
 		}
+	}
+	
+	public void setNumVert(int numVertices)
+	{
+		this.numVertices = numVertices;
 	}
 
 	
@@ -493,6 +498,11 @@ public class Object3d {
 					glNormal3f(getNormal(getFace(i).getNormal(vf)).x, 
 							   getNormal(getFace(i).getNormal(vf)).y,
 							   getNormal(getFace(i).getNormal(vf)).z);
+				}else{
+					//System.out.println(getNormal(i).toString());
+					glNormal3f(getNormal(i).x, 
+							   getNormal(i).y,
+							   getNormal(i).z);
 				}
 				// Se houver uma textura associada...
 				if(texid!=-1)

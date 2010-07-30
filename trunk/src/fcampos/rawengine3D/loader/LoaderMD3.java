@@ -200,13 +200,6 @@ public class LoaderMD3 {
 		}
 	};
 
-	
-	
-
-	
-
-	
-	
 	///////////////////////////////// IMPORT MD3 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	/////
 	/////	This is called by the client to open the .Md3 file, read it, then clean up
@@ -241,13 +234,7 @@ public class LoaderMD3 {
 			// Since we are only reading in the first frame of animation, there will only
 			// be ONE object in our t3DObject structure, held within our pModel variable.
 			readMD3Data(model);
-			
-		
-			// After we have read the whole MD2 file, we want to calculate our own vertex normals.
-			VectorMath.computeNormals(model);
-			
-			
-		
+
 		}
 		catch(Exception e)
 		{
@@ -259,17 +246,17 @@ public class LoaderMD3 {
 		return true;
 	}
 
-	///////////////////////////////// READ MD2 DATA \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	///////////////////////////////// READ MD3 DATA \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	/////
 	/////	This function reads in all of the model's data, except the animation frames
 	/////
-	///////////////////////////////// READ MD2 DATA \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	///////////////////////////////// READ MD3 DATA \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
 	private void readMD3Data(ModelMD3 model) throws Exception
 	{
 	
 	
-	int i;
+		int i;
 		
 		// Here we allocate memory for the bone information and read the bones in.
 		bones = new BoneMD3[header.numFrames];
@@ -458,7 +445,7 @@ public class LoaderMD3 {
 
 	///////////////////////////////// CONVERT DATA STRUCTURES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	/////
-	/////	This function converts the .md2 structures to our own model and object structures
+	/////	This function converts the .md3 structures to our own model and object structures
 	/////
 	///////////////////////////////// CONVERT DATA STRUCTURES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
@@ -467,51 +454,53 @@ public class LoaderMD3 {
 		int i = 0;
 		
 		
-		Object3d currentFrame = new Object3d();
+		Object3d currentMesh = new Object3d();
 		
 		
 		// Assign the vertex, texture coord and face count to our new structure
-		currentFrame.setNumVertices(meshHeader.numVertices * meshHeader.numMeshFrames);
-		currentFrame.setNumTexcoords(meshHeader.numVertices);
-		currentFrame.setNumFaces(meshHeader.numTriangles);
-		currentFrame.setName(meshHeader.strName);
+		currentMesh.setNumVertices(meshHeader.numVertices * meshHeader.numMeshFrames);
+		currentMesh.setNumVert(meshHeader.numVertices);
+		
+		currentMesh.setNumTexcoords(meshHeader.numVertices);
+		currentMesh.setNumFaces(meshHeader.numTriangles);
+		currentMesh.setName(meshHeader.strName);
 		
 		// Go through all of the vertices and assign them over to our structure
-		for (i=0; i < currentFrame.getNumVertices(); i++)
+		for (i=0; i < currentMesh.getNumVertices() * meshHeader.numMeshFrames; i++)
 		{
 			Vector3f temp = new Vector3f(vertices[i].vertex[0]/64.0f, vertices[i].vertex[1]/64.0f,
 										 vertices[i].vertex[2]/64.0f);
 			
-			currentFrame.setVertices(temp, i);
+			currentMesh.setVertices(temp, i);
 			
 		}
 		
 		
-		for (i=0; i < currentFrame.getNumTexcoords(); i++)
+		for (i=0; i < currentMesh.getNumTexcoords(); i++)
 		{
 			Vector3f temp = new Vector3f(texCoords[i].u , -texCoords[i].v, 0);
-			currentFrame.setTexcoords(temp, i);
+			currentMesh.setTexcoords(temp, i);
 			
 		}
 		
 		// Go through all of the face data and assign it over to OUR structure
-		for(i=0; i < currentFrame.getNumFaces(); i++)
+		for(i=0; i < currentMesh.getNumFaces(); i++)
 		{
 			// Assign the vertex indices to our face data
-			currentFrame.getFace(i).setVertices(0, triangles[i].vertexIndices[0]);
-			currentFrame.getFace(i).setVertices(1, triangles[i].vertexIndices[1]);
-			currentFrame.getFace(i).setVertices(2, triangles[i].vertexIndices[2]);
+			currentMesh.getFace(i).setVertices(0, triangles[i].vertexIndices[0]);
+			currentMesh.getFace(i).setVertices(1, triangles[i].vertexIndices[1]);
+			currentMesh.getFace(i).setVertices(2, triangles[i].vertexIndices[2]);
 			
 						
 			// Assign the texture coord indices to our face data
-			currentFrame.getFace(i).setTexCoords(0, triangles[i].vertexIndices[0]);
-			currentFrame.getFace(i).setTexCoords(1, triangles[i].vertexIndices[1]);
-			currentFrame.getFace(i).setTexCoords(2, triangles[i].vertexIndices[2]);
+			currentMesh.getFace(i).setTexCoords(0, triangles[i].vertexIndices[0]);
+			currentMesh.getFace(i).setTexCoords(1, triangles[i].vertexIndices[1]);
+			currentMesh.getFace(i).setTexCoords(2, triangles[i].vertexIndices[2]);
 			
 		}
-		currentFrame.setDimension();
+		currentMesh.setDimension();
 		// Here we add the current object (or frame) to our list object list
-		model.addObject(currentFrame);
+		model.addObject(currentMesh);
 	}
 
 	public boolean loadShader(ModelMD3 model, String fileShader)

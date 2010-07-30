@@ -16,6 +16,13 @@ private final static float PI_VALUE = 3.141592654f;
 	     m.matrix[8], m.matrix[9], m.matrix[10], m.matrix[11],
 	     m.matrix[12], m.matrix[13], m.matrix[14], m.matrix[15]);	
 	}
+	
+	public Matrix4f(float[] m) {
+		this(m[0],  m[1],  m[2],  m[3],
+		     m[4],  m[5],  m[6],  m[7],
+		     m[8],  m[9],  m[10], m[11],
+		     m[12], m[13], m[14], m[15]);	
+		}
 
 	public Matrix4f(float r11, float r12, float r13, float r14,
                        	float r21, float r22, float r23, float r24,

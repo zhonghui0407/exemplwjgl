@@ -624,7 +624,7 @@ public class TSala3D extends GameCore {
         		// Desenha o hemisfério com textura
         		glPushMatrix();
         		glScalef(5,5,5);
-        		ceu.draw(ceu);
+        		ceu.draw();
         		glPopMatrix();
         	}
         	glEnable(GL_LIGHTING);
@@ -639,7 +639,7 @@ public class TSala3D extends GameCore {
         	glPushMatrix();
         	glTranslatef(-301,100,300);
         	glRotatef(90,0,1,0);
-        	porta.draw(porta);
+        	porta.draw();
         	
         	glPopMatrix();
         	
@@ -665,7 +665,7 @@ public class TSala3D extends GameCore {
         	// Associa a textura de parede ao plano
         	plano.getObject(0).setMaterialID(parede.getTexID());
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
         
         	// Parede da frente
@@ -674,7 +674,7 @@ public class TSala3D extends GameCore {
         	glRotatef(180,0,1,0);
         	glScalef(6,3,1);
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	setaEscalaTextura(8,3);
@@ -685,7 +685,7 @@ public class TSala3D extends GameCore {
         	glRotatef(90,0,1,0);
         	glScalef(8,3,1);
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	//
@@ -700,7 +700,7 @@ public class TSala3D extends GameCore {
         	glRotatef(-90,0,1,0);
         	glScalef(8f,0.75f,1f);	// 8 m x 75 cm
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	// Parte superior
@@ -709,7 +709,7 @@ public class TSala3D extends GameCore {
         	glRotatef(-90,0,1,0);
         	glScalef(8f,0.75f,1f);
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	
@@ -723,7 +723,7 @@ public class TSala3D extends GameCore {
         	glRotatef(-90,0,1,0);
         	glScalef(0.5f,1.5f,1f);
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	// antes do meio
@@ -732,7 +732,7 @@ public class TSala3D extends GameCore {
         	glRotatef(-90,0,1,0);
         	glScalef(0.5f,1.5f,1f);
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	// depois do meio
@@ -741,7 +741,7 @@ public class TSala3D extends GameCore {
         	glRotatef(-90,0,1,0);
         	glScalef(0.5f,1.5f,1f);
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	// frente
@@ -750,7 +750,7 @@ public class TSala3D extends GameCore {
         	glRotatef(-90,0,1,0);
         	glScalef(0.5f,1.5f,1f);
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	/**********************************
@@ -765,7 +765,7 @@ public class TSala3D extends GameCore {
         	glTranslatef(300f,150f,-250f);
         	glRotatef(-90,0,1,0);
         	//lo.desenhaObjeto(janela);
-        	janela.draw(janela);
+        	janela.draw();
         	glPopMatrix();
 
         	// Janela do meio
@@ -773,7 +773,7 @@ public class TSala3D extends GameCore {
         	glTranslatef(300f,150f,0f);
         	glRotatef(-90,0,1,0);
         	//lo.desenhaObjeto(janela);
-        	janela.draw(janela);
+        	janela.draw();
         	glPopMatrix();
 
         	// Janela da frente
@@ -781,7 +781,7 @@ public class TSala3D extends GameCore {
         	glTranslatef(300f,150f,250f);
         	glRotatef(-90,0,1,0);
         	//lo.desenhaObjeto(janela);
-        	janela.draw(janela);
+        	janela.draw();
         	glPopMatrix();
 
         	//
@@ -809,7 +809,7 @@ public class TSala3D extends GameCore {
         			glRotatef(90,1,0,0);
         			glRotatef(90,0,0,1);
         			//lo.desenhaObjeto(lamp);
-        			lamp.draw(lamp);
+        			lamp.draw();
         			glPopMatrix();
         		}
         	}
@@ -826,8 +826,8 @@ public class TSala3D extends GameCore {
         	glTranslatef(0,160,398);
         	glRotatef(180,0,1,0);
         	//lo.desenhaObjeto(quadro);
-        	quadro.draw(quadro);
-        	arena.draw(arena);
+        	quadro.draw();
+        	arena.draw();
         	glPopMatrix();
         	
         }
@@ -855,7 +855,7 @@ public class TSala3D extends GameCore {
         	// Associa a textura de chão ao plano
         	plano.getObject(0).setMaterialID(chao.getTexID());
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	setaEscalaTextura(1,1); 
@@ -884,7 +884,7 @@ public class TSala3D extends GameCore {
         	// Associa a textura de teto ao plano
         	plano.getObject(0).setMaterialID(teto.getTexID());
         	//lo.desenhaObjeto(plano);
-        	plano.draw(plano);
+        	plano.draw();
         	glPopMatrix();
 
         	setaEscalaTextura(1,1); 
@@ -898,13 +898,13 @@ public class TSala3D extends GameCore {
         	// Posiciona a mesa
         	glTranslatef(limitesMesa[36].x,limitesMesa[36].y-12,limitesMesa[36].z);
         	//lo.desenhaObjeto(mesa);
-        	mesa.draw(mesa);
+        	mesa.draw();
 
         	// Posiciona e orienta a cadeira
         	glTranslatef(0,-15,30);
         	glRotatef(180,0,1,0);
         	//lo.desenhaObjeto(cadeira);
-        	cadeira.draw(cadeira);
+        	cadeira.draw();
 
         	glPopMatrix();
 
@@ -921,11 +921,11 @@ public class TSala3D extends GameCore {
         		// Posiciona uma mesa
         		glTranslatef(limitesMesa[i].x,limitesMesa[i].y-10,limitesMesa[i].z);
         		//lo.desenhaObjeto(mesapeq);
-        		mesapeq.draw(mesapeq);
+        		mesapeq.draw();
         		// Posiciona a cadeira em relação à mesa
         		glTranslatef(0,-10,-30);
         		//lo.desenhaObjeto(cadeira);
-        		cadeira.draw(cadeira);
+        		cadeira.draw();
         		glPopMatrix();
         	}
         }
@@ -967,17 +967,17 @@ public class TSala3D extends GameCore {
         	// Vidros de trás
         	glTranslatef(-a,0,0);
         	//lo.desenhaObjeto(vidro);
-        	vidro.draw(vidro);
+        	vidro.draw();
         	glTranslatef(a*2,0,0);
         	//lo.desenhaObjeto(vidro);
-        	vidro.draw(vidro);
+        	vidro.draw();
         	// Vidros da frente
         	glTranslatef(75-a,0,3);
         	//lo.desenhaObjeto(vidro);
-        	vidro.draw(vidro);
+        	vidro.draw();
         	glTranslatef(-150,0,0);
         	//lo.desenhaObjeto(vidro);
-        	vidro.draw(vidro);
+        	vidro.draw();
         	glPopMatrix();
         }
        

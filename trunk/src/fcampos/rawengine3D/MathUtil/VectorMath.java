@@ -204,8 +204,8 @@ public final class VectorMath
 
 				// Now let's calculate the face normals (Get 2 vectors and find the cross product of those 2)
 
-				vector1 = VectorMath.subtract(poly[0], poly[2]);				// Get the vector of the polygon (we just need 2 sides for the normal)
-				vector2 = VectorMath.subtract(poly[2], poly[1]);				// Get a second vector of the polygon
+				vector1 = VectorMath.subtract(poly[2], poly[1]);				// Get the vector of the polygon (we just need 2 sides for the normal)
+				vector2 = VectorMath.subtract(poly[2], poly[0]);				// Get a second vector of the polygon
 
 				normal  = VectorMath.cross_product(vector1, vector2);		// Return the cross product of the 2 vectors (normalize vector, but not a unit vector)
 				tempNormals[i] = new Vector3f(normal);					// Save the un-normalized normal for the vertex normals

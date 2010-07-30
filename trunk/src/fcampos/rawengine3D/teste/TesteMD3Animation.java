@@ -15,11 +15,11 @@ import static org.lwjgl.util.glu.GLU.*;
  *
  * @author Fabio
  */
-public class TesteMD3 extends GameCore {
+public class TesteMD3Animation extends GameCore {
 
     public static void main(String[] args)
     {
-        new TesteMD3().run();
+        new TesteMD3Animation().run();
     }
     
    
@@ -32,6 +32,9 @@ public class TesteMD3 extends GameCore {
     public GameAction moveRight;
     public GameAction moveUp;
     public GameAction moveDown;
+    
+    public GameAction changeUpper;
+    public GameAction changeLower;
   
     public GameAction drawMode;
     public GameAction modTex;
@@ -69,17 +72,28 @@ public class TesteMD3 extends GameCore {
                    
         g_World.loadModel(MODEL_PATH, MODEL_NAME);
         g_World.loadWeapon(MODEL_PATH, GUN_NAME);
+        
+////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+    	// When we get here, the character should have everything loaded.  Before going on,
+    	// we want to set the current animation for the torso and the legs.
+
+    	// Set the standing animation for the torso
+        g_World.setTorsoAnimation("TORSO_STAND");
+
+    	// Set the walking animation for the legs
+        g_World.setLegsAnimation("LEGS_WALK");
+
+    //////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
                 
-       // g_World.loadAnimations(MODEL_PATH+"\\lara_animation.cfg");
-        // Here, we turn on a lighting and enable lighting.  We don't need to
-    	// set anything else for lighting because we will just take the defaults.
-    	// We also want color, so we turn that on
-     
-    	    	// Habilita Z-Buffer
-    	glEnable(GL_DEPTH_TEST);
-    	glEnable(GL_LIGHT0);								// Turn on a light with defaults set
-    	glEnable(GL_LIGHTING);								// Turn on lighting
-    	glEnable(GL_COLOR_MATERIAL);						// Allow color
+        
+        glEnable(GL_CULL_FACE);								// Turn back face culling on
+    	glCullFace(GL_FRONT);								// Quake3 uses front face culling apparently
+
+    	glEnable(GL_TEXTURE_2D);							// Enables Texture Mapping
+    	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
+    
 
     	// To make our model render somewhat faster, we do some front back culling.
     	// It seems that Quake2 orders their polygons clock-wise.
@@ -113,6 +127,15 @@ public class TesteMD3 extends GameCore {
         public void checkGameInput()
         {
         	
+        	if(changeUpper.isPressed())
+        	{
+        		increaseCharacterAnimation(g_World, ModelQuake3.kUpper);
+        	}
+        	
+        	if(changeLower.isPressed())
+        	{
+        		increaseCharacterAnimation(g_World, ModelQuake3.kLower);
+        	}
         	          
         	if(moveUp.isPressed())
         	{
@@ -206,6 +229,61 @@ public class TesteMD3 extends GameCore {
         	
         	
         }
+        
+	////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+	
+	//////////////////////////INCREASE CHARACTER ANIMATION \\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This function increases the model's torso or legs animation
+	/////
+	//////////////////////////INCREASE CHARACTER ANIMATION \\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void increaseCharacterAnimation(ModelQuake3 pCharacter, int whichPart)
+	{
+		
+		ModelMD3 pModel, pUpper, pLower;
+		
+		// This function doesn't have much to do with the character animation, but I
+		// created it so that we can cycle through each of the animations to see how
+		// they all look.  You can press the right and left mouse buttons to cycle through
+		// the torso and leg animations.  If the current animation is the end animation,
+		// it cycles back to the first animation.  This function takes the character you
+		// want, then the define (kLower, kUpper) that tells which part to change.
+		
+		// Here we store pointers to the legs and torso, so we can display their current anim name
+		pLower = pCharacter.getModel(ModelQuake3.kLower);
+		pUpper = pCharacter.getModel(ModelQuake3.kUpper);
+		
+		// This line gives us a pointer to the model that we want to change
+		pModel = pCharacter.getModel(whichPart);
+		
+		// To cycle through the animations, we just increase the model's current animation
+		// by 1.  You'll notice that we also mod this result by the total number of
+		// animations in our model, to make sure we go back to the beginning once we reach
+		// the end of our animation list.  
+		
+		// Increase the current animation and mod it by the max animations
+		pModel.setCurrentAnim((pModel.getCurrentAnim()+ 1) % (pModel.getNumOfAnimations()));
+		
+		// Set the current frame to be the starting frame of the new animation
+		pModel.setNextFrame(pModel.getAnimations(pModel.getCurrentAnim()).getStartFrame());
+		
+		// (* NOTE *) Currently when changing animations, the character doesn't immediately
+		// change to the next animation, but waits till it finishes the current animation
+		// and slowly blends into the next one.  If you want an immediate switch, change
+		// the pModel-nextFrame to pModel->currentFrame.
+		
+		// Display the current animations in our window's title bar
+					
+		screen.setTitle("Animation: Lower: " + pLower.getAnimations(pLower.getCurrentAnim()).getAnimName()
+						+ "  Upper: " + pUpper.getAnimations(pUpper.getCurrentAnim()).getAnimName());
+				
+		// Set the window's title bar to our new string of animation names
+	
+	}
+	
+	////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
              
         public void createGameActions()
         {
@@ -214,6 +292,9 @@ public class TesteMD3 extends GameCore {
             moveRight = new GameAction("moveRight", GameAction.NORMAL, Keyboard.KEY_RIGHT);
             moveUp = new GameAction("moveUp", GameAction.NORMAL, Keyboard.KEY_UP);
             moveDown = new GameAction("moveDown", GameAction.NORMAL, Keyboard.KEY_DOWN);
+            
+            changeUpper  = new GameAction("changeUpper", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_U);
+            changeLower = new GameAction("changeLower", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_L);
             
             drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
             modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_M);

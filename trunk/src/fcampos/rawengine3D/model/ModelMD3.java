@@ -148,12 +148,7 @@ public class ModelMD3 extends Model3d {
 	}
 
 	
-	/**
-	 * @return the numOfAnimations
-	 */
-	public int getNumOfAnimations() {
-		return animations.size();
-	}
+	
 
 
 	
