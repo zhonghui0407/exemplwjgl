@@ -531,7 +531,10 @@ public class Loader3DS{
 		// we then fread() them into our vertice array.
 	
 		// Read in the number of vertices (int)
-		object.setNumVertices(in.readLEShort());
+		int numVert = in.readLEShort();
+		object.setNumVertices(numVert);
+		object.setNumVert(numVert);
+		
 		previousChunk.addBytesRead(Short.SIZE/8);
 			
 		// Read in the array of vertices (an array of 3 floats)

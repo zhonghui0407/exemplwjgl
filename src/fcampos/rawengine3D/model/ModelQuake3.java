@@ -2,11 +2,14 @@ package fcampos.rawengine3D.model;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Arrays;
 
+import org.lwjgl.Sys;
+import fcampos.rawengine3D.MathUtil.Matrix4f;
+import fcampos.rawengine3D.MathUtil.Quaternion;
 import fcampos.rawengine3D.MathUtil.Vector3f;
 import fcampos.rawengine3D.graficos.Texture;
 import fcampos.rawengine3D.io.TextFile;
+import fcampos.rawengine3D.resource.Conversion;
 import fcampos.rawengine3D.resource.TextureManager;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -15,10 +18,10 @@ public class ModelQuake3 {
 	
 	// These defines are used to pass into GetModel(), which is member function of ModelMD3
 
-	private final static int kLower =  0;			// This stores the ID for the legs model
-	private final static int kUpper =  1;			// This stores the ID for the torso model
-	private final static int kHead 	=  2;			// This stores the ID for the head model
-	private final static int kWeapon = 3;			// This stores the ID for the weapon model
+	public final static int kLower =  0;			// This stores the ID for the legs model
+	public final static int kUpper =  1;			// This stores the ID for the torso model
+	public final static int kHead 	=  2;			// This stores the ID for the head model
+	//private final static int kWeapon = 3;			// This stores the ID for the weapon model
 
 	
 	// These are are models for the character's head and upper and lower body parts
@@ -29,9 +32,8 @@ public class ModelQuake3 {
 	// This store the players weapon model (optional load)
 	private ModelMD3 weapon;
 	
-	public static TextureManager texManager;
-	
-	
+	public TextureManager texManager;
+
 	public ModelQuake3()
 	{
 		head = new ModelMD3();
@@ -50,7 +52,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// GET BODY PART \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public Model3d getModel(int whichPart)
+	public ModelMD3 getModel(int whichPart)
 	{
 		// Return the legs model if desired
 		if(whichPart == kLower) 
@@ -76,16 +78,16 @@ public class ModelQuake3 {
 	
 	public void loadModel(String filePath, String fileModel) throws IOException
 	{
-		String fileLowerModel;					// This stores the file name for the lower.md3 model
-		String fileUpperModel;					// This stores the file name for the upper.md3 model
-		String fileHeadModel;					// This stores the file name for the head.md3 model
-		String fileLowerSkin;					// This stores the file name for the lower.md3 skin
-		String fileUpperSkin;					// This stores the file name for the upper.md3 skin
-		String fileHeadSkin;						// This stores the file name for the head.md3 ski
+		String fileLowerModel;				// This stores the file name for the lower.md3 model
+		String fileUpperModel;				// This stores the file name for the upper.md3 model
+		String fileHeadModel;				// This stores the file name for the head.md3  model
+		String fileLowerSkin;				// This stores the file name for the lower.md3 skin
+		String fileUpperSkin;				// This stores the file name for the upper.md3 skin
+		String fileHeadSkin;				// This stores the file name for the head.md3  skin
 		
 		
 		// This function is where all the character loading is taken care of.  We use
-		// our CLoadMD3 class to load the 3 mesh and skins for the character. Since we
+		// our ModelQuake3 class to load the 3 mesh and skins for the character. Since we
 		// just have 1 name for the model, we add that to _lower.md3, _upper.md3 and _head.md3
 		// to load the correct mesh files.
 	
@@ -93,7 +95,7 @@ public class ModelQuake3 {
 		if(filePath == null || fileModel == null) return;
 		
 		// Store the correct files names for the .md3 and .skin file for each body part.
-		  // We concatinate this on top of the path name to be loaded from.
+		// We concatinate this on top of the path name to be loaded from.
 		fileLowerModel = filePath + "/" + fileModel + "_lower.md3";
 		fileUpperModel = filePath + "/" + fileModel + "_upper.md3";
 		fileHeadModel = filePath + "/" + fileModel + "_head.md3";
@@ -194,10 +196,10 @@ public class ModelQuake3 {
 		// upper body.  Then we draw the upper body's children, which is just the head.  So, to
 		// sum this all up, to set each body part's children, we need to link them together.
 		// For more information on tags, refer to the Quick Notes and the functions below.
-		 // Link the lower body to the upper body when the tag "tag_torso" is found in our tag array
+		// Link the lower body to the upper body when the tag "tag_torso" is found in our tag array
 		linkModel(lower, upper, "tag_torso");
 	
-		  // Link the upper body to the head when the tag "tag_head" is found in our tag array
+		// Link the upper body to the head when the tag "tag_head" is found in our tag array
 		linkModel(upper, head, "tag_head");
 			
 		
@@ -426,6 +428,9 @@ public class ModelQuake3 {
 				
 				if(torsoOffset == 0)
 				{
+					//System.out.println("legs: " + animations[Animations.LEGS_WALKCR.ordinal()].getStartFrame());
+					
+					//System.out.println("torso: " + animations[Animations.TORSO_GESTURE.ordinal()].getStartFrame());
 					torsoOffset = animations[Animations.LEGS_WALKCR.ordinal()].getStartFrame() - 
 								  animations[Animations.TORSO_GESTURE.ordinal()].getStartFrame();
 				}
@@ -450,47 +455,7 @@ public class ModelQuake3 {
 	}
 
 
-	///////////////////////////////// UPDATE MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-	/////
-	/////	This sets the current frame of animation, depending on it's fps and t
-	/////
-	///////////////////////////////// UPDATE MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*	
-	
-	public void updateModel(ModelMD3 pModel)
-	{
-		// Initialize a start and end frame, for models with no animation
-		int startFrame = 0;
-		int endFrame   = 1;
-	
-		// This function is used to keep track of the current and next frames of animation
-		// for each model, depending on the current animation.  Some models down have animations,
-		// so there won't be any change.
-	
-		// Here we grab the current animation that we are on from our model's animation list
-		AnimationInfo pAnim = pModel.getAnimations(pModel.get);
-	
-		// If there is any animations for this model
-		if(pModel->numOfAnimations)
-		{
-			// Set the starting and end frame from for the current animation
-			startFrame = pAnim->startFrame;
-			endFrame   = pAnim->endFrame;
-		}
-		
-		// This gives us the next frame we are going to.  We mod the current frame plus
-		// 1 by the current animations end frame to make sure the next frame is valid.
-		pModel->nextFrame = (pModel->currentFrame + 1) % endFrame;
-	
-		// If the next frame is zero, that means that we need to start the animation over.
-		// To do this, we set nextFrame to the starting frame of this animation.
-		if(pModel->nextFrame == 0) 
-			pModel->nextFrame =  startFrame;
-	
-		// Next, we want to get the current time that we are interpolating by.  Remember,
-		// if t = 0 then we are at the beginning of the animation, where if t = 1 we are at the end.
-		// Anything from 0 to 1 can be thought of as a percentage from 0 to 100 percent complete.
-		SetCurrentTime(pModel);
-	}
+
 
 
 	///////////////////////////////// LINK MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -579,6 +544,18 @@ public class ModelQuake3 {
 		// of the upper body, the hips do.  If that makes sense...  That is why the root starts
 		// at the hips and moves down the legs, and also branches out to the upper body and
 		// out to the arms.
+		
+////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+		// Since we have animation now, when we draw the model the animation frames need
+		// to be updated.  To do that, we pass in our lower and upper models to UpdateModel().
+		// There is no need to pass in the head of weapon, since they don't have any animation.
+
+		// Update the leg and torso animations
+		updateModel(lower);
+		updateModel(upper);
+		
+	//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
 	
 		// Draw the first link, which is the lower body.  This will then recursively go
 		// through the models attached to this model and drawn them.
@@ -614,6 +591,31 @@ public class ModelQuake3 {
 	
 		// Draw the current model passed in (Initially the legs)
 		renderModel(model);
+		
+		/////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+		// Though the changes to this function from the previous tutorial aren't huge, they
+		// are pretty powerful.  Since animation is in effect, we need to create a rotational
+		// matrix for each key frame, at each joint, to be applied to the child nodes of that 
+		// object.  We can also slip in the interpolated translation into that same matrix.
+		// The big thing in this function is interpolating between the 2 rotations.  The process
+		// involves creating 2 quaternions from the current and next key frame, then using
+		// slerp (spherical linear interpolation) to find the interpolated quaternion, then
+		// converting that quaternion to a 4x4 matrix, adding the interpolated translation
+		// to that matrix, then finally applying it to the current model view matrix in OpenGL.
+		// This will then effect the next objects that are somehow explicitly or inexplicitly
+		// connected and drawn from that joint.
+
+		// Create some local variables to store all this crazy interpolation data
+		Quaternion qQuat = new Quaternion();
+		Quaternion qNextQuat = new Quaternion();
+		Quaternion qInterpolatedQuat = new Quaternion();
+		float[] pMatrix;
+		float[] pNextMatrix;
+		Matrix4f finalMatrix;
+
+	//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
 	
 		// Now we need to go through all of this models tags and draw them.
 		for(int i = 0; i < model.getNumOfTags(); i++)
@@ -624,24 +626,198 @@ public class ModelQuake3 {
 			// If this link has a valid address, let's draw it!
 			if(link != null)
 			{			
-				// Let's grab the translation for this new model that will be drawn 
-				Vector3f position = model.getTags(i).position;
-	
+
+	//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+				// To find the current translation position for this frame of animation, we times
+				// the currentFrame by the number of tags, then add i.  This is similar to how
+				// the vertex key frames are interpolated.
+				Vector3f vPosition = new Vector3f(model.getTags(model.getCurrentFrame() * model.getNumOfTags() + i).position);
+
+				// Grab the next key frame translation position
+				Vector3f vNextPosition = new Vector3f(model.getTags(model.getNextFrame() * model.getNumOfTags() + i).position);
+			
+				// By using the equation: p(t) = p0 + t(p1 - p0), with a time t,
+				// we create a new translation position that is closer to the next key frame.t
+				Vector3f positionNew = new Vector3f();
+				positionNew.x   = vPosition.x + (model.getT() * (vNextPosition.x - vPosition.x));
+				positionNew.y	= vPosition.y + (model.getT() * (vNextPosition.y - vPosition.y));
+				positionNew.z	= vPosition.z + (model.getT() * (vNextPosition.z - vPosition.z));			
+
+				// Now comes the more complex interpolation.  Just like the translation, we
+				// want to store the current and next key frame rotation matrix, then interpolate
+				// between the 2.
+
+				// Get a pointer to the start of the 3x3 rotation matrix for the current frame
+				pMatrix = model.getTags(model.getCurrentFrame() * model.getNumOfTags() + i).rotation;
+
+				// Get a pointer to the start of the 3x3 rotation matrix for the next frame
+				pNextMatrix = model.getTags(model.getNextFrame() * model.getNumOfTags() + i).rotation;
+
+				// Now that we have 2 1D arrays that store the matrices, let's interpolate them
+
+				// Convert the current and next key frame 3x3 matrix into a quaternion
+				qQuat.createFromMatrix(pMatrix, 3);
+				qNextQuat.createFromMatrix( pNextMatrix, 3 );
+
+				// Using spherical linear interpolation, we find the interpolated quaternion
+				qInterpolatedQuat.slerp(qQuat, qNextQuat, model.getT());
+				
+				finalMatrix = new Matrix4f();
+				//System.out.println("Antes: "+ Arrays.toString(finalMatrix.matrix));
+				// Here we convert the interpolated quaternion into a 4x4 matrix
+				//Vector3f axis = new Vector3f();
+				//float angle = qInterpolatedQuat.getAxisAngle(axis);
+				
+				qInterpolatedQuat.createMatrix( finalMatrix );
+				
+				//System.out.println("depois: "+Arrays.toString(finalMatrix.matrix));
+				
+				// To cut out the need for 2 matrix calls, we can just slip the translation
+				// into the same matrix that holds the rotation.  That is what index 12-14 holds.
+				finalMatrix.matrix[12] = positionNew.x;
+				finalMatrix.matrix[13] = positionNew.y;
+				finalMatrix.matrix[14] = positionNew.z;
+
+	//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+
 				// Start a new matrix scope
 				glPushMatrix();
+
+
+   //////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+				//glRotatef(angle, axis.x, axis.y, axis.z);
+				//glTranslatef(positionNew.x, positionNew.y, positionNew.z);
 				
-					// Translate the new model to be drawn to it's position
-					glTranslatef(position.x, position.y, position.z);
-	
+					// Finally, apply the rotation and translation matrix to the current matrix
+					glMultMatrix( Conversion.allocFloats(finalMatrix.matrix) );
+
+	//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+					
 					// Recursively draw the next model that is linked to the current one.
 					// This could either be a body part or a gun that is attached to
 					// the hand of the upper body model.
+					
 					drawLink(link);
-	
+
 				// End the current matrix scope
 				glPopMatrix();
 			}
+			
 		}
+		
+	}
+	
+	
+	///////////////////////////////// UPDATE MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This sets the current frame of animation, depending on it's fps and t
+	/////
+	///////////////////////////////// UPDATE MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*	
+	
+	public void updateModel(ModelMD3 pModel)
+	{
+		// Initialize a start and end frame, for models with no animation
+		int startFrame = 0;
+		int endFrame   = 1;
+	
+		// This function is used to keep track of the current and next frames of animation
+		// for each model, depending on the current animation.  Some models down have animations,
+		// so there won't be any change.
+	
+		// Here we grab the current animation that we are on from our model's animation list
+		AnimationInfo pAnim = pModel.getAnimations(pModel.getCurrentAnim());
+		
+		// If there is any animations for this model
+		
+		if(pModel.getNumOfAnimations() > 0)
+		{
+			// Set the starting and end frame from for the current animation
+			startFrame = pAnim.getStartFrame();
+			endFrame   = pAnim.getEndFrame();
+		}
+		//System.out.println(startFrame);
+		//System.out.println(endFrame);
+		
+		// This gives us the next frame we are going to.  We mod the current frame plus
+		// 1 by the current animations end frame to make sure the next frame is valid.
+		pModel.setNextFrame((pModel.getCurrentFrame() + 1) % endFrame);
+		
+		// If the next frame is zero, that means that we need to start the animation over.
+		// To do this, we set nextFrame to the starting frame of this animation.
+		if(pModel.getNextFrame() == 0) 
+			pModel.setNextFrame(startFrame);
+	
+		// Next, we want to get the current time that we are interpolating by.  Remember,
+		// if t = 0 then we are at the beginning of the animation, where if t = 1 we are at the end.
+		// Anything from 0 to 1 can be thought of as a percentage from 0 to 100 percent complete.
+		setCurrentTime(pModel);
+	}
+	////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+	
+	///////////////////////////////// SET CURRENT TIME \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This sets time t for the interpolation between the current and next key frame
+	/////
+	///////////////////////////////// SET CURRENT TIME \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void setCurrentTime(ModelMD3 pModel)
+	{
+		float elapsedTime   = 0.0f;
+		
+		// This function is very similar to finding the frames per second.
+		// Instead of checking when we reach a second, we check if we reach
+		// 1 second / our animation speed. (1000 ms / animationSpeed).
+		// That's how we know when we need to switch to the next key frame.
+		// In the process, we get the t value for how far we are at to going to the
+		// next animation key frame.  We use time to do the interpolation, that way
+		// it runs the same speed on any persons computer, regardless of their specs.
+		// It might look choppier on a junky computer, but the key frames still be
+		// changing the same time as the other persons, it will just be not as smooth
+		// of a transition between each frame.  The more frames per second we get, the
+		// smoother the animation will be.  Since we are working with multiple models 
+		// we don't want to create static variables, so the t and elapsedTime data are 
+		// stored in the model's structure.
+		
+		// Return if there is no animations in this model
+		if(pModel.getNumOfAnimations() == 0) return;
+		
+		// Get the current time in milliseconds
+		float time = (float)Sys.getTime();
+		
+		
+		// Find the time that has elapsed since the last time that was stored
+		elapsedTime = time - pModel.getLastTime();
+		
+		// Store the animation speed for this animation in a local variable
+		int animationSpeed = pModel.getAnimations(pModel.getCurrentAnim()).getFramesPerSecond();
+		
+		// To find the current t we divide the elapsed time by the ratio of:
+		//
+		// (1_second / the_animation_frames_per_second)
+		//
+		// Since we are dealing with milliseconds, we need to use 1000
+		// milliseconds instead of 1 because we are using GetTickCount(), which is in 
+		// milliseconds. 1 second == 1000 milliseconds.  The t value is a value between 
+		// 0 to 1.  It is used to tell us how far we are from the current key frame to 
+		// the next key frame.
+		float t = elapsedTime / (1000.0f / animationSpeed);
+		
+		// If our elapsed time goes over the desired time segment, start over and go 
+		// to the next key frame.
+		if (elapsedTime >= (1000.0f / animationSpeed) )
+		{
+			// Set our current frame to the next key frame (which could be the start of the anim)
+			pModel.setCurrentFrame(pModel.getNextFrame());
+			
+			// Set our last time for the model to the current time
+			pModel.setLastTime(time);
+		}
+		
+		// Set the t for the model to be used in interpolation
+		pModel.setT(t);
 	}
 
 
@@ -667,6 +843,27 @@ public class ModelQuake3 {
 		{
 			// Get the current object that we are displaying
 			Object3d object = model.getObject(i);
+			
+////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+			// Now that we have animation for our model, we need to interpolate between
+			// the vertex key frames.  The .md3 file format stores all of the vertex 
+			// key frames in a 1D array.  This means that in order to go to the next key frame,
+			// we need to follow this equation:  currentFrame * numberOfVertices
+			// That will give us the index of the beginning of that key frame.  We just
+			// add that index to the initial face index, when indexing into the vertex array.
+
+			// Find the current starting index for the current key frame we are on
+			int currentIndex = model.getCurrentFrame() * object.getNumVertices(); 
+
+			//System.out.println("current: " + currentIndex);
+			// Since we are interpolating, we also need the index for the next key frame
+			int nextIndex = model.getNextFrame() * object.getNumVertices(); 
+			//System.out.println("next: " + nextIndex);
+
+	//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+
+
 	
 			// If the object has a texture assigned to it, let's bind it to the model.
 			// This isn't really necessary since all models have textures, but I left this
@@ -706,13 +903,35 @@ public class ModelQuake3 {
 							// Assign the texture coordinate to this vertex
 							glTexCoord2f(object.getTexcoords(index).s, object.getTexcoords(index).t);
 						}
+			//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
 						
+						// Like in the MD2 Animation tutorial, we use linear interpolation
+						// between the current and next point to find the point in between,
+						// depending on the model's "t" (0.0 to 1.0).
+
+						// Store the current and next frame's vertex by adding the current
+						// and next index to the initial index given from the face data.
+						
+						
+						//System.out.println("index: " + (currentIndex + index) );
+						//System.out.println("total: " + object.getNumVertices());
+						Vector3f vPoint1 = new Vector3f(object.getVertices( currentIndex + index ));
+						Vector3f vPoint2 = new Vector3f(object.getVertices( nextIndex + index ));
+
+						// By using the equation: p(t) = p0 + t(p1 - p0), with a time t,
+						// we create a new vertex that is closer to the next key frame.
+						glVertex3f(vPoint1.x + model.getT() * (vPoint2.x - vPoint1.x),
+								   vPoint1.y + model.getT() * (vPoint2.y - vPoint1.y),
+								   vPoint1.z + model.getT() * (vPoint2.z - vPoint1.z));
+
+	//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+					
 						// Get the vertex that we are dealing with.  This code will change
 						// a bunch when we doing our key frame animation in the next .MD3 tutorial.
-						Vector3f point1 = new Vector3f(object.getVertices(index));
+						//Vector3f point1 = new Vector3f(object.getVertices(index));
 	
 						// Render the current vertex
-						glVertex3f(point1.x, point1.y, point1.z);
+						//glVertex3f(point1.x, point1.y, point1.z);
 					}
 				}
 	
@@ -720,6 +939,55 @@ public class ModelQuake3 {
 			glEnd();
 		}
 	}
+	
+	////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
+	
+	///////////////////////////////// SET TORSO ANIMATION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This sets the current animation that the upper body will be performing
+	/////
+	///////////////////////////////// SET TORSO ANIMATION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void setTorsoAnimation(String strAnimation)
+	{
+		// Go through all of the animations in this model
+		for(int i = 0; i < upper.getNumOfAnimations(); i++)
+		{
+			// If the animation name passed in is the same as the current animation's name
+			if( upper.getAnimations(i).getAnimName().equalsIgnoreCase(strAnimation) )
+			{
+				// Set the legs animation to the current animation we just found and return
+				upper.setCurrentAnim(i);
+				upper.setCurrentFrame(upper.getAnimations(upper.getCurrentAnim()).getStartFrame());
+				break;
+			}
+		}
+	}
+	
+	
+	///////////////////////////////// SET LEGS ANIMATION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This sets the current animation that the lower body will be performing
+	/////
+	///////////////////////////////// SET LEGS ANIMATION \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public void setLegsAnimation(String strAnimation)
+	{
+		// Go through all of the animations in this model
+		for(int i = 0; i < lower.getNumOfAnimations(); i++)
+		{
+			// If the animation name passed in is the same as the current animation's name
+			if( lower.getAnimations(i).getAnimName().equalsIgnoreCase(strAnimation))
+			{
+				// Set the legs animation to the current animation we just found and return
+				lower.setCurrentAnim(i);
+				lower.setCurrentFrame(lower.getAnimations(lower.getCurrentAnim()).getStartFrame());
+				break;
+			}
+		}
+	}
+
+////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
 
 
 	

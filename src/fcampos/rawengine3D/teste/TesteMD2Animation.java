@@ -20,7 +20,7 @@ import static org.lwjgl.util.glu.GLU.*;
  *
  * @author Fabio
  */
-public class TesteMD2Animation extends GameCore {
+public class TesteMD2Animation extends GameCore { 
 
     public static void main(String[] args)
     {
@@ -134,7 +134,7 @@ public class TesteMD2Animation extends GameCore {
 		// Since we aren't using 1 second as our t = 1, we need to divide the speed by 1000
 		// milliseconds to get our new ratio, which is a 5th of a second.
 		float t = elapsedTime / (1000.0f / kAnimationSpeed);
-	
+		System.out.println(t);
 		// If our elapsed time goes over a 5th of a second, we start over and go to the next key frame
 		if (elapsedTime >= (1000.0f / kAnimationSpeed) )
 		{
