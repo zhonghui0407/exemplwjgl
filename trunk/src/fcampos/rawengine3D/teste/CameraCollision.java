@@ -81,7 +81,7 @@ public class CameraCollision extends GameCore {
        
    // private FloatBuffer posLuz1F;	// posição da fonte de luz
     
-    private CameraQuaternion camera;
+    private Camera camera;
     
     public static Vector3f velocity = new Vector3f();
     
@@ -94,12 +94,12 @@ public class CameraCollision extends GameCore {
     	super.init();
     	
     	// Create the camera with mouse look enabled.
-		camera = new CameraQuaternion(true);
+		camera = new Camera(true);
 
 		// Posiciona e orienta observador
 		
 		camera.setPosition(0f, 15f, 10f,	0, 15, 0,	0, 1, 0);
-		camera.setFixedAxis(CameraQuaternion.Y_AXIS);
+		camera.setFixedAxis(Camera.Y_AXIS);
 		
     	
     	//camera.setPosition(-17f, 17f, 17f,	0, 0, 0,	0, 1, 0);

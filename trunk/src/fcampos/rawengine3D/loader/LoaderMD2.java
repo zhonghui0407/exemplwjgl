@@ -510,6 +510,8 @@ public class LoaderMD2 {
 		
 		// Assign the vertex, texture coord and face count to our new structure
 		currentFrame.setNumVertices(header.numVertices);
+		currentFrame.setNumVert(header.numVertices);
+		
 		
 		
 		// Allocate memory for the vertices, texture coordinates and face data.

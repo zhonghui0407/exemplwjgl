@@ -22,7 +22,7 @@ public class ModelMD2 extends Model3d{
 		numOfAnimations = 0;
 		animations = new Vector<AnimationInfo>();
 		this.textureName = textureName;
-		loaderMD2 = new LoaderMD2();
+		
 	}
 	
 	

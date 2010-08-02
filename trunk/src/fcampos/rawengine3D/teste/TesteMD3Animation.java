@@ -70,7 +70,7 @@ public class TesteMD3Animation extends GameCore {
                    
         createGameActions();
                    
-        g_World.loadModel(MODEL_PATH, MODEL_NAME);
+        g_World.load(MODEL_PATH, MODEL_NAME);
         g_World.loadWeapon(MODEL_PATH, GUN_NAME);
         
 ////////////*** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
@@ -224,7 +224,7 @@ public class TesteMD3Animation extends GameCore {
 
         	// Now comes the moment we have all been waiting for!  Below we draw our character.
 
-        	g_World.drawModel();	
+        	g_World.draw();	
         	       	
         	
         	

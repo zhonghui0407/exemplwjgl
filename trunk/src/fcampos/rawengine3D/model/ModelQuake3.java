@@ -76,7 +76,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// LOAD MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void loadModel(String filePath, String fileModel) throws IOException
+	public void load(String filePath, String fileModel) throws IOException
 	{
 		String fileLowerModel;				// This stores the file name for the lower.md3 model
 		String fileUpperModel;				// This stores the file name for the upper.md3 model
@@ -514,7 +514,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// DRAW MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void drawModel()
+	public void draw()
 	{
 		// This is the function that is called by the client (you) when using the 
 		// CModelMD3 class object.  You will notice that we rotate the model by
@@ -640,9 +640,9 @@ public class ModelQuake3 {
 				// By using the equation: p(t) = p0 + t(p1 - p0), with a time t,
 				// we create a new translation position that is closer to the next key frame.t
 				Vector3f positionNew = new Vector3f();
-				positionNew.x   = vPosition.x + (model.getT() * (vNextPosition.x - vPosition.x));
-				positionNew.y	= vPosition.y + (model.getT() * (vNextPosition.y - vPosition.y));
-				positionNew.z	= vPosition.z + (model.getT() * (vNextPosition.z - vPosition.z));			
+				positionNew.x   = vPosition.x + (model.getRatioTime() * (vNextPosition.x - vPosition.x));
+				positionNew.y	= vPosition.y + (model.getRatioTime() * (vNextPosition.y - vPosition.y));
+				positionNew.z	= vPosition.z + (model.getRatioTime() * (vNextPosition.z - vPosition.z));			
 
 				// Now comes the more complex interpolation.  Just like the translation, we
 				// want to store the current and next key frame rotation matrix, then interpolate
@@ -661,7 +661,7 @@ public class ModelQuake3 {
 				qNextQuat.createFromMatrix( pNextMatrix, 3 );
 
 				// Using spherical linear interpolation, we find the interpolated quaternion
-				qInterpolatedQuat.slerp(qQuat, qNextQuat, model.getT());
+				qInterpolatedQuat.slerp(qQuat, qNextQuat, model.getRatioTime());
 				
 				finalMatrix = new Matrix4f();
 				//System.out.println("Antes: "+ Arrays.toString(finalMatrix.matrix));
@@ -717,7 +717,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// UPDATE MODEL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*	
 	
-	public void updateModel(ModelMD3 pModel)
+	private void updateModel(ModelMD3 pModel)
 	{
 		// Initialize a start and end frame, for models with no animation
 		int startFrame = 0;
@@ -763,7 +763,7 @@ public class ModelQuake3 {
 	/////
 	///////////////////////////////// SET CURRENT TIME \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public void setCurrentTime(ModelMD3 pModel)
+	private void setCurrentTime(ModelMD3 model)
 	{
 		float elapsedTime   = 0.0f;
 		
@@ -782,17 +782,17 @@ public class ModelQuake3 {
 		// stored in the model's structure.
 		
 		// Return if there is no animations in this model
-		if(pModel.getNumOfAnimations() == 0) return;
+		if(model.getNumOfAnimations() == 0) return;
 		
 		// Get the current time in milliseconds
 		float time = (float)Sys.getTime();
 		
 		
 		// Find the time that has elapsed since the last time that was stored
-		elapsedTime = time - pModel.getLastTime();
+		elapsedTime = time - model.getLastTime();
 		
 		// Store the animation speed for this animation in a local variable
-		int animationSpeed = pModel.getAnimations(pModel.getCurrentAnim()).getFramesPerSecond();
+		int animationSpeed = model.getAnimations(model.getCurrentAnim()).getFramesPerSecond();
 		
 		// To find the current t we divide the elapsed time by the ratio of:
 		//
@@ -810,14 +810,14 @@ public class ModelQuake3 {
 		if (elapsedTime >= (1000.0f / animationSpeed) )
 		{
 			// Set our current frame to the next key frame (which could be the start of the anim)
-			pModel.setCurrentFrame(pModel.getNextFrame());
+			model.setCurrentFrame(model.getNextFrame());
 			
 			// Set our last time for the model to the current time
-			pModel.setLastTime(time);
+			model.setLastTime(time);
 		}
 		
 		// Set the t for the model to be used in interpolation
-		pModel.setT(t);
+		model.setRatioTime(t);
 	}
 
 
@@ -920,9 +920,9 @@ public class ModelQuake3 {
 
 						// By using the equation: p(t) = p0 + t(p1 - p0), with a time t,
 						// we create a new vertex that is closer to the next key frame.
-						glVertex3f(vPoint1.x + model.getT() * (vPoint2.x - vPoint1.x),
-								   vPoint1.y + model.getT() * (vPoint2.y - vPoint1.y),
-								   vPoint1.z + model.getT() * (vPoint2.z - vPoint1.z));
+						glVertex3f(vPoint1.x + model.getRatioTime() * (vPoint2.x - vPoint1.x),
+								   vPoint1.y + model.getRatioTime() * (vPoint2.y - vPoint1.y),
+								   vPoint1.z + model.getRatioTime() * (vPoint2.z - vPoint1.z));
 
 	//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
 					

@@ -68,7 +68,7 @@ public class TesteSTL extends GameCore {
 
     // This tells us if we want to display the yellow debug lines for our nodes (Space Bar)
     boolean g_bDisplayNodes = false;
-    private CameraQuaternion camera;
+    private Camera camera;
     
     @Override
     public void init() throws IOException
@@ -78,12 +78,12 @@ public class TesteSTL extends GameCore {
         screen.setTitle("STL Loader");
         
         // Create the camera with mouse look enabled.
-		camera = new CameraQuaternion(true);
+		camera = new Camera(true);
 
 		// Posiciona e orienta observador
 		
 		camera.setPosition(-30f, 20f, -1000f,	-30, 20f, 0,	0, 1, 0);
-		camera.setFixedAxis(CameraQuaternion.Y_AXIS);
+		camera.setFixedAxis(Camera.Y_AXIS);
                    
         createGameActions();
                    

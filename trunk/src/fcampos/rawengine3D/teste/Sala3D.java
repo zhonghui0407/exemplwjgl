@@ -109,7 +109,7 @@ public class Sala3D extends GameCore {
     
     private float speed = 500.0f;
     
-    private CameraQuaternion camera;
+    private Camera camera;
     
     
     // Tipos possíveis para objetos sobre as mesas

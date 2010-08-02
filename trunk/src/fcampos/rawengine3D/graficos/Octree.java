@@ -1215,7 +1215,7 @@ public class Octree{
 		return false;
 	}
 
-	public boolean checkCameraCollision(Octree node, Model3d world, CameraQuaternion camera)
+	public boolean checkCameraCollision(Octree node, Model3d world, Camera camera)
 	{	
 		// This function is pretty much a direct rip off of SpherePolygonCollision()
 		// We needed to tweak it a bit though, to handle the collision detection once 

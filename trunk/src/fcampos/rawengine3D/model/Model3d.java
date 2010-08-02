@@ -16,7 +16,7 @@ public class Model3d {
 	private int currentAnim;					// The current index into pAnimations list (NEW)
 	private int currentFrame;					// The current frame of the current animation (NEW)
 	private int nextFrame;						// The next frame of animation to interpolate too
-	private float t;							// The ratio of 0.0f to 1.0f between each key frame
+	private float ratioTime;							// The ratio of 0.0f to 1.0f between each key frame
 	private float lastTime;						// This stores the last time that was stored
 
 
@@ -29,7 +29,7 @@ public class Model3d {
 		object = new Vector<Object3d>();
 		animations = new Vector<AnimationInfo>();
 		setNextFrame(0);
-		setT(0f);
+		setRatioTime(0f);
 		setLastTime(0);
 		
 		
@@ -229,16 +229,16 @@ public class Model3d {
 	/**
 	 * @param t the t to set
 	 */
-	public void setT(float t) {
-		this.t = t;
+	public void setRatioTime(float t) {
+		this.ratioTime = t;
 	}
 
 
 	/**
 	 * @return the t
 	 */
-	public float getT() {
-		return t;
+	public float getRatioTime() {
+		return ratioTime;
 	}
 
 
