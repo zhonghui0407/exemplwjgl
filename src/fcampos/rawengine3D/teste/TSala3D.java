@@ -168,7 +168,7 @@ public class TSala3D extends GameCore {
     private int modo = GL_MODULATE;
 
     
-    private CameraQuaternion camera;
+    private Camera camera;
     
     @Override
     public void init() throws IOException
@@ -177,7 +177,7 @@ public class TSala3D extends GameCore {
     	super.init();
     	
     	screen.setTitle("TSala3D");
-    	camera = new CameraQuaternion(true);
+    	camera = new Camera(true);
     	
     	camera.setPosition(3000.0f, 1600.0f, -13000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
         

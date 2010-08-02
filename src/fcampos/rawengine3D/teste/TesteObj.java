@@ -22,7 +22,7 @@ import org.lwjgl.input.Mouse;
 
 import fcampos.rawengine3D.gamecore.GameCore;
 import fcampos.rawengine3D.graficos.Octree;
-import fcampos.rawengine3D.input.CameraQuaternion;
+import fcampos.rawengine3D.input.Camera;
 import fcampos.rawengine3D.input.GameAction;
 import fcampos.rawengine3D.model.BoundingBox;
 import fcampos.rawengine3D.model.ModelObj;
@@ -54,7 +54,7 @@ public class TesteObj extends GameCore {
     private int modo = GL_MODULATE;
 
     
-    private CameraQuaternion camera;
+    private Camera camera;
     
   
     private float angcam;
@@ -81,10 +81,10 @@ public class TesteObj extends GameCore {
     	super.init();
     	
     	screen.setTitle("TSala3D");
-    	camera = new CameraQuaternion(true);
+    	camera = new Camera(true);
     	
     	camera.setPosition(0.0f, 30.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-    	camera.setFixedAxis(CameraQuaternion.Y_AXIS);
+    	camera.setFixedAxis(Camera.Y_AXIS);
     	
     	//float df=100.0f;
     	

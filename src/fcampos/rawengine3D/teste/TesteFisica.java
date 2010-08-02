@@ -40,7 +40,7 @@ public class TesteFisica extends FisicaGameCore {
     private DrawString draw;
     
         
-    private CameraQuaternion camera;
+    private Camera camera;
    
     public boolean paused;
     

@@ -30,7 +30,7 @@ public class Testesala extends GameCore {
         new Testesala().run();
     }
     
-    private CameraQuaternion camera;
+    private Camera camera;
     
  // 2 times PI.
     private static final float AR_2PI	= 6.28318530717958647692f;
@@ -202,7 +202,7 @@ public class Testesala extends GameCore {
     {
         
     	super.init();
-    	camera = new CameraQuaternion(true);
+    	camera = new Camera(true);
     	camera.setPosition(-17f, 20f, 17f,	0, 0, 0,	0, 1, 0);
     	float df=100.0f;
     	
