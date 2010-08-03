@@ -143,7 +143,7 @@ public class FaceObj {
 	public void setTexcoords(Vector3f texCoord, int index) {
 		this.texCoords[index].s = texCoord.x;
 		this.texCoords[index].t = texCoord.y;
-		this.texCoords[index].r = texCoord.z;
+		
 		
 		
 	}
