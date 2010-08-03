@@ -6,20 +6,26 @@ public class TextureCoord {
 	
 	public float s;
 	public float t;
-	public float r;
+	
 	
 	public TextureCoord()
 	{
 		setS(0);
 		setT(0);
-		setR(0);
+	
 	}
 	
 	public TextureCoord(Vector3f tex)
 	{
-		setS(tex.x);
-		setT(tex.y);
-		setR(tex.z);
+		this(tex.x, tex.y);
+		
+		
+	}
+	
+	public TextureCoord(float u, float v)
+	{
+		setS(u);
+		setT(v);
 		
 	}
 
@@ -42,19 +48,6 @@ public class TextureCoord {
 		this.t = t;
 	}
 
-	/**
-	 * @return the t
-	 */
-	
-
-	/**
-	 * @param r the r to set
-	 */
-	public void setR(float r) {
-		this.r = r;
-	}
-
-	
 	
 
 }
