@@ -33,6 +33,8 @@ import javax.imageio.ImageIO;
 
 import org.lwjgl.util.glu.GLU;
 
+
+
 /**
  * A utility class to load textures for JOGL. This source is based
  * on a texture that can be found in the Java Gaming (www.javagaming.org)
@@ -142,23 +144,60 @@ public class TextureLoader {
         int textureID = createTextureID(); 
         Texture texture = new Texture(target,textureID);
         index = resourceName.lastIndexOf("/") + 1;
+        String extension = resourceName.substring(resourceName.lastIndexOf(".") + 1);
         texture.setName(resourceName.substring(index));
         
         // bind this texture 
         GL11.glBindTexture(target, textureID); 
- 
-        BufferedImage bufferedImage = loadImage(resourceName); 
-        texture.setWidth(bufferedImage.getWidth());
-        texture.setHeight(bufferedImage.getHeight());
         
-        if (bufferedImage.getColorModel().hasAlpha()) {
-            srcPixelFormat = GL11.GL_RGBA;
-        } else {
-            srcPixelFormat = GL11.GL_RGB;
-        }
+        ByteBuffer textureBuffer;
+        int width;
+        int height;
+        int texWidth;
+        int texHeight;
+        if(!extension.equalsIgnoreCase("tga"))
+        {
+	        BufferedImage bufferedImage = loadImage(resourceName); 
+	        texture.setWidth(bufferedImage.getWidth());
+	        texture.setHeight(bufferedImage.getHeight());
+	        
+	        width = bufferedImage.getWidth();
+	        height = bufferedImage.getHeight();
+	        texWidth = bufferedImage.getWidth();
+	        texHeight = bufferedImage.getHeight();
+	        
+	        if (bufferedImage.getColorModel().hasAlpha()) {
+	            srcPixelFormat = GL11.GL_RGBA;
+	        } else {
+	            srcPixelFormat = GL11.GL_RGB;
+	        }
 
         // convert that image into a byte buffer of texture data 
-        ByteBuffer textureBuffer = convertImageData(bufferedImage,texture, x, y);
+        textureBuffer = convertImageData(bufferedImage,texture, x, y);
+        }else{
+        	
+             
+             boolean hasAlpha;
+             
+         	textureBuffer = TGALoader.loadImage(new BufferedInputStream(getBufferedInputStream(resourceName)));
+         	
+         	width = TGALoader.getLastWidth();
+         	height = TGALoader.getLastHeight();
+         	hasAlpha = TGALoader.getLastDepth() == 32;
+         	
+         	texture.setTextureWidth(TGALoader.getLastTexWidth());
+         	texture.setTextureHeight(TGALoader.getLastTexHeight());
+
+             texWidth = texture.getImageWidth();
+             texHeight = texture.getImageHeight();
+             
+             srcPixelFormat = hasAlpha ? GL11.GL_RGBA : GL11.GL_RGB;
+             int componentCount = hasAlpha ? 4 : 3;
+             
+             texture.setWidth(width);
+             texture.setHeight(height);
+
+        }
         
         
         if(useAnisotropicFilter)
@@ -181,7 +220,7 @@ public class TextureLoader {
         	minFilter = GL11.GL_LINEAR;
         	magFilter = GL11.GL_NEAREST;
         }else{
-        	minFilter = GL11.GL_LINEAR_MIPMAP_LINEAR;
+        	minFilter = GL11.GL_LINEAR_MIPMAP_NEAREST;
         	magFilter = GL11.GL_LINEAR;
         }
         
@@ -217,8 +256,8 @@ public class TextureLoader {
 	    		GL11.glTexImage2D(target, 
 	                    0, 
 	                    pixelFormat, 
-	                    get2Fold(bufferedImage.getWidth()), 
-	                    get2Fold(bufferedImage.getHeight()), 
+	                    get2Fold(width), 
+	                    get2Fold(height), 
 	                    0, 
 	                    srcPixelFormat, 
 	                    GL11.GL_UNSIGNED_BYTE, 
@@ -234,8 +273,8 @@ public class TextureLoader {
         		
             GLU.gluBuild2DMipmaps(target, 
                               dstPixelFormat, 
-                              get2Fold(bufferedImage.getWidth()), 
-                              get2Fold(bufferedImage.getHeight()), 
+                              texWidth, 
+                              texHeight, 
                               srcPixelFormat, 
                               GL11.GL_UNSIGNED_BYTE, 
                               textureBuffer ); 
@@ -324,6 +363,27 @@ public class TextureLoader {
         
         return imageBuffer; 
     } 
+    
+    private BufferedInputStream getBufferedInputStream(String ref) throws IOException
+    {
+ 
+        
+    	File file = new File(ref);
+    	System.out.println(file.getAbsolutePath());
+    	 InputStream is=null;
+        
+        try {
+        	is = new FileInputStream(file);
+        	
+        } catch (IOException e) {
+            e.toString();
+        }
+       
+         BufferedInputStream buffer = new BufferedInputStream(is);
+         
+        return buffer;
+       
+    }
     
     /** 
      * Load a given resource as a buffered image
