@@ -111,6 +111,7 @@ public class TGALoader {
 	 * @return The byte buffer containing texture data
 	 * @throws IOException Indicates a failure to read the TGA
 	 */
+	@SuppressWarnings("unused")
 	public static ByteBuffer loadImage(InputStream fis, boolean flipped) throws IOException {
 		byte red = 0;
 		byte green = 0;
