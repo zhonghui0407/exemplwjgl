@@ -177,7 +177,7 @@ public class TextureLoader {
         }else{
         	
              
-             boolean hasAlpha;
+            boolean hasAlpha;
              
          	textureBuffer = TGALoader.loadImage(new BufferedInputStream(getBufferedInputStream(resourceName)));
          	
@@ -215,10 +215,10 @@ public class TextureLoader {
 			texture.setUseAnisotropic(true);
 		}
 
-        if(false)
+        if(true)
         {
         	minFilter = GL11.GL_LINEAR;
-        	magFilter = GL11.GL_NEAREST;
+        	magFilter = GL11.GL_LINEAR;
         }else{
         	minFilter = GL11.GL_LINEAR_MIPMAP_NEAREST;
         	magFilter = GL11.GL_LINEAR;

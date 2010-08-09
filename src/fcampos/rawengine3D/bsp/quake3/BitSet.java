@@ -24,9 +24,12 @@ public class BitSet
 		m_size = count/32 + 1;
 
 		// Make sure we haven't already allocated memory for the bits
-        if(m_bits.length > 0) 
+		if(m_bits != null)
 		{
-			m_bits = null;
+			if(m_bits.length > 0) 
+			{
+				m_bits = null;
+			}
 		}
 
 		// Allocate the bits and initialize them
