@@ -273,8 +273,8 @@ public class TextureLoader {
         		
             GLU.gluBuild2DMipmaps(target, 
                               dstPixelFormat, 
-                              texWidth, 
-                              texHeight, 
+                              get2Fold(texWidth), 
+                              get2Fold(texHeight), 
                               srcPixelFormat, 
                               GL11.GL_UNSIGNED_BYTE, 
                               textureBuffer ); 
