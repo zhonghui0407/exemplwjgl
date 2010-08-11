@@ -399,6 +399,7 @@ public class Quake3BSP {
 		}
 	
 		// Initialize the header and lump structures
+		@SuppressWarnings("unused")
 		BSPHeader header = null;
 		BSPLump[] lumps = new BSPLump[Lumps.kMaxLumps.ordinal()];
 	
