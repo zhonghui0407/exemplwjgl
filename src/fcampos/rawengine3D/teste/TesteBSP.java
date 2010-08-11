@@ -84,7 +84,7 @@ public class TesteBSP extends GameCore {
                    
      // Position the camera to the starting point since we have
     	// not read in the entities yet, which gives the starting points.
-    	camera.setPosition( 80, 310, 16,	80, 310, 17,	0, 1, 0);
+    	camera.setPosition( 80, 288, 16,	80, 288, 17,	0, 1, 0);
 
     	
     	
@@ -197,7 +197,10 @@ public class TesteBSP extends GameCore {
         	camera.look();
 
 
-        	/////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
+        	// Since we are using frustum culling to only draw the visible BSP leafs,
+        	// we need to calculate the frustum every frame.  This needs to happen
+        	// right after we position our camera.  Now the frustum planes can be defined.
+        	GameCore.gFrustum.calculateFrustum();
         	
         	// Easy as pie - just call our render function.  We pass in the camera
         	// because in later tutorials we will need it's position when we start

@@ -15,6 +15,7 @@ import java.nio.IntBuffer;
 
 
 import fcampos.rawengine3D.MathUtil.Vector3f;
+import fcampos.rawengine3D.gamecore.GameCore;
 import fcampos.rawengine3D.graficos.Texture;
 import fcampos.rawengine3D.graficos.TextureCoord;
 import fcampos.rawengine3D.loader.BinaryLoader;
@@ -24,17 +25,27 @@ import fcampos.rawengine3D.resource.TextureManager;
 public class Quake3BSP {
 	
 	public final static int FACE_POLYGON = 1;
+	public static int visibleFaces;
 
-	private int  numOfVerts;			// The number of verts in the model
-	private int  numOfFaces;			// The number of faces in the model
-	private int  numOfIndices;		// The number of indices for the model
-	private int  numOfTextures;		// The number of texture maps
+	private int numOfVerts;			// The number of verts in the model
+	private int numOfFaces;			// The number of faces in the model
+	private int numOfIndices;		// The number of indices for the model
+	private int numOfTextures;		// The number of texture maps
 	private int numOfLightmaps;
+	private int numOfNodes;			// The number of nodes in the level
+	private int numOfLeafs;			// The leaf count in the level
+	private int numOfLeafFaces;		// The number of leaf faces in the level
+	private int numOfPlanes;			// The number of planes in the level
 
 	private int[] indices;	// The object's indices for rendering
 	private BSPVertex[]  verts;		// The object's vertices
 	private BSPFace[]	 faces;		// The faces information of the object
-								// The texture and lightmap array for the level
+	private BSPNode[]    nodes;		// The nodes in the bsp tree
+	private BSPLeaf[]    leafs;		// The leafs in the bsp tree
+	private BSPPlane[]   planes;		// The planes stored in the bsp tree
+	private int[]        leafFaces;	// The leaf's faces in the bsp tree
+	private BSPVisData   clusters;	// The clusters in the bsp tree for space partitioning
+								
 	private int[] textures;	
 								
 	private BitSet facesDrawn;		// The bitset for the faces that have/haven't been drawn
@@ -70,9 +81,18 @@ public class Quake3BSP {
 	
 
 	// This is our integer vector structure
-	private class Vector3i
+	public class Vector3i
 	{
-		private int x, y, z;				// The x y and z position of our integer vector
+		int x;
+		int y;
+		int z;				// The x y and z position of our integer vector
+		
+		public Vector3i()
+		{
+			x = loader.readInt();
+			y = loader.readInt();
+			z = loader.readInt();
+		}
 		
 		
 	}
@@ -109,16 +129,13 @@ public class Quake3BSP {
 	// This is our BSP lightmap structure which stores the 128x128 RGB values
 	public class BSPLightMap
 	{
-	    //byte[][][] imageBits = new byte[128][128][3];   // The RGB data in a 128x128 image
-		byte[] imageBits = new byte[128*128*3];   // The RGB data in a 128x128 image
-	    //byte[] dataAlign = new byte[128*128*3];
-	   
+	   byte[] imageBits = new byte[128*128*3];   // The RGB data in a 128x128 image
+	   	   
 	   public BSPLightMap()
 	   {
 		   int count = 0;
 		   for(int i=0; i < 128; i++)
 		   {
-			   
 			   for(int j=0; j < 128; j++)
 			   {
 				   for(int k=0; k<3; k++)
@@ -128,29 +145,11 @@ public class Quake3BSP {
 				   }
 			   }
 		   }
-		  
-		   
-		   /*
-		  int count = 0;
-		   for(int i=0; i < imageBits.length; i++)
-		   {
-			   for(int j=0; j < imageBits[i].length; j++)
-			   {
-				   for(int k=0; k<imageBits[i][j].length; k++)
-				   {
-					   imageBits[i][j][k] = (byte)loader.readByte();
-					   dataAlign[count] = imageBits[i][j][k];
-					   count++;
-				   }
-			   }
-		   }
-		  */
-		   
+
 	   }
 	    
 	    
 	}
-
 
 	// This is our BSP vertex structure
 	public class BSPVertex
@@ -174,7 +173,6 @@ public class Quake3BSP {
 	    	}
 	    }
 	}
-
 
 	// This is our BSP face structure
 	public class BSPFace
@@ -214,7 +212,6 @@ public class Quake3BSP {
 		    normal = new Vector3f(loader.readFloat(), loader.readFloat(), loader.readFloat());
 		    size[0] = loader.readInt();
 		    size[1] = loader.readInt();
-	    	
 	    }
 	}
 
@@ -233,6 +230,85 @@ public class Quake3BSP {
 	    	contents = loader.readInt();
 	    }
 	}
+	
+	// This stores a node in the BSP tree
+	public class BSPNode
+	{
+	    int plane;					// The index into the planes array 
+	    int front;					// The child index for the front node 
+	    int back;					// The child index for the back node 
+	    Vector3i min;				// The bounding box min position. 
+	    Vector3i max;				// The bounding box max position. 
+	    
+	    public BSPNode()
+	    {
+	    	plane = loader.readInt();
+	    	front = loader.readInt();
+	    	back = loader.readInt();
+	    	min = new Vector3i();
+	    	max = new Vector3i();
+	    }
+	} 
+	
+	// This stores a leaf (end node) in the BSP tree
+	public class BSPLeaf
+	{
+	    int cluster;				// The visibility cluster 
+	    int area;					// The area portal 
+	    Vector3i min;				// The bounding box min position 
+	    Vector3i max;				// The bounding box max position 
+	    int leafFace;				// The first index into the face array 
+	    int numOfLeafFaces;			// The number of faces for this leaf 
+	    int leafBrush;				// The first index for into the brushes 
+	    int numOfLeafBrushes;		// The number of brushes for this leaf
+	    
+	    public BSPLeaf()
+	    {
+	    	cluster = loader.readInt();
+	    	area = loader.readInt();
+	    	min = new Vector3i();
+	    	max = new Vector3i();
+	    	leafFace = loader.readInt();
+	    	numOfLeafFaces = loader.readInt();
+	    	leafBrush = loader.readInt();
+	    	numOfLeafBrushes = loader.readInt();
+	    }
+	}
+	
+	// This stores a splitter plane in the BSP tree
+	public class BSPPlane
+	{
+	    Vector3f normal;			// Plane normal. 
+	    float distance;				// The plane distance from origin
+	    
+	    public BSPPlane()
+	    {
+	    	normal = new Vector3f(loader.readFloat(), loader.readFloat(), loader.readFloat());
+	    	distance = loader.readFloat();
+	    }
+	}
+
+	// This stores the cluster data for the PVS's
+	public class BSPVisData
+	{
+		int numOfClusters;			// The number of clusters
+		int bytesPerCluster;		// The amount of bytes (8 bits) in the cluster's bitset
+		byte[] bitSets = null;			// The array of bytes that holds the cluster bitsets
+		
+		public BSPVisData()
+		{
+			numOfClusters = loader.readInt();
+			bytesPerCluster = loader.readInt();
+			
+			int size = numOfClusters * bytesPerCluster;
+			bitSets = new byte[size];
+			for(int i=0; i<bitSets.length; i++)
+			{
+				bitSets[i] = (byte) loader.readByte();
+			}
+		}
+	}
+
 	
 	
 	////////////////////////////FIND TEXTURE EXTENSION \\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -354,8 +430,7 @@ public class Quake3BSP {
 		// that information once we create texture maps from it.
 		numOfTextures = lumps[Lumps.kTextures.ordinal()].length / 72;
 		BSPTexture[] textures = new BSPTexture [numOfTextures];
-		
-		
+
 		// Allocate memory to read in the lightmap data.  Like the texture
 		// data, we just need to create a local array to be destroyed real soon.
 		numOfLightmaps = lumps[Lumps.kLightmaps.ordinal()].length / 49152;
@@ -386,8 +461,7 @@ public class Quake3BSP {
 		{
 			indices[i] = loader.readInt();
 		}
-		
-	
+
 		// Seek to the position in the file that stores the face information
 		loader.seekMarkOffset(lumps[Lumps.kFaces.ordinal()].offset);
 	
@@ -405,8 +479,7 @@ public class Quake3BSP {
 		{
 			textures[i] = new BSPTexture();
 		}
-		
-	
+
 		// Now that we have the texture information, we need to load the
 		// textures.  Since the texture names don't have an extension, we need
 		// to find it first.
@@ -439,11 +512,87 @@ public class Quake3BSP {
 			// are always 128 by 128.
 			createLightmapTexture(i, lightmaps[i], 128, 128, factorGamma);
 		}
+		
+		// In this function we read from a bunch of new lumps.  These include
+		// the BSP nodes, the leafs, the leaf faces, BSP splitter planes and
+		// visibility data (clusters).
 
+		// Store the number of nodes and allocate the memory to hold them
+		numOfNodes = lumps[Lumps.kNodes.ordinal()].length / 36;
+		nodes     = new BSPNode[numOfNodes];
+
+		// Seek to the position in the file that hold the nodes and store them in m_pNodes
+		loader.seekMarkOffset(lumps[Lumps.kNodes.ordinal()].offset);
+		for(int i=0; i < numOfNodes; i++)
+		{
+			nodes[i] = new BSPNode();
+		}
 		
-		
-		
+		// Store the number of leafs and allocate the memory to hold them
+		numOfLeafs = lumps[Lumps.kLeafs.ordinal()].length / 48;
+		leafs     = new BSPLeaf[numOfLeafs];
+
+		// Seek to the position in the file that holds the leafs and store them in m_pLeafs
+		loader.seekMarkOffset(lumps[Lumps.kLeafs.ordinal()].offset);
+		// Now we need to go through and convert all the leaf bounding boxes
+		// to the normal OpenGL Y up axis.
+		for(int i=0; i < numOfLeafs; i++)
+		{
+			leafs[i] = new BSPLeaf();
 			
+			int temp = leafs[i].min.y;
+			leafs[i].min.y = leafs[i].min.z;
+			leafs[i].min.z = -temp;
+
+			// Swap the max y and z values, then negate the new Z
+			temp = leafs[i].max.y;
+			leafs[i].max.y = leafs[i].max.z;
+			leafs[i].max.z = -temp;
+		}
+
+	
+		// Store the number of leaf faces and allocate the memory for them
+		numOfLeafFaces = lumps[Lumps.kLeafFaces.ordinal()].length / 4;
+		leafFaces     = new int[numOfLeafFaces];
+
+		// Seek to the leaf faces lump, then read it's data
+		//fseek(fp, lumps[kLeafFaces].offset, SEEK_SET);
+		loader.seekMarkOffset(lumps[Lumps.kLeafFaces.ordinal()].offset);
+
+		// Read in all the index information
+		for(int i=0; i < leafFaces.length; i++)
+		{
+			leafFaces[i] = loader.readInt();
+		}
+
+		// Store the number of planes, then allocate memory to hold them
+		numOfPlanes = lumps[Lumps.kPlanes.ordinal()].length / 16;
+		planes     = new BSPPlane[numOfPlanes];
+
+		// Seek to the planes lump in the file, then read them into m_pPlanes
+		loader.seekMarkOffset(lumps[Lumps.kPlanes.ordinal()].offset);
+		
+		// Go through every plane and convert it's normal to the Y-axis being up
+		for(int i = 0; i < numOfPlanes; i++)
+		{
+			planes[i] = new BSPPlane();
+			
+			float temp = planes[i].normal.y;
+			planes[i].normal.y = planes[i].normal.z;
+			planes[i].normal.z = -temp;
+		}
+
+		// Seek to the position in the file that holds the visibility lump
+		loader.seekMarkOffset(lumps[Lumps.kVisData.ordinal()].offset);
+		// Check if there is any visibility information first
+		if(lumps[Lumps.kVisData.ordinal()].length > 0) 
+		{
+						
+			clusters = new BSPVisData();
+			
+		}
+		
+	
 		// I decided to put in a really big optimization for rendering.
 		// I create a bitset that holds a bit slot for every face in the level.
 		// Once the face is drawn, the slot saved for that face is set to 1.
@@ -485,12 +634,10 @@ public class Quake3BSP {
 	
 		// Bind the texture to the texture arrays index and init the texture
 		texLight.bind();
-		
-		
+	
 		// Change the lightmap gamma values by our desired gamma
 		changeGamma(pImageBits, pImageBits.imageBits.length, factorGamma);
-		 
-		 
+	 
 		ByteBuffer imageBuffer = ByteBuffer.allocateDirect(pImageBits.imageBits.length); 
         imageBuffer.order(ByteOrder.nativeOrder()); 
         imageBuffer.put(pImageBits.imageBits, 0, pImageBits.imageBits.length); 
@@ -554,6 +701,101 @@ public class Quake3BSP {
 			pImage.imageBits[i+1] = (byte)g;
 			pImage.imageBits[i+2] = (byte)b;
 		}
+	}
+	
+	////////////////////////////FIND LEAF \\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This returns the leaf our camera is in
+	/////
+	//////////////////////////// FIND LEAF \\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public int findLeaf(Vector3f position)
+	{
+		int i = 0;
+		float distance = 0.0f;
+	
+		// This function takes in our camera position, then goes and walks
+		// through the BSP nodes, starting at the root node, finding the leaf node
+		// that our camera resides in.  This is done by checking to see if
+		// the camera is in front or back of each node's splitting plane.
+		// If the camera is in front of the camera, then we want to check
+		// the node in front of the node just tested.  If the camera is behind
+		// the current node, we check that nodes back node.  Eventually, this
+		// will find where the camera is according to the BSP tree.  Once a
+		// node index (i) is found to be a negative number, that tells us that
+		// that index is a leaf node, not another BSP node.  We can either calculate
+		// the leaf node index from -(i + 1) or ~1.  This is because the starting
+		// leaf index is 0, and you can't have a negative 0.  It's important
+		// for us to know which leaf our camera is in so that we know which cluster
+		// we are in.  That way we can test if other clusters are seen from our cluster.
+		
+		// Continue looping until we find a negative index
+		while(i >= 0)
+		{
+			// Get the current node, then find the slitter plane from that
+			// node's plane index.  Notice that we use a constant reference
+			// to store the plane and node so we get some optimization.
+			BSPNode  node = nodes[i];
+			BSPPlane plane = planes[node.plane];
+	
+			// Use the Plane Equation (Ax + by + Cz + D = 0) to find if the
+			// camera is in front of or behind the current splitter plane.
+			
+	        distance =	plane.normal.x * position.x + 
+						plane.normal.y * position.y + 
+						plane.normal.z * position.z - plane.distance;
+	
+			// If the camera is in front of the plane
+	        if(distance >= 0)	
+			{
+				// Assign the current node to the node in front of itself
+	            i = node.front;
+	        }
+			// Else if the camera is behind the plane
+	        else		
+			{
+				// Assign the current node to the node behind itself
+	            i = node.back;
+	        }
+	    }
+	
+		// Return the leaf index (same thing as saying:  return -(i + 1)).
+	    return ~i;  // Binary operation
+	}
+	
+	
+	////////////////////////////IS CLUSTER VISIBLE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This tells us if the "current" cluster can see the "test" cluster
+	/////
+	//////////////////////////// IS CLUSTER VISIBLE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	private final int isClusterVisible(int current, int test)
+	{
+		// This function is used to test the "current" cluster against
+		// the "test" cluster.  If the "test" cluster is seen from the
+		// "current" cluster, we can then draw it's associated faces, assuming
+		// they aren't frustum culled of course.  Each cluster has their own
+		// bitset containing a bit for each other cluster.  For instance, if there
+		// is 10 clusters in the whole level (a tiny level), then each cluster
+		// would have a bitset of 10 bits that store a 1 (visible) or a 0 (not visible) 
+		// for each other cluster.  Bitsets are used because it's faster and saves
+		// memory, instead of creating a huge array of booleans.  It seems that
+		// people tend to call the bitsets "vectors", so keep that in mind too.
+	
+		// Make sure we have valid memory and that the current cluster is > 0.
+		// If we don't have any memory or a negative cluster, return a visibility (1).
+		if(clusters.bitSets == null || current < 0) return 1;
+	
+		// Use binary math to get the 8 bit visibility set for the current cluster
+		byte visSet = clusters.bitSets[(current*clusters.bytesPerCluster) + (test / 8)];
+		
+		// Now that we have our vector (bitset), do some bit shifting to find if
+		// the "test" cluster is visible from the "current" cluster, according to the bitset.
+		int result = visSet & (1 << ((test) & 7));
+	
+		// Return the result ( either 1 (visible) or 0 (not visible) )
+		return ( result );
 	}
 	
 	////////////////////////////RENDER FACE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -707,33 +949,74 @@ public class Quake3BSP {
 	
 	public void renderLevel(Vector3f position)
 	{
-		// In our current state, rendering the level is simple.
-		// We just need to go through all of the faces and draw them.
-	
-		// Get the number of faces in our level
-		int i = numOfFaces;
-	
-		// Reset our bitset so all the slots are zero.  This isn't really
-		// utilized in this tutorial, but I thought I might as well add it
-		// not so that we spread out the code between the tutorials.
+
+		// Reset our bitset so all the slots are zero.
 		facesDrawn.clearAll();
-	
-		// Go through all the faces
+
+
+	/////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
+
+		// In this new revision of RenderLevel(), we do things a bit differently.
+		// Instead of looping through all the faces, we now want to loop through
+		// all of the leafs.  Each leaf stores a list of faces assign to it.
+		// We call FindLeaf() to find the current leaf index that our camera is
+		// in.  This leaf will then give us the cluster that the camera is in.  The
+		// cluster is then used to test visibility between our current cluster
+		// and other leaf clusters.  If another leaf's cluster is visible from our 
+		// current cluster, the leaf's bounding box is checked against our frustum.  
+		// Assuming the bounding box is inside of our frustum, we draw all the faces
+		// stored in that leaf.  
+
+		// Grab the leaf index that our camera is in
+		int leafIndex = findLeaf(position);
+
+		// Grab the cluster that is assigned to the leaf
+		int cluster = leafs[leafIndex].cluster;
+
+		// Initialize our counter variables (start at the last leaf and work down)
+		int i = numOfLeafs;
+		visibleFaces = 0;
+
+		// Go through all the leafs and check their visibility
 		while(i-- > 0)
 		{
-			// Before drawing this face, make sure it's a normal polygon
-			if(faces[i].type != FACE_POLYGON)
-			{
+			// Get the current leaf that is to be tested for visibility from our camera's leaf
+			BSPLeaf leaf = leafs[i];
+
+			// If the current leaf can't be seen from our cluster, go to the next leaf
+			if(isClusterVisible(cluster, leaf.cluster) == 0) 
 				continue;
-			}
-	
-			// If this face already hasn't been drawn
-			if(facesDrawn.on(i)) 
+
+			// If the current leaf is not in the camera's frustum, go to the next leaf
+			if(!GameCore.gFrustum.boxInFrustum((float)leaf.min.x, (float)leaf.min.y, (float)leaf.min.z,
+			  	 				       (float)leaf.max.x, (float)leaf.max.y, (float)leaf.max.z))
+				continue;
+			
+			// If we get here, the leaf we are testing must be visible in our camera's view.
+			// Get the number of faces that this leaf is in charge of.
+			int faceCount = leaf.numOfLeafFaces;
+
+			// Loop through and render all of the faces in this leaf
+			while(faceCount-- > 0)
 			{
-				// Set this face as drawn and render it
-				facesDrawn.set(i);
-				renderFace(i);
-			}
+				// Grab the current face index from our leaf faces array
+				int faceIndex = leafFaces[leaf.leafFace + faceCount];
+
+				// Before drawing this face, make sure it's a normal polygon
+				if(faces[faceIndex].type != FACE_POLYGON) continue;
+
+				// Since many faces are duplicated in other leafs, we need to
+				// make sure this face already hasn't been drawn.
+				if(!facesDrawn.on(faceIndex)) 
+				{
+					// Increase the rendered face count to display for fun
+					visibleFaces++;
+
+					// Set this face as drawn and render it
+					facesDrawn.set(faceIndex);
+					renderFace(faceIndex);
+				}
+			}			
 		}
 	}
 
