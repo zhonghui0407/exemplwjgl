@@ -1,6 +1,8 @@
 package fcampos.rawengine3D.bsp.quake3;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.ARBMultitexture.*;
+
 
 import static org.lwjgl.util.glu.GLU.*;
 
@@ -11,7 +13,9 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+
 import fcampos.rawengine3D.MathUtil.Vector3f;
+import fcampos.rawengine3D.graficos.Texture;
 import fcampos.rawengine3D.graficos.TextureCoord;
 import fcampos.rawengine3D.loader.BinaryLoader;
 import fcampos.rawengine3D.resource.Conversion;
@@ -37,6 +41,9 @@ public class Quake3BSP {
 	
 	private BinaryLoader loader;
 	private TextureManager texManager;
+	
+
+	private Texture texLight;
 	
 	private boolean renderFill;
 	private boolean hasLightmaps;
@@ -102,12 +109,13 @@ public class Quake3BSP {
 	// This is our BSP lightmap structure which stores the 128x128 RGB values
 	public class BSPLightMap
 	{
-	   // byte[][][] imageBits = new byte[128][128][3];   // The RGB data in a 128x128 image
+	    //byte[][][] imageBits = new byte[128][128][3];   // The RGB data in a 128x128 image
 		byte[] imageBits = new byte[128*128*3];   // The RGB data in a 128x128 image
-	    
+	    //byte[] dataAlign = new byte[128*128*3];
+	   
 	   public BSPLightMap()
 	   {
-		
+		   int count = 0;
 		   for(int i=0; i < 128; i++)
 		   {
 			   
@@ -115,13 +123,15 @@ public class Quake3BSP {
 			   {
 				   for(int k=0; k<3; k++)
 				   {
-					   imageBits[i*128+j*3+k] = (byte) loader.readByte();
-					 
+					   imageBits[count] = (byte) loader.readByte();
+					   count++;
 				   }
 			   }
 		   }
+		  
 		   
 		   /*
+		  int count = 0;
 		   for(int i=0; i < imageBits.length; i++)
 		   {
 			   for(int j=0; j < imageBits[i].length; j++)
@@ -129,10 +139,13 @@ public class Quake3BSP {
 				   for(int k=0; k<imageBits[i][j].length; k++)
 				   {
 					   imageBits[i][j][k] = (byte)loader.readByte();
+					   dataAlign[count] = imageBits[i][j][k];
+					   count++;
 				   }
 			   }
 		   }
-		   */
+		  */
+		   
 	   }
 	    
 	    
@@ -274,7 +287,7 @@ public class Quake3BSP {
 	/////
 	//////////////////////////// LOAD BSP \\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public boolean loadBSP(String fileName) throws IOException
+	public boolean loadBSP(String fileName, String factorGamma) throws IOException
 	{
 		File file = new File(fileName);
 		
@@ -424,7 +437,7 @@ public class Quake3BSP {
 			lightmaps[i] = new BSPLightMap();
 			// Create a texture map for each lightmap that is read in.  The lightmaps
 			// are always 128 by 128.
-			//createLightmapTexture(i, (unsigned char *)pLightmaps[i].imageBits, 128, 128);
+			createLightmapTexture(i, lightmaps[i], 128, 128, factorGamma);
 		}
 
 		
@@ -458,36 +471,89 @@ public class Quake3BSP {
 	/////
 	////////////////////////////// CREATE LIGHTMAP TEXTURE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	private void createLightmapTexture(int texture, byte pImageBits, int width, int height)
+	private void createLightmapTexture(int texture, BSPLightMap pImageBits, int width, int height, String factorGamma) throws IOException
 	{
 		// This function takes in the lightmap image bits and creates a texture map
 		// from them.  The width and height is usually 128x128 anyway....
-	
+		
 		// Generate a texture with the associative texture ID stored in the array
 		IntBuffer temp = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asIntBuffer();
 		glGenTextures(temp);
-	
+		texLight = new Texture(GL_TEXTURE_2D, temp.get(0));
 		// This sets the alignment requirements for the start of each pixel row in memory.
-		glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
 		// Bind the texture to the texture arrays index and init the texture
-		glBindTexture(GL_TEXTURE_2D, texture);
-	
-		// Change the lightmap gamma values by our desired gamma
-		//ChangeGamma(pImageBits, width*height*3, g_Gamma);
+		texLight.bind();
 		
-		ByteBuffer imageBuffer = ByteBuffer.allocateDirect(128*128*3); 
+		
+		// Change the lightmap gamma values by our desired gamma
+		changeGamma(pImageBits, pImageBits.imageBits.length, factorGamma);
+		 
+		 
+		ByteBuffer imageBuffer = ByteBuffer.allocateDirect(pImageBits.imageBits.length); 
         imageBuffer.order(ByteOrder.nativeOrder()); 
-       // imageBuffer.put(data, 0, data.length); 
+        imageBuffer.put(pImageBits.imageBits, 0, pImageBits.imageBits.length); 
         imageBuffer.flip();
-	
-		// Build Mipmaps (builds different versions of the picture for distances - looks better)
-		//gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, pImageBits);
-	
+      
+		//Build Mipmaps (builds different versions of the picture for distances - looks better)
+		gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, imageBuffer);
+            	
 		//Assign the mip map levels		
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	}
+	
+	
+	////////////////////////////CHANGE GAMMA \\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This manually changes the gamma of an image
+	/////
+	//////////////////////////// CHANGE GAMMA \\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	private void changeGamma(BSPLightMap pImage, int size, String factorGamma)
+	{
+		//  This function was taken from a couple engines that I saw,
+		// which most likely originated from the Aftershock engine.
+		// Kudos to them!  What it does is increase/decrease the intensity
+		// of the lightmap so that it isn't so dark.  Quake uses hardware to
+		// do this, but we will do it in code.
+	
+		float factor = Float.parseFloat(factorGamma);
+		
+		// Go through every pixel in the lightmap
+		//for(int i = 0; i < size / 3; i++, pImage += 3) 
+		
+		for(int i = 0; i < size; i+=3) 
+		{
+			float scale = 1.0f, temp = 0.0f;
+			float r = 0, g = 0, b = 0;
+	
+			// extract the current RGB values
+			r = (float)pImage.imageBits[i];
+			g = (float)pImage.imageBits[i+1];
+			b = (float)pImage.imageBits[i+2];
+	
+			// Multiply the factor by the RGB values, while keeping it to a 255 ratio
+			r = r * factor / 255.0f;
+			g = g * factor / 255.0f;
+			b = b * factor / 255.0f;
+			
+			// Check if the the values went past the highest value
+			if(r > 1.0f && (temp = (1.0f/r)) < scale) scale=temp;
+			if(g > 1.0f && (temp = (1.0f/g)) < scale) scale=temp;
+			if(b > 1.0f && (temp = (1.0f/b)) < scale) scale=temp;
+	
+			// Get the scale for this pixel and multiply it by our pixel values
+			scale*=255.0f;		
+			r*=scale;	g*=scale;	b*=scale;
+	
+			// Assign the new gamma'nized RGB values to our image
+			pImage.imageBits[i] = (byte)r;
+			pImage.imageBits[i+1] = (byte)g;
+			pImage.imageBits[i+2] = (byte)b;
+		}
 	}
 	
 	////////////////////////////RENDER FACE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -502,24 +568,22 @@ public class Quake3BSP {
 		BSPFace face = faces[faceIndex];
 		
 		
-		// To get a huge speed boost to our rendering, we are going to use vertex arrays.
-		// This makes it so we don't have to call glVertex*() or glTex*() functions for
-		// every vertice.  It also cuts down on slow loops which kill our frame rate.
-	
-		// First, we need to give OpenGL a pointer to our first vertice.
-		// We also tell OpenGL that there is 3 floats, and the offset between
-		// each vertices is the size of tBSPVertex in bytes.  That way we don't have
-		// to have all the vertices in one contiguous array of floats, back to back.
-		// We need to them give an address to the start of this face's vertices, startVertIndex.
+		// Now, in this function you don't might get all messed up and confused with
+		// what function is for vertex arrays and which function is for multi-texturing.
+		// The gl*Pointer() and glEnableClientState() functions are for vertex arrays.
+		// The glActiveTextureARG() and glClientActiveTextureARB() stuff is for multi-texturing.  
+		// Since we allow the user to right or left click the mouse, turning on and off the 
+		// light maps and textures, we need to make those checks in this function to know 
+		// what we should render.
 		
-		glEnableClientState(GL_VERTEX_ARRAY);
+		
 		// Point OpenGL to our vertex array.  We have our vertices stored in
 		// 3 floats, with 0 stride between them in bytes.
 		float[] tempVertFloat = new float[face.numOfVerts*3];
 		int b = 0;
 		for(int a=face.startVertIndex; a < face.startVertIndex+face.numOfVerts; a++)
 		{
-			tempVertFloat[b] = verts[a].position.x;
+			tempVertFloat[b]   = verts[a].position.x;
 			tempVertFloat[b+1] = verts[a].position.y;
 			tempVertFloat[b+2] = verts[a].position.z;
 			b +=3;
@@ -529,43 +593,81 @@ public class Quake3BSP {
 		FloatBuffer vertFloatBuffer = Conversion.allocFloats(tempVertFloat);
 		glVertexPointer(3, 0, vertFloatBuffer);
 		//glVertexPointer(3, GL_FLOAT, sizeof(tBSPVertex), &(m_pVerts[pFace->startVertIndex].vPosition));
-	
+		glEnableClientState(GL_VERTEX_ARRAY);
 		// Next, we pass in the address of the first texture coordinate.  We also tell 
 		// OpenGL that there are 2 UV coordinates that are floats, and the offset between 
 		// each texture coordinate is the size of tBSPVertex in bytes.  
 		// We need to them give an address to the start of this face's indices, startVertIndex.
 		
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		
-		float[] tempTexFloat = new float[face.numOfVerts * 2];
-		int c = 0;
-		for(int a=face.startVertIndex; a < face.startVertIndex+face.numOfVerts; a++)
-		{
-			tempTexFloat[c] = verts[a].textureCoord.s;
-			tempTexFloat[c+1] = verts[a].textureCoord.t;
-			c +=2;
-			
-		}
-		
-		FloatBuffer texFloatBuffer = Conversion.allocFloats(tempTexFloat);
-		
-		glTexCoordPointer(2, 0, texFloatBuffer);
-		
-		//glTexCoordPointer(2, GL_FLOAT, sizeof(tBSPVertex), &(m_pVerts[pFace->startVertIndex].vTextureCoord));
-	
-		// Finally, we want to turn on the vertex and texture coordinate options for
-		// our vertex arrays.  That tells OpenGL to pay attention to our vertices
-		// and texture coordinates when we call the appropriate vertex arrays functions.
-		
-		
-	
+
 		// If we want to render the textures
 		if(isRenderFill())
-		{			
+		{		
+			// Set the current pass as the first texture (For multi-texturing)
+			glActiveTextureARB(GL_TEXTURE0_ARB);
+
+			// Since we are using vertex arrays, we need to tell OpenGL which texture
+			// coordinates to use for each texture pass.  We switch our current texture
+			// to the first one, then set our texture coordinates.
+			glClientActiveTextureARB(GL_TEXTURE0_ARB);
+			
+			float[] tempTexFloat = new float[face.numOfVerts * 2];
+			int c = 0;
+			for(int a=face.startVertIndex; a < face.startVertIndex+face.numOfVerts; a++)
+			{
+				tempTexFloat[c] = verts[a].textureCoord.s;
+				tempTexFloat[c+1] = verts[a].textureCoord.t;
+				c +=2;
+				
+			}
+			
+			FloatBuffer texFloatBuffer = Conversion.allocFloats(tempTexFloat);
+			
+			glTexCoordPointer(2, 0, texFloatBuffer);
+			
+			// Set our vertex array client states for allowing texture coordinates
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+			// Turn on texture arrays for the first pass
+			glClientActiveTextureARB(GL_TEXTURE0_ARB);
+
+			// To enable each texture pass, we want to turn on the texture coord array
+			// state for each pass.  This needs to be done since we are using vertex arrays.
+			glEnable(GL_TEXTURE_2D);
+			texManager.getTexture(face.textureID).bind();
+		}
+		
+		// If we want to render the textures
+		if(isHasLightmaps())
+		{		
+			// Set the current pass as the second lightmap texture_
+			glActiveTextureARB(GL_TEXTURE1_ARB);
+
+			// Turn on texture arrays for the second lightmap pass
+			glClientActiveTextureARB(GL_TEXTURE1_ARB);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+			// Next, we need to specify the UV coordinates for our lightmaps.  This is done
+			// by switching to the second texture and giving OpenGL our lightmap array.
+			glClientActiveTextureARB(GL_TEXTURE1_ARB);
+			float[] tempLightFloat = new float[face.numOfVerts * 2];
+			int c = 0;
+			for(int a=face.startVertIndex; a < face.startVertIndex+face.numOfVerts; a++)
+			{
+				tempLightFloat[c] = verts[a].lightmapCoord.s;
+				tempLightFloat[c+1] = verts[a].lightmapCoord.t;
+				c +=2;
+				
+			}
+			
+			FloatBuffer lightFloatBuffer = Conversion.allocFloats(tempLightFloat);
+			
+			glTexCoordPointer(2, 0, lightFloatBuffer);
+						
 			// Turn on texture mapping and bind the face's texture map
 			glEnable(GL_TEXTURE_2D);
-			//glBindTexture(GL_TEXTURE_2D,  texManager.getTexture(pFace.textureID).getTexID());
-			texManager.getTexture(face.textureID).bind();
+			texLight.bind();
+			
 		}
 	
 		// Now, to draw the face with vertex arrays we just need to tell OpenGL
@@ -845,4 +947,85 @@ public class Quake3BSP {
 	public boolean isHasLightmaps() {
 		return hasLightmaps;
 	}
+	
+	/*
+	private void export(byte[] b) throws IOException
+	{
+		FileWriter file = new FileWriter("c:\\testeWriter.txt");
+		BufferedWriter writer = new BufferedWriter(file);
+		int count=0;
+		for(int i=0; i<b.length;i+=3)
+		{
+		 	String temp = Byte.toString(b[i]);
+		 	String temp1 = Byte.toString(b[i+1]);
+		 	String temp2 = Byte.toString(b[i+2]);
+		   	int te = Integer.parseInt(temp);
+		   	int te1 = Integer.parseInt(temp1);
+		   	int te2 = Integer.parseInt(temp2);
+		   
+		   	if(te < 10)
+		   	{
+		   		temp = "0" + temp;
+		   	}
+		   	if(te1 < 10)
+		   	{
+		   		temp1 = "0" + temp1;
+		   	}
+		   	if(te2 < 10)
+		   	{
+		   		temp2 = "0" + temp2;
+		   	}
+			writer.write("[");
+			writer.write(temp);
+			writer.write(",");
+			writer.write(temp1);
+			writer.write(",");
+			writer.write(temp2);
+			writer.write("]");
+			count++;
+			if(count > 128)
+			{
+				writer.newLine();
+				count = 0;
+			}
+			
+		}
+		writer.close();
+	}
+	
+	private void export(byte[][][] imageBits) throws IOException
+	{
+		FileWriter file = new FileWriter("c:\\testeWriter.txt");
+		BufferedWriter writer = new BufferedWriter(file);
+		
+		  for(int i=0; i < imageBits.length; i++)
+		   {
+			 
+			   for(int j=0; j < imageBits[i].length; j++)
+			   {
+				   writer.write("[");
+				   for(int k=0; k<imageBits[i][j].length; k++)
+				   {
+					   	String temp = Byte.toString(imageBits[i][j][k]);
+					   	int te = Integer.parseInt(temp);
+					   
+					   	if(te < 10)
+					   	{
+					   		temp = "0" + temp;
+					   	}
+						writer.write(temp);
+						if(k != 2)
+						writer.write(",");
+					
+				   }
+				   writer.write("]");
+			   }
+			   writer.newLine();
+		   }
+			
+			
+		
+		writer.close();
+	}
+	*/
 }
