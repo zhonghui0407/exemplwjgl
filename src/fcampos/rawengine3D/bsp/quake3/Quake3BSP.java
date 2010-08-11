@@ -115,7 +115,7 @@ public class Quake3BSP {
 			   {
 				   for(int k=0; k<3; k++)
 				   {
-					   imageBits[i*128+j*128+k] = (byte) loader.readByte();
+					   imageBits[i*128+j*3+k] = (byte) loader.readByte();
 					 
 				   }
 			   }
