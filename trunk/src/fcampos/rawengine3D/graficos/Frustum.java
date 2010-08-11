@@ -299,6 +299,30 @@ public class Frustum
 
 		return true;
 	}
+	
+	public boolean boxInFrustum( float x, float y, float z, float x2, float y2, float z2)
+	{
+		// Go through all of the corners of the box and check then again each plane
+		// in the frustum.  If all of them are behind one of the planes, then it most
+		// like is not in the frustum.
+		for(int i = 0; i < 6; i++ )
+		{
+			if(m_Frustum[i][A] * x  + m_Frustum[i][B] * y  + m_Frustum[i][C] * z  + m_Frustum[i][D] > 0)  continue;
+			if(m_Frustum[i][A] * x2 + m_Frustum[i][B] * y  + m_Frustum[i][C] * z  + m_Frustum[i][D] > 0)  continue;
+			if(m_Frustum[i][A] * x  + m_Frustum[i][B] * y2 + m_Frustum[i][C] * z  + m_Frustum[i][D] > 0)  continue;
+			if(m_Frustum[i][A] * x2 + m_Frustum[i][B] * y2 + m_Frustum[i][C] * z  + m_Frustum[i][D] > 0)  continue;
+			if(m_Frustum[i][A] * x  + m_Frustum[i][B] * y  + m_Frustum[i][C] * z2 + m_Frustum[i][D] > 0)  continue;
+			if(m_Frustum[i][A] * x2 + m_Frustum[i][B] * y  + m_Frustum[i][C] * z2 + m_Frustum[i][D] > 0)  continue;
+			if(m_Frustum[i][A] * x  + m_Frustum[i][B] * y2 + m_Frustum[i][C] * z2 + m_Frustum[i][D] > 0)  continue;
+			if(m_Frustum[i][A] * x2 + m_Frustum[i][B] * y2 + m_Frustum[i][C] * z2 + m_Frustum[i][D] > 0)  continue;
+
+			// If we get here, it isn't in the frustum
+			return false;
+		}
+
+		// Return a true for the box being inside of the frustum
+		return true;
+	}
 
 
  
