@@ -35,6 +35,7 @@ public class TextureManager {
 
     private Texture loadImage(String name, int x, int y, boolean mipmap, boolean useAnisotropicFilter) throws IOException
     {
+    	/*
     	int index;
     	index = name.lastIndexOf("/") + 1;
         int indice = procuraTextura(name.substring(index));
@@ -43,10 +44,11 @@ public class TextureManager {
         	return getTexture(indice);
         }else
         	{
+        	*/
         		Texture tex = loader.getTexture(name, x, y, mipmap, useAnisotropicFilter);
         		setTexture(tex);
         		return tex;
-        	}
+        	//}
     }
     
     public void setTexture(Texture tex)
@@ -64,6 +66,7 @@ public class TextureManager {
     	return textures;
     }
      
+    /*
     private int procuraTextura(String nome)
  	{
  		for (int i=0; i < textures.size(); i++)
@@ -75,4 +78,9 @@ public class TextureManager {
  		}
  		return -1;
  	}
+    */
+    public TextureLoader getLoader()
+    {
+    	return loader;
+    }
 }

@@ -1,14 +1,15 @@
 package fcampos.rawengine3D.graficos;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+
 import org.lwjgl.BufferUtils;
 
 import fcampos.rawengine3D.loader.BinaryLoader;
+
 
 /**
  * A utility to load TGAs. Note: NOT THREAD SAFE
@@ -21,6 +22,12 @@ import fcampos.rawengine3D.loader.BinaryLoader;
  * @author Kevin Glass
  */
 public class TGALoader {
+	
+	//private static final int TGA_RGB	=	 2;		// This tells us it's a normal RGB (really BGR) file
+	//private static final int TGA_A	=	 3;			// This tells us it's a ALPHA file
+	private static final int TGA_RLE	=	10;		// This tells us that the targa is Run-Length Encoded (RLE)
+	
+	
 	/** The width of the texture that needs to be generated */
 	private static int texWidth;
 	/** The height of the texture that needs to be generated */
@@ -31,6 +38,8 @@ public class TGALoader {
 	private static int height;
 	/** The bit depth of the image */
 	private static short pixelDepth;
+	
+	
 
 	/**
 	 * Create a new TGA Loader
@@ -44,6 +53,7 @@ public class TGALoader {
 	 * @param signedShort The short to flip
 	 * @return The flipped short
 	 */
+	@SuppressWarnings("unused")
 	private static short flipEndian(short signedShort) {
 		int input = signedShort & 0xFFFF;
 		return (short) (input << 8 | (input & 0xFF00) >>> 8);
@@ -113,7 +123,8 @@ public class TGALoader {
 	 * @return The byte buffer containing texture data
 	 * @throws IOException Indicates a failure to read the TGA
 	 */
-	@SuppressWarnings("unused")
+	
+	/*
 	public static ByteBuffer loadImage(InputStream fis, boolean flipped) throws IOException {
 		byte red = 0;
 		byte green = 0;
@@ -233,15 +244,17 @@ public class TGALoader {
 		
 		return scratch;
 	}
+	*/
 	
-	public static ByteBuffer loadImage(InputStream fis, boolean flipped, boolean fff)
+	public static ByteBuffer loadImage(InputStream fis, boolean flipped) throws IOException
 	{
 		BinaryLoader loader = new BinaryLoader(fis);
-		ImageData pImageData = null;			// This stores our important image data
-		short width = 0, height = 0;			// The dimensions of the image
+		
+				// The dimensions of the image
 		byte length = 0;					// The length in bytes to the pixels
 		byte imageType = 0;					// The image type (RLE, RGB, Alpha...)
-		byte bits = 0;						// The bits per pixel for the image (16, 24, 32)
+				
+		byte[] rawData;
 											// The file pointer
 		int channels = 0;					// The channels of the image (3 = RGA : 4 = RGBA)
 		int stride = 0;						// The stride (channels * width)
@@ -249,22 +262,23 @@ public class TGALoader {
 
 					
 		// Allocate the structure that will hold our eventual image data (must free it!)
-		pImageData = new ImageData();
-
+	
 		// Read in the length in bytes from the header to the pixel data
 		//fread(&length, sizeof(byte), 1, pFile);
 		length = (byte) loader.readByte();
-		
+		System.out.println("Length: "+ length);
 		// Jump over one byte
 		//fseek(pFile,1,SEEK_CUR); 
+		loader.markPos();
 		loader.seekMarkOffset(1);
 
 		// Read in the imageType (RLE, RGB, etc...)
 		//fread(&imageType, sizeof(byte), 1, pFile);
 		imageType = (byte) loader.readByte();
-		
+		System.out.println("ImageType: " + imageType);
 		// Skip past general information we don't care about
 		//fseek(pFile, 9, SEEK_CUR); 
+		loader.markPos();
 		loader.seekMarkOffset(9);
 
 		// Read the width, height and bits per pixel (16, 24 or 32)
@@ -274,45 +288,66 @@ public class TGALoader {
 		
 		width = loader.readShort();
 		height = loader.readShort();
-		bits = (byte) loader.readByte();
+		pixelDepth = (byte) loader.readByte();
+		
+		System.out.println("Width: " + width);
+     	System.out.println("Height: " +height);
+     	System.out.println("PixelDepth: " + pixelDepth);
+		
+		texWidth = get2Fold(width);
+		texHeight = get2Fold(height);
 		
 		// Now we move the file pointer to the pixel data
 		//fseek(pFile, length + 1, SEEK_CUR); 
+		loader.markPos();
 		loader.seekMarkOffset(length+1);
 
 		// Check if the image is RLE compressed or not
-		if(imageType != ImageData.TGA_RLE)
+		if(imageType != TGA_RLE)
 		{
 			// Check if the image is a 24 or 32-bit image
-			if(bits == 24 || bits == 32)
+			if(pixelDepth == 24 || pixelDepth == 32)
 			{
 				// Calculate the channels (3 or 4) - (use bits >> 3 for more speed).
 				// Next, we calculate the stride and allocate enough memory for the pixels.
-				channels = bits / 8;
+				channels = pixelDepth / 8;
 				stride = channels * width;
-				pImageData.data = new char[2*stride*height];
+				rawData = new byte[stride*height];
+				
+				System.out.println("--------------------------------------------");
+				System.out.println("RGB:");
+
+				System.out.println("Channels: " + channels);
+				System.out.println("Stride: " + stride);
 
 				// Load in all the pixel data line by line
+				int count = 0;
 				for(int y = 0; y < height; y++)
 				{
 					// Store a pointer to the current line of pixels
-					pImageData.data[stride * y] = (char) loader.readShort();
-
+					//unsigned char *pLine = &(pImageData->data[stride * y]);
+					for(int j=0; j<stride; j+=channels)
+					{
+						rawData[count+2] = (byte) loader.readByte();
+						rawData[count+1] = (byte) loader.readByte();
+						rawData[count] = (byte) loader.readByte();
+						if(channels == 4)
+						{
+							loader.readByte();
+						}
+						count+=channels;
+					}
+					
 					// Read in the current line of pixels
 					//fread(pLine, stride, 1, pFile);
 									
 					// Go through all of the pixels and swap the B and R values since TGA
 					// files are stored as BGR instead of RGB (or use GL_BGR_EXT verses GL_RGB)
-					for(i = 0; i < stride; i += channels)
-					{
-						int temp     = pImageData.data[i];
-						pImageData.data[i]     = pImageData.data[i + 2];
-						pImageData.data[i + 2] = (char) temp;
-					}
+					
 				}
 			}
 			// Check if the image is a 16 bit image (RGB stored in 1 unsigned short)
-			else if(bits == 16)
+			else if(pixelDepth == 16)
 			{
 				int pixels = 0;
 				int r=0, g=0, b=0;
@@ -321,7 +356,7 @@ public class TGALoader {
 				// We then calculate the stride and allocate memory for the pixels.
 				channels = 3;
 				stride = channels * width;
-				pImageData.data = new char[2*stride*height];
+				rawData = new byte[stride*height];
 
 				// Load in all the pixel data pixel by pixel
 				for(int j = 0; j < width*height; j++)
@@ -338,9 +373,9 @@ public class TGALoader {
 					
 					// This essentially assigns the color to our array and swaps the
 					// B and R values at the same time.
-					pImageData.data[j * 3 + 0] = (char) r;
-					pImageData.data[j * 3 + 1] = (char) g;
-					pImageData.data[j * 3 + 2] = (char) b;
+					rawData[j * 3 + 0] =  (byte) r;
+					rawData[j * 3 + 1] =  (byte) g;
+					rawData[j * 3 + 2] =  (byte) b;
 				}
 			}	
 			// Else return a NULL for a bad or unsupported pixel format
@@ -351,22 +386,30 @@ public class TGALoader {
 		else
 		{
 			// Create some variables to hold the rleID, current colors read, channels, & stride.
-			byte rleID = 0;
+			short rleID = 0;
 			int colorsRead = 0;
-			channels = bits / 8;
+			channels = pixelDepth / 8;
 			stride = channels * width;
+			
+			System.out.println("--------------------------------------------");
+			System.out.println("RLE:");
 
+			System.out.println("Channels: " + channels);
+			System.out.println("Stride: " + stride);
 			// Next we want to allocate the memory for the pixels and create an array,
 			// depending on the channel count, to read in for each pixel.
-			pImageData.data = new char[2*stride*height];
+			rawData = new byte[stride*height];
 			byte[] pColors = new byte[channels];
+			
+			
 
 			// Load in all the pixel data
 			while(i < width*height)
 			{
+				
 				// Read in the current color count + 1
 				//fread(&rleID, sizeof(byte), 1, pFile);
-				rleID = (byte) loader.readByte();
+				rleID =   (short) loader.readByte();
 				
 				// Check if we don't have an encoded string of colors
 				if(rleID < 128)
@@ -384,13 +427,13 @@ public class TGALoader {
 							pColors[k] = (byte) loader.readByte();
 						}
 						// Store the current pixel in our image array
-						pImageData.data[colorsRead + 0] = (char) pColors[2];
-						pImageData.data[colorsRead + 1] = (char) pColors[1];
-						pImageData.data[colorsRead + 2] = (char) pColors[0];
+						rawData[colorsRead + 0] =  pColors[2];
+						rawData[colorsRead + 1] =  pColors[1];
+						rawData[colorsRead + 2] =  pColors[0];
 
 						// If we have a 4 channel 32-bit image, assign one more for the alpha
-						if(bits == 32)
-							pImageData.data[colorsRead + 3] = (char) pColors[3];
+						if(pixelDepth == 32)
+							rawData[colorsRead + 3] =  pColors[3];
 
 						// Increase the current pixels read, decrease the amount
 						// of pixels left, and increase the starting index for the next pixel.
@@ -416,13 +459,13 @@ public class TGALoader {
 					while(rleID>0)
 					{
 						// Assign the current pixel to the current index in our pixel array
-						pImageData.data[colorsRead + 0] = (char) pColors[2];
-						pImageData.data[colorsRead + 1] = (char) pColors[1];
-						pImageData.data[colorsRead + 2] = (char) pColors[0];
+						rawData[colorsRead + 0] =  pColors[2];
+						rawData[colorsRead + 1] =  pColors[1];
+						rawData[colorsRead + 2] =  pColors[0];
 
 						// If we have a 4 channel 32-bit image, assign one more for the alpha
-						if(bits == 32)
-							pImageData.data[colorsRead + 3] = (char) pColors[3];
+						if(pixelDepth == 32)
+							rawData[colorsRead + 3] = pColors[3];
 
 						// Increase the current pixels read, decrease the amount
 						// of pixels left, and increase the starting index for the next pixel.
@@ -436,14 +479,15 @@ public class TGALoader {
 			}
 		}
 
+		// Get a pointer to the image memory
+		ByteBuffer scratch = BufferUtils.createByteBuffer(rawData.length);
+		scratch.put(rawData);
+		scratch.flip();
 		
-		// Fill in our tImage structure to pass back
-		pImageData.channels = channels;
-		pImageData.sizeX    = width;
-		pImageData.sizeY    = height;
+		
 
 		// Return the TGA data (remember, you must free this data after you are done)
-		return pImageData;
+		return scratch;
 	}
 
     /**
@@ -460,18 +504,5 @@ public class TGALoader {
         return ret;
     } 
     
-    private class ImageData{
-    	
-    	static final int TGA_RGB	=	 2;		// This tells us it's a normal RGB (really BGR) file
-    	static final int TGA_A	=	 3;		// This tells us it's a ALPHA file
-    	static final int TGA_RLE	=	10;		// This tells us that the targa is Run-Length Encoded (RLE)
-    	
-    	int channels;			// The channels in the image (3 = RGB : 4 = RGBA)
-    	int sizeX;				// The width of the image in pixels
-    	int sizeY;				// The height of the image in pixels
-    	char[] data;	// The image pixel data
-    	
-    	
-    	
-    }
+   
 }

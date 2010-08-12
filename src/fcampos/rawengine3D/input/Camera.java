@@ -42,7 +42,7 @@ public final class Camera
 	private boolean mouseInverted = false;
 
 	  /** Mouse sensibility. Default = 750.0f. **/
-	private float mouseSensibility = 30.0f;
+	private float mouseSensibility = 40.0f;
 
 	  /** Current mouse rotation on X axis. **/
 	private float currentRotX = 0.0f;

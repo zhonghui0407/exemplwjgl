@@ -58,6 +58,10 @@ public class TextureLoader {
     /** The color model for the GL image */
     private ColorModel glColorModel;
     
+    private IntBuffer texBuffer;
+    
+    private int position;
+    
     /** 
      * Create a new texture loader based on the game panel
      *
@@ -77,6 +81,9 @@ public class TextureLoader {
                                             false,
                                             ComponentColorModel.OPAQUE,
                                             DataBuffer.TYPE_BYTE);
+        
+        texBuffer = ByteBuffer.allocateDirect(4*100).order(ByteOrder.nativeOrder()).asIntBuffer();
+        position = -1;
     }
     
     /**
@@ -140,10 +147,19 @@ public class TextureLoader {
         int magFilter;
         int index;
         
-        // create the texture ID for this texture 
-        int textureID = createTextureID(); 
+        // create the texture ID for this texture
+        int textureID = 0;
+        if(position == -1)
+        {
+        	textureID = createTextureID();
+        }else{
+        	GL11.glGenTextures(texBuffer);
+        	textureID = texBuffer.get(getPosition());
+        	//System.out.println("TexID: " + textureID);
+        }
+       // System.out.println(textureID);
         Texture texture = new Texture(target,textureID);
-        index = resourceName.lastIndexOf("/") + 1;
+        index = resourceName.lastIndexOf("//") + 1;
         String extension = resourceName.substring(resourceName.lastIndexOf(".") + 1);
         texture.setName(resourceName.substring(index));
         
@@ -442,5 +458,29 @@ public class TextureLoader {
       temp.order(ByteOrder.nativeOrder());
 
       return temp.asIntBuffer();
-    }    
+    }
+    
+    
+
+
+	/**
+	 * @return the texBuffer
+	 */
+	public int getTexBuffer(int position) {
+		return texBuffer.get(position);
+	}
+
+	/**
+	 * @param position the position to set
+	 */
+	public void setPosition(int position) {
+		this.position = position;
+	}
+
+	/**
+	 * @return the position
+	 */
+	public int getPosition() {
+		return position;
+	}    
 }
