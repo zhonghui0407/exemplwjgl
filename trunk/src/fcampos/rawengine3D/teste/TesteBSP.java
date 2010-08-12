@@ -28,7 +28,7 @@ public class TesteBSP extends GameCore {
    
      
     // This is how fast our camera moves
-    private float SPEED	=200.0f;
+    private float SPEED	=300.0f;
      
     
     public GameAction moveLeft;
@@ -93,7 +93,7 @@ public class TesteBSP extends GameCore {
 
     	// Turn on depth testing and texture mapping
     	glEnable(GL_DEPTH_TEST);	
-    	
+    	glEnable(GL_TEXTURE_2D);
     	// Enable front face culling, since that's what Quake3 does
     	glCullFace(GL_FRONT);
      	glEnable(GL_CULL_FACE);
@@ -155,20 +155,22 @@ public class TesteBSP extends GameCore {
          
             if(modTex.isPressed())
             {
-            	level.setRenderFill(false);
-            	if(level.isRenderFill())								// If we don't want lightmaps
+            	level.setHasTextures(!level.isTextures());
+            	if(!level.isTextures())								// If we don't want lightmaps
         		{	
         			glActiveTextureARB(GL_TEXTURE0_ARB);		// Turn the second texture off
                     glDisable(GL_TEXTURE_2D);
+        		}else{
+        			glEnable(GL_TEXTURE_2D);
         		}
             	
             }
             if (drawMode.isPressed())
         	{
-            	level.setRenderFill(!level.isRenderFill());
+            	level.setHasTextures(!level.isTextures());
 
 				// Change the rendering mode to and from lines or triangles
-				if(level.isRenderFill()) 				
+				if(level.isTextures()) 				
 				{
 					// Render the triangles in fill mode		
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	
