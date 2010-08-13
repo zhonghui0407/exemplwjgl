@@ -65,6 +65,11 @@ public class TextureManager {
     {
     	return textures;
     }
+    
+    public int getSize()
+    {
+    	return textures.size();
+    }
      
     /*
     private int procuraTextura(String nome)
