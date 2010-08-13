@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 
@@ -62,6 +63,8 @@ public class TextureLoader {
     
     private int position;
     
+    private ArrayList<Integer> ID;
+    
     /** 
      * Create a new texture loader based on the game panel
      *
@@ -84,6 +87,7 @@ public class TextureLoader {
         
         texBuffer = ByteBuffer.allocateDirect(4*100).order(ByteOrder.nativeOrder()).asIntBuffer();
         position = -1;
+        ID = new ArrayList<Integer>();
     }
     
     /**
@@ -155,6 +159,7 @@ public class TextureLoader {
         }else{
         	GL11.glGenTextures(texBuffer);
         	textureID = texBuffer.get(getPosition());
+        	ID.add(textureID);
         	//System.out.println("TexID: " + textureID);
         }
        // System.out.println(textureID);
@@ -483,4 +488,14 @@ public class TextureLoader {
 	public int getPosition() {
 		return position;
 	}    
+	
+	public int getTexID(int index)
+	{
+		return ID.get(index);
+	}
+	
+	public int getSizeTex()
+	{
+		return ID.size();
+	}
 }

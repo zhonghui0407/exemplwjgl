@@ -6,7 +6,9 @@ import static org.lwjgl.opengl.ARBMultitexture.*;
 
 import static org.lwjgl.util.glu.GLU.*;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -228,11 +230,8 @@ public class Quake3BSP {
 		    size[1] = loader.readInt();
 		    
 		    vertFloatBuffer = getVertFloatBuffer();
-		    
-			texFloatBuffer = getTexFloatBuffer();
-			
+		    texFloatBuffer = getTexFloatBuffer();
 			lightFloatBuffer = getLightFloatBuffer();
-			
 			indiceIntBuffer = getIndiceIntBuffer();
 			
 			
@@ -549,12 +548,24 @@ public class Quake3BSP {
 
 		// Seek to the position in the file that stores the face information
 		loader.seekMarkOffset(lumps[Lumps.kFaces.ordinal()].offset);
-	
+		//FileWriter file1 = new FileWriter("c:\\testeWriter.txt");
+		//BufferedWriter writer = new BufferedWriter(file1);
 		// Read in all the face information
 		for(int i=0; i < numOfFaces; i++)
 		{
 			faces[i] = new BSPFace();
+			/*
+			int temp = faces[i].textureID;
+			String temp1 = Integer.toString(temp);
+			if(temp < 10)
+			{
+				temp1 = "0" + temp1;
+			}
+			writer.write(temp1);
+			writer.newLine();
+			*/
 		}
+		//writer.close();
 	
 		// Seek to the position in the file that stores the texture information
 		loader.seekMarkOffset(lumps[Lumps.kTextures.ordinal()].offset);
@@ -915,23 +926,6 @@ public class Quake3BSP {
 		// light maps and textures, we need to make those checks in this function to know 
 		// what we should render.
 		
-		
-		// Point OpenGL to our vertex array.  We have our vertices stored in
-		// 3 floats, with 0 stride between them in bytes.
-		/*
-		float[] tempVertFloat = new float[face.numOfVerts*3];
-		int b = 0;
-		for(int a=face.startVertIndex; a < face.startVertIndex+face.numOfVerts; a++)
-		{
-			tempVertFloat[b]   = verts[a].position.x;
-			tempVertFloat[b+1] = verts[a].position.y;
-			tempVertFloat[b+2] = verts[a].position.z;
-			b +=3;
-			
-		}
-		
-		FloatBuffer vertFloatBuffer = Conversion.allocFloats(tempVertFloat);
-		*/
 		glVertexPointer(3, 0, face.vertFloatBuffer);
 		//glVertexPointer(3, GL_FLOAT, sizeof(tBSPVertex), &(m_pVerts[pFace->startVertIndex].vPosition));
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -951,19 +945,7 @@ public class Quake3BSP {
 			// coordinates to use for each texture pass.  We switch our current texture
 			// to the first one, then set our texture coordinates.
 			glClientActiveTextureARB(GL_TEXTURE0_ARB);
-			/*
-			float[] tempTexFloat = new float[face.numOfVerts * 2];
-			int c = 0;
-			for(int a=face.startVertIndex; a < face.startVertIndex+face.numOfVerts; a++)
-			{
-				tempTexFloat[c] = verts[a].textureCoord.s;
-				tempTexFloat[c+1] = verts[a].textureCoord.t;
-				c +=2;
-				
-			}
 			
-			FloatBuffer texFloatBuffer = Conversion.allocFloats(tempTexFloat);
-			*/
 			glTexCoordPointer(2, 0, face.texFloatBuffer);
 			
 			// Set our vertex array client states for allowing texture coordinates
@@ -976,6 +958,8 @@ public class Quake3BSP {
 			// state for each pass.  This needs to be done since we are using vertex arrays.
 			glEnable(GL_TEXTURE_2D);
 			//System.out.println(face.textureID);
+			//glBindTexture(GL_TEXTURE_2D, texManager.getLoader().getTexID(face.textureID));
+			//System.out.println("Size: "+texManager.getSize());
 			texManager.getTexture(face.textureID).bind();
 		}
 		
@@ -992,19 +976,7 @@ public class Quake3BSP {
 			// Next, we need to specify the UV coordinates for our lightmaps.  This is done
 			// by switching to the second texture and giving OpenGL our lightmap array.
 			glClientActiveTextureARB(GL_TEXTURE1_ARB);
-			/*
-			float[] tempLightFloat = new float[face.numOfVerts * 2];
-			int c = 0;
-			for(int a=face.startVertIndex; a < face.startVertIndex+face.numOfVerts; a++)
-			{
-				tempLightFloat[c] = verts[a].lightmapCoord.s;
-				tempLightFloat[c+1] = verts[a].lightmapCoord.t;
-				c +=2;
-				
-			}
 			
-			FloatBuffer lightFloatBuffer = Conversion.allocFloats(tempLightFloat);
-			*/
 			glTexCoordPointer(2, 0, face.lightFloatBuffer);
 						
 			// Turn on texture mapping and bind the face's texture map
@@ -1028,16 +1000,8 @@ public class Quake3BSP {
 		// We are going to draw triangles, pass in the number of indices for this face, then
 		// say the indices are stored as ints, then pass in the starting address in our indice
 		// array for this face by indexing it by the startIndex variable of our current face.
-		/*
-		int[] tempIndicesInt = new int[face.numOfIndices]; 
 		
-		for(int a=0; a < tempIndicesInt.length; a++)
-		{
-			tempIndicesInt[a] = indices[a+face.startIndex];
-		}
 		
-		IntBuffer indiceIntBuffer = Conversion.allocInts(tempIndicesInt);
-		*/
 		glDrawElements(GL_TRIANGLES, face.indiceIntBuffer);
 		//glDrawElements(GL_TRIANGLES, pFace->numOfIndices, GL_UNSIGNED_INT, &(m_pIndices[pFace->startIndex]) );
 		 

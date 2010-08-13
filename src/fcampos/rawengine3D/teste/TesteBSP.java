@@ -114,9 +114,14 @@ public class TesteBSP extends GameCore {
     	    	
         if(!isPaused())
         {
-        	
+        	if(!Mouse.isGrabbed())
+        	{
+        		Mouse.setGrabbed(true);
+        	}
         	checkGameInput(elapsedTime);
             camera.update();           
+        }else{
+        	Mouse.setGrabbed(false);
         }
     }
 
