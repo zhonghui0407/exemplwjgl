@@ -6,9 +6,7 @@ import static org.lwjgl.opengl.ARBMultitexture.*;
 
 import static org.lwjgl.util.glu.GLU.*;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -17,6 +15,7 @@ import java.nio.IntBuffer;
 
 
 import fcampos.rawengine3D.MathUtil.Vector3f;
+import fcampos.rawengine3D.MathUtil.VectorMath;
 import fcampos.rawengine3D.gamecore.GameCore;
 import fcampos.rawengine3D.graficos.Texture;
 import fcampos.rawengine3D.graficos.TextureCoord;
@@ -27,6 +26,11 @@ import fcampos.rawengine3D.resource.TextureManager;
 public class Quake3BSP {
 	
 	public final static int FACE_POLYGON = 1;
+	private static final float EPSILON =  0.03125f;		// This is our small number to compensate for float errors
+	
+	private static final int TYPE_RAY =	0;				// This is the type for tracing a RAY
+	private static final int TYPE_SPHERE = 1;				// This is the type for tracing a SPHERE
+	
 	public static int visibleFaces;
 
 	private int numOfVerts;			// The number of verts in the model
@@ -38,6 +42,15 @@ public class Quake3BSP {
 	private int numOfLeafs;			// The leaf count in the level
 	private int numOfLeafFaces;		// The number of leaf faces in the level
 	private int numOfPlanes;			// The number of planes in the level
+	private int numOfBrushes;			// The number of brushes in our world
+	private int numOfBrushSides;		// The number of brush sides in our world
+	private int numOfLeafBrushes;		// The number of leaf brushes
+	
+	private int traceType;			// This stores if we are checking a ray, sphere or a box
+	private float traceRatio;			// This stores the ratio from our start pos to the intersection pt.
+	private float traceRadius;		// This stores the sphere's radius for a collision offset
+
+	private boolean collided;			// This tells if we just collided or not
 
 	private int[] indices;	// The object's indices for rendering
 	private BSPVertex[]  verts;		// The object's vertices
@@ -47,8 +60,11 @@ public class Quake3BSP {
 	private BSPPlane[]   planes;		// The planes stored in the bsp tree
 	private int[]        leafFaces;	// The leaf's faces in the bsp tree
 	private BSPVisData   clusters;	// The clusters in the bsp tree for space partitioning
+	private BSPTexture[] textures;		// This stores our texture info for each brush
+	private BSPBrush[]	 brushes;		// This is our brushes
+	private BSPBrushSide[] brushSides;	// This holds the brush sides
+	private int[] leafBrushes;  // The indices into the brush array
 								
-	private int[] textures;	
 								
 	private BitSet facesDrawn;		// The bitset for the faces that have/haven't been drawn
 	
@@ -304,13 +320,13 @@ public class Quake3BSP {
 	{
 	    String textureName;				// The name of the texture w/o the extension 
 	    int flags;					// The surface flags (unknown) 
-	    int contents;				// The content flags (unknown)
+	    int textureType;				// The content flags (unknown)
 	    
 	    public BSPTexture()
 	    {
 	    	textureName = loader.readString(64);
 	    	flags = loader.readInt();
-	    	contents = loader.readInt();
+	    	textureType = loader.readInt();
 	    }
 	}
 	
@@ -389,6 +405,34 @@ public class Quake3BSP {
 			{
 				bitSets[i] = (byte) loader.readByte();
 			}
+		}
+	}
+	
+	// This stores the brush data
+	public class BSPBrush 
+	{
+		int brushSide;				// The starting brush side for the brush 
+		int numOfBrushSides;		// Number of brush sides for the brush
+		int textureID;				// The texture index for the brush
+		
+		public BSPBrush()
+		{
+			brushSide = loader.readInt();
+			numOfBrushSides = loader.readInt();
+			textureID = loader.readInt();
+		}
+	}
+
+	// This stores the brush side data, which stores indices for the normal and texture ID
+	public class BSPBrushSide 
+	{
+		int plane;					// The plane index
+		int textureID;				// The texture index
+		
+		public BSPBrushSide()
+		{
+			plane = loader.readInt();
+			textureID = loader.readInt();
 		}
 	}
 
@@ -513,7 +557,7 @@ public class Quake3BSP {
 		// We create a local pointer of BSPTextures because we don't need
 		// that information once we create texture maps from it.
 		numOfTextures = lumps[Lumps.kTextures.ordinal()].length / 72;
-		BSPTexture[] textures = new BSPTexture [numOfTextures];
+		textures = new BSPTexture[numOfTextures];
 
 		// Allocate memory to read in the lightmap data.  Like the texture
 		// data, we just need to create a local array to be destroyed real soon.
@@ -548,24 +592,14 @@ public class Quake3BSP {
 
 		// Seek to the position in the file that stores the face information
 		loader.seekMarkOffset(lumps[Lumps.kFaces.ordinal()].offset);
-		//FileWriter file1 = new FileWriter("c:\\testeWriter.txt");
-		//BufferedWriter writer = new BufferedWriter(file1);
+		
 		// Read in all the face information
 		for(int i=0; i < numOfFaces; i++)
 		{
 			faces[i] = new BSPFace();
-			/*
-			int temp = faces[i].textureID;
-			String temp1 = Integer.toString(temp);
-			if(temp < 10)
-			{
-				temp1 = "0" + temp1;
-			}
-			writer.write(temp1);
-			writer.newLine();
-			*/
+			
 		}
-		//writer.close();
+		
 	
 		// Seek to the position in the file that stores the texture information
 		loader.seekMarkOffset(lumps[Lumps.kTextures.ordinal()].offset);
@@ -690,6 +724,46 @@ public class Quake3BSP {
 						
 			clusters = new BSPVisData();
 			
+		}
+		
+		// Like we do for other data, we read get the size of brushes and allocate memory
+		numOfBrushes = lumps[Lumps.kBrushes.ordinal()].length / 4;
+		brushes     = new BSPBrush [numOfBrushes];
+		
+		// Here we read in the brush information from the BSP file
+		//fseek(fp, lumps[kBrushes].offset, SEEK_SET);
+		loader.seekMarkOffset(lumps[Lumps.kBrushes.ordinal()].offset);
+		//fread(m_pBrushes, m_numOfBrushes, sizeof(tBSPBrush), fp);
+		
+		for(int i=0; i< numOfBrushes; i++)
+		{
+			brushes[i] = new BSPBrush();
+		}
+
+		// Get the size of brush sides, then allocate memory for it
+		numOfBrushSides = lumps[Lumps.kBrushSides.ordinal()].length / 4;
+		brushSides     = new BSPBrushSide [numOfBrushSides];
+
+		// Read in the brush sides data
+		//fseek(fp, lumps[kBrushSides].offset, SEEK_SET);
+		loader.seekMarkOffset(lumps[Lumps.kBrushSides.ordinal()].offset);
+		//fread(m_pBrushSides, m_numOfBrushSides, sizeof(tBSPBrushSide), fp);
+		for(int i=0; i< numOfBrushSides; i++)
+		{
+			brushSides[i] = new BSPBrushSide();
+		}
+
+		// Read in the number of leaf brushes and allocate memory for it
+		numOfLeafBrushes = lumps[Lumps.kLeafBrushes.ordinal()].length / 4;
+		leafBrushes     = new int [numOfLeafBrushes];
+
+		// Finally, read in the leaf brushes for traversing the bsp tree with brushes
+		//fseek(fp, lumps[kLeafBrushes].offset, SEEK_SET);
+		loader.seekMarkOffset(lumps[Lumps.kLeafBrushes.ordinal()].offset);
+		//fread(m_pLeafBrushes, m_numOfLeafBrushes, sizeof(int), fp);
+		for(int i=0; i< numOfLeafBrushes; i++)
+		{
+			leafBrushes[i] = loader.readInt();
 		}
 		
 	
@@ -904,6 +978,352 @@ public class Quake3BSP {
 	
 		// Return the result ( either 1 (visible) or 0 (not visible) )
 		return ( result );
+	}
+	
+	
+	/////////////////////////////////// TRACE RAY \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This takes a start and end position (ray) to test against the BSP brushes
+	/////
+	/////////////////////////////////// TRACE RAY \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public Vector3f traceRay(Vector3f vStart, Vector3f vEnd)
+	{
+		// We don't use this function, but we set it up to allow us to just check a
+		// ray with the BSP tree brushes.  We do so by setting the trace type to TYPE_RAY.
+		traceType = TYPE_RAY;
+	
+		// Run the normal Trace() function with our start and end 
+		// position and return a new position
+		return trace(vStart, vEnd);
+	}
+	
+	
+	/////////////////////////////////// TRACE SPHERE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This tests a sphere around our movement vector against the BSP brushes for collision
+	/////
+	/////////////////////////////////// TRACE SPHERE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public Vector3f traceSphere(Vector3f vStart, Vector3f vEnd, float radius)
+	{
+		// In this tutorial we are doing sphere collision, so this is the function
+		// that we will be doing to initiate our collision checks.
+	
+		// Here we initialize the type of trace (SPHERE) and initialize other data
+		traceType = TYPE_SPHERE;
+		collided = false;
+		traceRadius = radius;
+	
+		// Get the new position that we will return to the camera or player
+		Vector3f vNewPosition = trace(vStart, vEnd);
+	
+		// Return the new position to be changed for the camera or player
+		return vNewPosition;
+	}
+	
+	/////////////////////////////////// TRACE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This takes a start and end position (general) to test against the BSP brushes
+	/////
+	/////////////////////////////////// TRACE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	public Vector3f trace(Vector3f vStart, Vector3f vEnd)
+	{
+		// Initially we set our trace ratio to 1.0f, which means that we don't have
+		// a collision or intersection point, so we can move freely.
+		traceRatio = 1.0f;
+		
+		// We start out with the first node (0), setting our start and end ratio to 0 and 1.
+		// We will recursively go through all of the nodes to see which brushes we should check.
+		checkNode(0, 0.0f, 1.0f, vStart, vEnd);
+	
+		// If the traceRatio is STILL 1.0f, then we never collided and just return our end position
+		if(traceRatio == 1.0f)
+		{
+			return vEnd;
+		}
+		else	// Else COLLISION!!!!
+		{
+			// If we get here then it's assumed that we collided and need to move the position
+			// the correct distance from the starting position a position around the intersection
+			// point.  This is done by the cool equation below (described in detail at top of page).
+	
+			// Set our new position to a position that is right up to the brush we collided with
+			//Vector3f vNewPosition = vStart + ((vEnd - vStart) * traceRatio);
+			
+			Vector3f tempSubtract = new Vector3f(VectorMath.subtract(vEnd, vStart));
+			
+			Vector3f vNewPosition = new Vector3f(VectorMath.add(VectorMath.multiply(tempSubtract, traceRatio), vStart)); 	
+			// Return the new position to be used by our camera (or player)
+			return vNewPosition;
+		}
+	}
+	
+	/////////////////////////////////// CHECK NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This traverses the BSP to find the brushes closest to our position
+	/////
+	/////////////////////////////////// CHECK NODE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	private void checkNode(int nodeIndex, float startRatio, float endRatio, Vector3f vStart, Vector3f vEnd)
+	{
+		// Remember, the nodeIndices are stored as negative numbers when we get to a leaf, so we 
+		// check if the current node is a leaf, which holds brushes.  If the nodeIndex is negative,
+		// the next index is a leaf (note the: nodeIndex + 1)
+		if(nodeIndex < 0)
+		{
+			// If this node in the BSP is a leaf, we need to negate and add 1 to offset
+			// the real node index into the m_pLeafs[] array.  You could also do [~nodeIndex].
+			BSPLeaf pLeaf = leafs[-(nodeIndex + 1)];
+	
+			// We have a leaf, so let's go through all of the brushes for that leaf
+			for(int i = 0; i < pLeaf.numOfLeafBrushes; i++)
+			{
+				// Get the current brush that we going to check
+				BSPBrush pBrush = brushes[leafBrushes[pLeaf.leafBrush + i]];
+	
+				// This is kind of an important line.  First, we check if there is actually
+				// and brush sides (which store indices to the normal and plane data for the brush).
+				// If not, then go to the next one.  Otherwise, we also check to see if the brush
+				// is something that we want to collide with.  For instance, there are brushes for
+				// water, lava, bushes, misc. sprites, etc...  We don't want to collide with water
+				// and other things like bushes, so we check the texture type to see if it's a solid.
+				// If the textureType can be binary-anded (&) and still be 1, then it's solid,
+				// otherwise it's something that can be walked through.  That's how Quake chose to
+				// do it.
+	
+				// Check if we have brush sides and the current brush is solid and collidable
+				if((pBrush.numOfBrushSides > 0) && (textures[pBrush.textureID].textureType & 1) == 1)
+				{
+					// Now we delve into the dark depths of the real calculations for collision.
+					// We can now check the movement vector against our brush planes.
+					checkBrush(pBrush, vStart, vEnd);
+				}
+			}
+	
+			// Since we found the brushes, we can go back up and stop recursing at this level
+			return;
+		}
+	
+		// If we haven't found a leaf in the node, then we need to keep doing some dirty work
+		// until we find the leafs which store the brush information for collision detection.
+	
+		// Grad the next node to work with and grab this node's plane data
+		BSPNode pNode = nodes[nodeIndex];
+		BSPPlane pPlane = planes[pNode.plane];
+		
+		// Now we do some quick tests to see which side we fall on of the node in the BSP
+	
+		// Here we use the plane equation to find out where our initial start position is
+		// according the the node that we are checking.  We then grab the same info for the end pos.
+		float startDistance = VectorMath.getDotProduct(vStart, pPlane.normal) - pPlane.distance;
+		float endDistance = VectorMath.getDotProduct(vEnd, pPlane.normal) - pPlane.distance;
+		float offset = 0.0f;
+	
+		// If we are doing any type of collision detection besides a ray, we need to change
+		// the offset for which we are testing collision against the brushes.  If we are testing
+		// a sphere against the brushes, we need to add the sphere's offset when we do the plane
+		// equation for testing our movement vector (start and end position).  * More Info * For
+		// more info on sphere collision, check out our tutorials on this subject.
+	
+		// If we are doing sphere collision, include an offset for our collision tests below
+		if(traceType == TYPE_SPHERE)
+			offset = traceRadius;
+	
+		// Below we just do a basic traversal down the BSP tree.  If the points are in
+		// front of the current splitter plane, then only check the nodes in front of
+		// that splitter plane.  Otherwise, if both are behind, check the nodes that are
+		// behind the current splitter plane.  The next case is that the movement vector
+		// is on both sides of the splitter plane, which makes it a bit more tricky because we now
+		// need to check both the front and the back and split up the movement vector for both sides.
+	
+		// Here we check to see if the start and end point are both in front of the current node.
+		// If so, we want to check all of the nodes in front of this current splitter plane.
+		if(startDistance >= offset && endDistance >= offset)
+		{
+			// Traverse the BSP tree on all the nodes in front of this current splitter plane
+			checkNode(pNode.front, startDistance, endDistance, vStart, vEnd);
+		}
+		// If both points are behind the current splitter plane, traverse down the back nodes
+		else if(startDistance < -offset && endDistance < -offset)
+		{
+			// Traverse the BSP tree on all the nodes in back of this current splitter plane
+			checkNode(pNode.back, startDistance, endDistance, vStart, vEnd);
+		}	
+		else
+		{
+			// If we get here, then our ray needs to be split in half to check the nodes
+			// on both sides of the current splitter plane.  Thus we create 2 ratios.
+			float Ratio1 = 1.0f, Ratio2 = 0.0f, middleRatio = 0.0f;
+			Vector3f vMiddle = new Vector3f();	// This stores the middle point for our split ray
+	
+			// Start of the side as the front side to check
+			int side = pNode.front;
+	
+			// Here we check to see if the start point is in back of the plane (negative)
+			if(startDistance < endDistance)
+			{
+				// Since the start position is in back, let's check the back nodes
+				side = pNode.back;
+	
+				// Here we create 2 ratios that hold a distance from the start to the
+				// extent closest to the start (take into account a sphere and epsilon).
+				// We use epsilon like Quake does to compensate for float errors.  The second
+				// ratio holds a distance from the other size of the extents on the other side
+				// of the plane.  This essential splits the ray for both sides of the splitter plane.
+				float inverseDistance = 1.0f / (startDistance - endDistance);
+				Ratio1 = (startDistance - offset - EPSILON) * inverseDistance;
+				Ratio2 = (startDistance + offset + EPSILON) * inverseDistance;
+			}
+			// Check if the starting point is greater than the end point (positive)
+			else if(startDistance > endDistance)
+			{
+				// This means that we are going to recurse down the front nodes first.
+				// We do the same thing as above and get 2 ratios for split ray.
+				// Ratio 1 and 2 are switched in contrast to the last if statement.
+				// This is because the start is starting in the front of the splitter plane.
+				float inverseDistance = 1.0f / (startDistance - endDistance);
+				Ratio1 = (startDistance + offset + EPSILON) * inverseDistance;
+				Ratio2 = (startDistance - offset - EPSILON) * inverseDistance;
+			}
+	
+			// Make sure that we have valid numbers and not some weird float problems.
+			// This ensures that we have a value from 0 to 1 as a good ratio should be :)
+			if (Ratio1 < 0.0f) Ratio1 = 0.0f;
+	        else if (Ratio1 > 1.0f) Ratio1 = 1.0f;
+	
+	        if (Ratio2 < 0.0f) Ratio2 = 0.0f;
+	        else if (Ratio2 > 1.0f) Ratio2 = 1.0f;
+	
+			// Just like we do in the Trace() function, we find the desired middle
+			// point on the ray, but instead of a point we get a middleRatio percentage.
+			// This isn't the true middle point since we are using offset's and the epsilon value.
+			// We also grab the middle point to go with the ratio.
+			middleRatio = startRatio + ((endRatio - startRatio) * Ratio1);
+			//vMiddle = vStart + ((vEnd - vStart) * Ratio1);
+			vMiddle = VectorMath.add(vStart, VectorMath.multiply(VectorMath.subtract(vEnd, vStart), Ratio1));
+	
+			// Now we recurse on the current side with only the first half of the ray
+			checkNode(side, startRatio, middleRatio, vStart, vMiddle);
+	
+			// Now we need to make a middle point and ratio for the other side of the node
+			middleRatio = startRatio + ((endRatio - startRatio) * Ratio2);
+			//vMiddle = vStart + ((vEnd - vStart) * Ratio2);
+			vMiddle = VectorMath.add(vStart, VectorMath.multiply(VectorMath.subtract(vEnd, vStart), Ratio2));
+	
+			// Depending on which side should go last, traverse the bsp with the
+			// other side of the split ray (movement vector).
+			if(side == pNode.back)
+				checkNode(pNode.front, middleRatio, endRatio, vMiddle, vEnd);
+			else
+				checkNode(pNode.back, middleRatio, endRatio, vMiddle, vEnd);
+		}
+	}
+	
+	
+	/////////////////////////////////// CHECK BRUSH \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	/////
+	/////	This checks our movement vector against all the planes of the brush
+	/////
+	/////////////////////////////////// CHECK BRUSH \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+	
+	private void checkBrush(BSPBrush pBrush, Vector3f vStart, Vector3f vEnd)
+	{
+		float startRatio = -1.0f;		// Like in BrushCollision.htm, start a ratio at -1
+	    float endRatio = 1.0f;			// Set the end ratio to 1
+	    boolean startsOut = false;			// This tells us if we starting outside the brush
+	
+		// This function actually does the collision detection between our movement
+		// vector and the brushes in the world data.  We will go through all of the
+		// brush sides and check our start and end ratio against the planes to see if
+		// they pass each other.  We start the startRatio at -1 and the endRatio at
+		// 1, but as we set the ratios to their intersection points (ratios), then
+		// they slowly move toward each other.  If they pass each other, then there
+		// is definitely not a collision.
+	
+		// Go through all of the brush sides and check collision against each plane
+		for(int i = 0; i < pBrush.numOfBrushSides; i++)
+		{
+			// Here we grab the current brush side and plane in this brush
+			BSPBrushSide pBrushSide = brushSides[pBrush.brushSide + i];
+			BSPPlane pPlane = planes[pBrushSide.plane];
+	
+			// Let's store a variable for the offset (like for sphere collision)
+			float offset = 0.0f;
+	
+			// If we are testing sphere collision we need to add the sphere radius
+			if(traceType == TYPE_SPHERE)
+				offset = traceRadius;
+	
+			// Test the start and end points against the current plane of the brush side.
+			// Notice that we add an offset to the distance from the origin, which makes
+			// our sphere collision work.
+			;
+			float startDistance = VectorMath.getDotProduct(vStart, pPlane.normal) - (pPlane.distance + offset);
+			float endDistance = VectorMath.getDotProduct(vEnd, pPlane.normal) - (pPlane.distance + offset);
+	
+			// Make sure we start outside of the brush's volume
+			if(startDistance > 0)	startsOut = true;
+	
+			// Stop checking since both the start and end position are in front of the plane
+			if(startDistance > 0 && endDistance > 0)
+				return;
+	
+			// Continue on to the next brush side if both points are behind or on the plane
+			if(startDistance <= 0 && endDistance <= 0)
+				continue;
+	
+			// If the distance of the start point is greater than the end point, we have a collision!
+			if(startDistance > endDistance)
+			{
+				// This gets a ratio from our starting point to the approximate collision spot
+				float Ratio1 = (startDistance - EPSILON) / (startDistance - endDistance);
+	
+				// If this is the first time coming here, then this will always be true,
+				// since startRatio starts at -1.0f.  We want to find the closest collision,
+				// so we still continue to check all of the brushes before quitting.
+				if(Ratio1 > startRatio)
+				{
+					// Set the startRatio (currently the closest collision distance from start)
+					startRatio = Ratio1;
+					collided = true;		// Let us know we collided!
+				}
+			}
+			else
+			{
+				// Get the ratio of the current brush side for the endRatio
+				float Ratio = (startDistance + EPSILON) / (startDistance - endDistance);
+	
+				// If the ratio is less than the current endRatio, assign a new endRatio.
+				// This will usually always be true when starting out.
+				if(Ratio < endRatio)
+					endRatio = Ratio;
+			}
+		}
+	
+		// If we didn't start outside of the brush we don't want to count this collision - return;
+		if(startsOut == false)
+		{
+			return;
+		}
+		
+		// If our startRatio is less than the endRatio there was a collision!!!
+		if(startRatio < endRatio)
+		{
+			// Make sure the startRatio moved from the start and check if the collision
+			// ratio we just got is less than the current ratio stored in m_traceRatio.
+			// We want the closest collision to our original starting position.
+			if(startRatio > -1 && startRatio < traceRatio)
+			{
+				// If the startRatio is less than 0, just set it to 0
+				if(startRatio < 0)
+					startRatio = 0;
+	
+				// Store the new ratio in our member variable for later
+				traceRatio = startRatio;
+			}
+		}
 	}
 	
 	////////////////////////////RENDER FACE \\\\\\\\\\\\\\\\\\\\\\\\\\\*
@@ -1215,23 +1635,6 @@ public class Quake3BSP {
 	}
 
 
-	/**
-	 * @param textures the textures to set
-	 */
-	public void setTextures(int[] textures) 
-	{
-		this.textures = textures;
-	}
-
-
-	/**
-	 * @return the textures
-	 */
-	public int[] getTextures() 
-	{
-		return textures;
-	}
-
 
 	/**
 	 * @param facesDrawn the facesDrawn to set
@@ -1296,6 +1699,118 @@ public class Quake3BSP {
 	 */
 	public boolean isHasLightmaps() {
 		return hasLightmaps;
+	}
+
+
+	/**
+	 * @param numOfBrushes the numOfBrushes to set
+	 */
+	public void setNumOfBrushes(int numOfBrushes) {
+		this.numOfBrushes = numOfBrushes;
+	}
+
+
+	/**
+	 * @return the numOfBrushes
+	 */
+	public int getNumOfBrushes() {
+		return numOfBrushes;
+	}
+
+
+	/**
+	 * @param numOfBrushSides the numOfBrushSides to set
+	 */
+	public void setNumOfBrushSides(int numOfBrushSides) {
+		this.numOfBrushSides = numOfBrushSides;
+	}
+
+
+	/**
+	 * @return the numOfBrushSides
+	 */
+	public int getNumOfBrushSides() {
+		return numOfBrushSides;
+	}
+
+
+	/**
+	 * @param numOfLeafBrushes the numOfLeafBrushes to set
+	 */
+	public void setNumOfLeafBrushes(int numOfLeafBrushes) {
+		this.numOfLeafBrushes = numOfLeafBrushes;
+	}
+
+
+	/**
+	 * @return the numOfLeafBrushes
+	 */
+	public int getNumOfLeafBrushes() {
+		return numOfLeafBrushes;
+	}
+
+
+	/**
+	 * @param traceType the traceType to set
+	 */
+	public void setTraceType(int traceType) {
+		this.traceType = traceType;
+	}
+
+
+	/**
+	 * @return the traceType
+	 */
+	public int getTraceType() {
+		return traceType;
+	}
+
+
+	/**
+	 * @param traceRatio the traceRatio to set
+	 */
+	public void setTraceRatio(float traceRatio) {
+		this.traceRatio = traceRatio;
+	}
+
+
+	/**
+	 * @return the traceRatio
+	 */
+	public float getTraceRatio() {
+		return traceRatio;
+	}
+
+
+	/**
+	 * @param traceRadius the traceRadius to set
+	 */
+	public void setTraceRadius(float traceRadius) {
+		this.traceRadius = traceRadius;
+	}
+
+
+	/**
+	 * @return the traceRadius
+	 */
+	public float getTraceRadius() {
+		return traceRadius;
+	}
+
+
+	/**
+	 * @param collided the collided to set
+	 */
+	public void setCollided(boolean collided) {
+		this.collided = collided;
+	}
+
+
+	/**
+	 * @return the collided
+	 */
+	public boolean isCollided() {
+		return collided;
 	}
 	
 	/*

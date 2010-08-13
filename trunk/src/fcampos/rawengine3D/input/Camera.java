@@ -186,19 +186,19 @@ public final class Camera
 	public void setPosition(Vector3f m_vPosition)
 	{
 		
-		this.m_vPosition = m_vPosition;
+		this.m_vPosition.setTo(m_vPosition);
 	}
 	
 	public void setView(Vector3f m_vView)
 	{
 		
-		this.m_vView = m_vView;
+		this.m_vView.setTo(m_vView);
 	}
 	
 	public void setUpVector(Vector3f m_vUpVector)
 	{
 		
-		this.m_vUpVector = m_vUpVector;
+		this.m_vUpVector.setTo(m_vUpVector);
 	}
 	
 	
