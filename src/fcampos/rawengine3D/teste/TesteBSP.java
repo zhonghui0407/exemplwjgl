@@ -3,6 +3,7 @@ package fcampos.rawengine3D.teste;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.ARBMultitexture.*;
+import static org.lwjgl.util.glu.GLU.gluPerspective;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
+import fcampos.rawengine3D.MathUtil.Vector3f;
 import fcampos.rawengine3D.bsp.quake3.Quake3BSP;
 import fcampos.rawengine3D.fps.FPSCounter;
 import fcampos.rawengine3D.gamecore.GameCore;
@@ -54,6 +56,16 @@ public class TesteBSP extends GameCore {
     {
         super.init();
         
+        glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+    	glLoadIdentity();									// Reset The Projection Matrix
+
+    														// Calculate The Aspect Ratio Of The Window
+    				  // FOV		// Ratio				//  The farthest distance before it stops drawing)
+    	gluPerspective(70.0f, screen.getWidth()/screen.getHeight(), 10.0f , 4000.0f);
+
+    	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+    	glLoadIdentity();									// Reset The Modelview Matrix
+        
         screen.setTitle("BSP Loader");
         
      // Create the camera with mouse look enabled.
@@ -84,7 +96,7 @@ public class TesteBSP extends GameCore {
                    
      // Position the camera to the starting point since we have
     	// not read in the entities yet, which gives the starting points.
-    	camera.setPosition( 80, 288, 16,	80, 288, 17,	0, 1, 0);
+    	camera.setPosition( 80, 350, 16,	80, 350, 17,	0, 1, 0);
 
     	
     	
@@ -118,8 +130,9 @@ public class TesteBSP extends GameCore {
         	{
         		Mouse.setGrabbed(true);
         	}
+        	camera.update(); 
         	checkGameInput(elapsedTime);
-            camera.update();           
+                     
         }else{
         	Mouse.setGrabbed(false);
         }
@@ -133,6 +146,10 @@ public class TesteBSP extends GameCore {
         	
         	// Once we have the frame interval, we find the current speed
         	float speed = (SPEED * elapsedTime);
+        	
+        	// Before we move our camera we want to store the old position.  We then use 
+        	// this data to test collision detection.
+        	Vector3f oldPosition = new Vector3f(camera.getPosition());
         	
         	if (moveLeft.isPressed())
             {
@@ -173,7 +190,7 @@ public class TesteBSP extends GameCore {
             if (drawMode.isPressed())
         	{
             	level.setHasTextures(!level.isTextures());
-
+            	level.setHasLightmaps(false);
 				// Change the rendering mode to and from lines or triangles
 				if(level.isTextures()) 				
 				{
@@ -187,10 +204,20 @@ public class TesteBSP extends GameCore {
 				}
             	
         	}
-                     
-                    
             
-            
+            // Now that we moved, let's get the current position and test our movement
+        	// vector against the level data to see if there is a collision.
+        	Vector3f currentPosition = new Vector3f(camera.getPosition());
+        	
+        	// Here we call our function TraceSphere() to check our movement vector (last
+        	// and current position) against the world.  We pass in a radius for our sphere
+        	// of 25.  If there is anything in the range of our sphere, then we collide.
+        	Vector3f newPosition = level.traceSphere(oldPosition, currentPosition, 25.0f);
+        	
+        	
+        	// Set the new position that was returned from our trace function
+        	camera.setPosition(newPosition);
+
         }
 
         public void render() 
@@ -214,7 +241,7 @@ public class TesteBSP extends GameCore {
         	// dealing with the BSP nodes and leafs.
         	level.renderLevel(camera.getPosition());
         	
-        	screen.setTitle("FPS: " + FPSCounter.get()); 
+        	screen.setTitle("FPS: " + FPSCounter.get() + " VisibleFaces: " + Quake3BSP.visibleFaces); 
         	
         	
         }

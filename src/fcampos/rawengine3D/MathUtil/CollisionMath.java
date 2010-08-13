@@ -32,6 +32,7 @@ public class CollisionMath {
 	public final static double PI 		= 3.1415926535897932;
 	public final static double TWO_PI 	= 6.2831853071795864;
 	
+		
 	Vector3f vNormal;
 	//public Fl originDistance;
 	
@@ -490,7 +491,7 @@ public class CollisionMath {
 		// signs as seen below:
 		
 		// If our distance is greater than zero, we are in front of the polygon
-		if(distance > 0.00001)
+		if(distance > 0.001)
 		{
 			// Find the distance that our sphere is overlapping the plane, then
 			// find the direction vector to move our sphere.
