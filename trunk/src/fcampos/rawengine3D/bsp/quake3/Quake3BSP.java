@@ -628,8 +628,8 @@ public class Quake3BSP {
 				texManager.getLoader().setPosition(i);
 				texManager.getNormalImage(textures[i].textureName, false, false);
 			}else{
-				int id = texManager.getTexture(i-1).getTexID();
-				texManager.setTexture(new Texture(GL_TEXTURE_2D,id+1));
+			//int id = texManager.getTexture(i-1).getTexID();
+				texManager.setTexture(new Texture(GL_TEXTURE_2D,1));
 			}
 				
 		}
@@ -891,7 +891,7 @@ public class Quake3BSP {
 	/////
 	//////////////////////////// FIND LEAF \\\\\\\\\\\\\\\\\\\\\\\\\\\*
 	
-	public int findLeaf(Vector3f position)
+	private int findLeaf(Vector3f position)
 	{
 		int i = 0;
 		float distance = 0.0f;
@@ -1036,7 +1036,7 @@ public class Quake3BSP {
 		
 		// We start out with the first node (0), setting our start and end ratio to 0 and 1.
 		// We will recursively go through all of the nodes to see which brushes we should check.
-		checkNode(0, 0.0f, 1.0f, vStart, vEnd);
+		checkNode(0, 0.0f, -1.0f, vStart, vEnd);
 	
 		// If the traceRatio is STILL 1.0f, then we never collided and just return our end position
 		if(traceRatio == 1.0f)
@@ -1116,7 +1116,7 @@ public class Quake3BSP {
 		// Now we do some quick tests to see which side we fall on of the node in the BSP
 	
 		// Here we use the plane equation to find out where our initial start position is
-		// according the the node that we are checking.  We then grab the same info for the end pos.
+		// according the node that we are checking.  We then grab the same info for the end pos.
 		float startDistance = VectorMath.getDotProduct(vStart, pPlane.normal) - pPlane.distance;
 		float endDistance = VectorMath.getDotProduct(vEnd, pPlane.normal) - pPlane.distance;
 		float offset = 0.0f;
@@ -1129,8 +1129,9 @@ public class Quake3BSP {
 	
 		// If we are doing sphere collision, include an offset for our collision tests below
 		if(traceType == TYPE_SPHERE)
+		{
 			offset = traceRadius;
-	
+		}
 		// Below we just do a basic traversal down the BSP tree.  If the points are in
 		// front of the current splitter plane, then only check the nodes in front of
 		// that splitter plane.  Otherwise, if both are behind, check the nodes that are
@@ -1254,12 +1255,13 @@ public class Quake3BSP {
 	
 			// If we are testing sphere collision we need to add the sphere radius
 			if(traceType == TYPE_SPHERE)
+			{
 				offset = traceRadius;
-	
+			}
 			// Test the start and end points against the current plane of the brush side.
 			// Notice that we add an offset to the distance from the origin, which makes
 			// our sphere collision work.
-			;
+			
 			float startDistance = VectorMath.getDotProduct(vStart, pPlane.normal) - (pPlane.distance + offset);
 			float endDistance = VectorMath.getDotProduct(vEnd, pPlane.normal) - (pPlane.distance + offset);
 	
@@ -1312,7 +1314,7 @@ public class Quake3BSP {
 		if(startRatio < endRatio)
 		{
 			// Make sure the startRatio moved from the start and check if the collision
-			// ratio we just got is less than the current ratio stored in m_traceRatio.
+			// ratio we just got is less than the current ratio stored in traceRatio.
 			// We want the closest collision to our original starting position.
 			if(startRatio > -1 && startRatio < traceRatio)
 			{

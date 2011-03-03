@@ -26,21 +26,17 @@ public class TesteBSP extends GameCore {
     {
         new TesteBSP().run();
     }
-    
-   
-     
+ 
     // This is how fast our camera moves
-    private float SPEED	=300.0f;
-     
-    
+    private float SPEED	= 300.0f;
+
     public GameAction moveLeft;
     public GameAction moveRight;
     public GameAction moveUp;
     public GameAction moveDown;
     public GameAction drawMode;
     public GameAction modTex;
-  
-    
+
     boolean  g_bLighting     = true;							// Turn lighting on initially
      
     // This is the speed that our model rotates.  (-speed rotates left)
@@ -58,7 +54,6 @@ public class TesteBSP extends GameCore {
         
         glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
     	glLoadIdentity();									// Reset The Projection Matrix
-
     														// Calculate The Aspect Ratio Of The Window
     				  // FOV		// Ratio				//  The farthest distance before it stops drawing)
     	gluPerspective(70.0f, screen.getWidth()/screen.getHeight(), 10.0f , 4000.0f);
@@ -68,17 +63,17 @@ public class TesteBSP extends GameCore {
         
         screen.setTitle("BSP Loader");
         
-     // Create the camera with mouse look enabled.
+        // Create the camera with mouse look enabled.
 		camera = new Camera(true);
         
         BufferedReader reader = TextFile.openFile("Config.ini");
         String strLine = null;
         String nameLevel = null;
     	String gammaFactor = null;
+    	
         while((strLine = reader.readLine()) != null)
 		{
-        	
-        	if(strLine.contains("[Level]"))
+         	if(strLine.contains("[Level]"))
         	{
         		nameLevel = strLine.substring(8);
         	}
@@ -87,21 +82,16 @@ public class TesteBSP extends GameCore {
         	{
         		gammaFactor = strLine.substring(8);
         	}
-        	
-        	
 		}
+        
         level.loadBSP(nameLevel, gammaFactor);
                    
         createGameActions();
                    
-     // Position the camera to the starting point since we have
+        // Position the camera to the starting point since we have
     	// not read in the entities yet, which gives the starting points.
     	camera.setPosition( 80, 350, 16,	80, 350, 17,	0, 1, 0);
-
-    	
-    	
-    	
-    /////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
+    	//camera.setPosition( 80, 100, 10,	80, 100, 17,	0, 1, 0);
 
     	// Turn on depth testing and texture mapping
     	glEnable(GL_DEPTH_TEST);	
@@ -111,7 +101,8 @@ public class TesteBSP extends GameCore {
      	glEnable(GL_CULL_FACE);
     	// To make our model render somewhat faster, we do some front back culling.
     	// It seems that Quake2 orders their polygons clock-wise.
-    	// Seleciona o modo de aplicação da textura
+    	
+     	// Seleciona o modo de aplicação da textura
     	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, modo);
     	    	   
         Mouse.setGrabbed(true);
@@ -141,7 +132,6 @@ public class TesteBSP extends GameCore {
  
         public void checkGameInput(float elapsedTime)
         {
-        	
         	super.checkGameInput(); // Checamos se as teclas foram pressionadas ou não.
         	
         	// Once we have the frame interval, we find the current speed
@@ -154,31 +144,27 @@ public class TesteBSP extends GameCore {
         	if (moveLeft.isPressed())
             {
             	camera.strafe(-speed );
-            	
             }
 
             if (moveRight.isPressed())
             {
-            	
             	camera.strafe(speed);	
             }
            
             if (moveUp.isPressed())
             {
             	camera.move(speed );
-            	
             }
+            
             if (moveDown.isPressed())
             {
-            	
-            	camera.move(-speed);
+             	camera.move(-speed);
             }
-        	
-         
+
             if(modTex.isPressed())
             {
             	level.setHasTextures(!level.isTextures());
-            	if(!level.isTextures())								// If we don't want lightmaps
+            	if(!level.isTextures())							// If we don't want lightmaps
         		{	
         			glActiveTextureARB(GL_TEXTURE0_ARB);		// Turn the second texture off
                     glDisable(GL_TEXTURE_2D);
@@ -187,6 +173,7 @@ public class TesteBSP extends GameCore {
         		}
             	
             }
+            
             if (drawMode.isPressed())
         	{
             	level.setHasTextures(!level.isTextures());
@@ -202,7 +189,6 @@ public class TesteBSP extends GameCore {
 					// Render the triangles in wire frame mode
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	
 				}
-            	
         	}
             
             // Now that we moved, let's get the current position and test our movement
@@ -213,8 +199,7 @@ public class TesteBSP extends GameCore {
         	// and current position) against the world.  We pass in a radius for our sphere
         	// of 25.  If there is anything in the range of our sphere, then we collide.
         	Vector3f newPosition = level.traceSphere(oldPosition, currentPosition, 25.0f);
-        	
-        	
+        	        	
         	// Set the new position that was returned from our trace function
         	camera.setPosition(newPosition);
 
@@ -222,14 +207,11 @@ public class TesteBSP extends GameCore {
 
         public void render() 
         {
-        	
-        	
         	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
         	glLoadIdentity();									// Reset The matrix
 
         	// Give OpenGL our camera coordinates to look at
         	camera.look();
-
 
         	// Since we are using frustum culling to only draw the visible BSP leafs,
         	// we need to calculate the frustum every frame.  This needs to happen
@@ -242,23 +224,18 @@ public class TesteBSP extends GameCore {
         	level.renderLevel(camera.getPosition());
         	
         	screen.setTitle("FPS: " + FPSCounter.get() + " VisibleFaces: " + Quake3BSP.visibleFaces); 
-        	
-        	
-        }
- 
-
-             
+         }
+  
         public void createGameActions()
         {
-    	  super.createGameActions();
-            moveLeft = new GameAction("moveLeft", GameAction.NORMAL, Keyboard.KEY_LEFT);
-            moveRight = new GameAction("moveRight", GameAction.NORMAL, Keyboard.KEY_RIGHT);
-            moveUp = new GameAction("moveUp", GameAction.NORMAL, Keyboard.KEY_UP);
-            moveDown = new GameAction("moveDown", GameAction.NORMAL, Keyboard.KEY_DOWN);
-                     
-            drawMode  = new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
-            modTex = new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_M);
-             
+        	super.createGameActions();
+        	
+            moveLeft 	= new GameAction("moveLeft", GameAction.NORMAL, Keyboard.KEY_LEFT);
+            moveRight 	= new GameAction("moveRight", GameAction.NORMAL, Keyboard.KEY_RIGHT);
+            moveUp 		= new GameAction("moveUp", GameAction.NORMAL, Keyboard.KEY_UP);
+            moveDown 	= new GameAction("moveDown", GameAction.NORMAL, Keyboard.KEY_DOWN);
+            drawMode  	= new GameAction("drawMode", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_T);
+            modTex 		= new GameAction("modTex", GameAction.DETECT_INITIAL_PRESS_ONLY, Keyboard.KEY_M);
         }
 }
         

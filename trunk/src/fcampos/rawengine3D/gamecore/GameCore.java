@@ -75,7 +75,7 @@ public abstract class GameCore {
 	//Cria a janela e define todos os estados iniciais do OpenGL;
 	protected void init() throws IOException
 	{
-		screen = new ScreenManager(640, 480, 32); // Inicializa o objeto e define a janela com Resolução(800X600 e 32bits);
+		screen = new ScreenManager(800, 600, 32); // Inicializa o objeto e define a janela com Resolução(800X600 e 32bits);
 		setFullScreen(false); // Define a janela para não abrir em FullScreen e sim no modo Window
 		screen.create(); // Cria janela
 		
