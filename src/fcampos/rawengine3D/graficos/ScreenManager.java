@@ -22,9 +22,7 @@ public class ScreenManager {
 	 */
 	public ScreenManager(int width, int height, int bpp) 
 	{
-		
 		setDisplayMode(width, height, bpp);
-			
 	}
 		
 	/**
